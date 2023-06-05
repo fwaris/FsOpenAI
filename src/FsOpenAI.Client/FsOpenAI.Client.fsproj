@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="SimpleCrypt.fs" />
+    <Compile Include="Api.fs" />
+    <Compile Include="Model.fs" />
+    <Compile Include="Subscription.fs" />
+    <Compile Include="SysPromptView.fs" />
+    <Compile Include="PromptView.fs" />
+    <Compile Include="ChatView.fs" />
+    <Compile Include="AppBar.fs" />
+    <Compile Include="MainLayout.fs" />
+    <Compile Include="App.fs" />
+    <Compile Include="Startup.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Azure.AI.OpenAI" Version="1.0.0-beta.5" />
+    <PackageReference Include="Bolero" Version="0.*" />
+    <PackageReference Include="Bolero.Build" Version="0.*" />
+    <PackageReference Include="Bolero.HotReload" Version="0.*" />
+	<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="7.0.*" />
+	<PackageReference Include="MudBlazor" Version="6.3.1" />
+	<PackageReference Include="Plotly.Blazor" Version="2.18.2" />
+	<PackageReference Include="FSharp.SystemTextJson" Version="1.1.23" />
+  </ItemGroup>
+</Project>
