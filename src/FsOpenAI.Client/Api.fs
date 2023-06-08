@@ -15,21 +15,14 @@ let newClient (k1,k2,rg) =
     OpenAIClient(ep,creds)
 
 
-let getCompletions (keys,chatMessages) = 
-    let c1 = 
-        ChatCompletionsOptions(
-            MaxTokens = 1000,
-            Temperature = 1.0f,
-            FrequencyPenalty = 0.0f,
-            PresencePenalty = 0.0f        
-    )
-    chatMessages |> List.iter (c1.Messages.Add)
+let getCompletions (keys,chatMessages,options:ChatCompletionsOptions) = 
+    chatMessages |> List.iter (options.Messages.Add)
     let c = newClient keys
     task {
-        let! resp = c.GetChatCompletionsAsync(model,c1)    
+        let! resp = c.GetChatCompletionsAsync(model,options)    
         if resp.HasValue then 
             let topMsg = (resp.Value.Choices |> Seq.head).Message
-            return chatMessages @ [topMsg]
+            return (chatMessages |> List.filter(fun x-> x.Role<>ChatRole.System)) @ [topMsg]
         else
             return failwith $"Error calling api: {resp.GetRawResponse().ReasonPhrase}"
     }

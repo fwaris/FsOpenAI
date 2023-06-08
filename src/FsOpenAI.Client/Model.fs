@@ -14,6 +14,10 @@ type Model =
         key  : string
         apiKey : string
         resourceGroup: string
+        settingsOpen : bool
+        temperature : float
+        max_tokens : int
+        top_prob : float
     }
 
 let initModel =
@@ -26,6 +30,10 @@ let initModel =
         key = ""
         apiKey = ""
         resourceGroup = ""
+        settingsOpen = false
+        temperature = 1.0
+        max_tokens = 600
+        top_prob = 0.95
     }
 
 let newMessage (cntnt:string) = ChatMessage(role=ChatRole.User,content=cntnt)
@@ -43,6 +51,10 @@ type Message =
     | Reset 
     | AddDummyContent
     | DeleteChatItem of ChatMessage
+    | OpenCloseSettings of bool
+    | SetTemperature of float
+    | SetMaxTokens of int
+    | SetTopProb of float
     //| RequestKey
 
 let notEmpty (s:string) = String.IsNullOrWhiteSpace s |> not
@@ -61,7 +73,15 @@ let update message model =
                         let sysMsg = if notEmpty model.systemPrompt then [ChatMessage(ChatRole.System,model.systemPrompt)] else []
                         let chat = model.chat @ [newMessage model.prompt]
                         let chatSubmit = sysMsg @ chat
-                        let cmd = Cmd.OfTask.either Api.getCompletions ((model.key,model.apiKey,model.resourceGroup), chatSubmit) GotChat Error
+                        let opts = 
+                            ChatCompletionsOptions(
+                                MaxTokens = model.max_tokens,
+                                Temperature = float32 model.temperature,
+                                NucleusSamplingFactor  = float32 model.top_prob,
+                                FrequencyPenalty = 0.0f,
+                                PresencePenalty = 0.0f        
+                        )
+                        let cmd = Cmd.OfTask.either Api.getCompletions ((model.key,model.apiKey,model.resourceGroup), chatSubmit,opts) GotChat Error
                         {model with prompt=""; chat = chat ; busy=true},cmd
                     else 
                         model,Cmd.none
@@ -74,4 +94,8 @@ let update message model =
         },Cmd.none
 
     | DeleteChatItem c -> {model with chat = model.chat |> List.filter(fun c' -> not(c'=c))},Cmd.none
+    | OpenCloseSettings b -> {model with settingsOpen = b},Cmd.none
+    | SetTemperature f -> {model with temperature = f},Cmd.none
+    | SetMaxTokens t -> {model with max_tokens = t},Cmd.none
+    | SetTopProb t -> {model with top_prob = t},Cmd.none
 

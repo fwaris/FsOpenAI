@@ -8,6 +8,7 @@
     <Compile Include="Api.fs" />
     <Compile Include="Model.fs" />
     <Compile Include="Subscription.fs" />
+    <Compile Include="SettingsView.fs" />
     <Compile Include="SysPromptView.fs" />
     <Compile Include="PromptView.fs" />
     <Compile Include="ChatView.fs" />
