@@ -62,7 +62,12 @@ type Message =
 
 let notEmpty (s:string) = String.IsNullOrWhiteSpace s |> not
 
-let checkBusy model apply = if model.busy then model,Cmd.ofMsg (HighlightBusy true) else apply() 
+let checkBusy model apply = 
+    if model.busy then 
+        model,
+        if model.highlight_busy then Cmd.none else Cmd.ofMsg (HighlightBusy true) 
+    else 
+        apply() 
 
 let submitChat model message () = 
     if (notEmpty model.prompt && (model.chat.IsEmpty || (List.last model.chat).Role = ChatRole.System))
