@@ -7,7 +7,7 @@ open MudBlazor
 open FsOpenAI.Client.Model
 open Azure.AI.OpenAI
 
-type ChatView() =
+type ChatHistoryView() =
     inherit ElmishComponent<Model,Message>()
 
     let iconType (c:ChatMessage)  = if c.Role = ChatRole.User then Icons.Material.Filled.Person else Icons.Material.Filled.Assistant
@@ -46,17 +46,25 @@ type ChatView() =
                                     comp<MudCardContent> {
                                         "Class" => "d-flex"
                                         "Style" => $"background:{color c.Role}"
-                                        icon c                                        
-                                        text c
+                                        comp<MudStack> {
+                                            "Class" => "flex-grow-1"
+                                            "Row" => true
+                                            concat {
+                                                icon c                                        
+                                                text c
+                                            }
+                                            comp<MudSpacer> {attr.empty()}
+                                            comp<MudIconButton> {
+                                                //"Class" => "flex-auto align-self-end"
+                                                "Icon" => Icons.Material.Filled.Delete
+                                                "Size" => Size.Small
+                                                on.click(fun e -> dispatch (DeleteChatItem c))
+                                            }                                        
+                                        }
                                     }
-                                    comp<MudCardActions> {
-                                        "Class" => "p-1 align-content-end justify-end"                                        
-                                        comp<MudIconButton> {
-                                            "Icon" => Icons.Material.Filled.Delete
-                                            "Size" => Size.Small
-                                            on.click(fun e -> dispatch (DeleteChatItem c))
-                                        }                                        
-                                    }
+                                    //comp<MudCardActions> {
+                                    //    "Class" => "p-1 align-content-end justify-end"                                        
+                                    //}
                                 }
 
                             }

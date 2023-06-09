@@ -11,7 +11,7 @@
     <Compile Include="SettingsView.fs" />
     <Compile Include="SysPromptView.fs" />
     <Compile Include="PromptView.fs" />
-    <Compile Include="ChatView.fs" />
+    <Compile Include="ChatHistoryView.fs" />
     <Compile Include="AppBar.fs" />
     <Compile Include="MainLayout.fs" />
     <Compile Include="App.fs" />

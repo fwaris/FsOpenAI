@@ -35,6 +35,7 @@ let appBar model =
                 comp<MudIcon> {
                     "Class" => "align-self-center"
                     "Icon" => if model.busy then Icons.Material.Outlined.DoNotDisturbOnTotalSilence else Icons.Material.Outlined.Circle
+                    "Size" => if model.highlight_busy then Size.Large else Size.Medium
                 }
             }
         }

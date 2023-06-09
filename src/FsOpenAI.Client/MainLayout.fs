@@ -27,7 +27,7 @@ let view (model:Model) dispatch =
                     comp<MudItem> {
                         //"Class" => "d-flex flex-grow-0 mud-width-full py-3"
                         "xs" => 8
-                        ecomp<Chat.ChatView,_,_> model dispatch {attr.empty()}
+                        ecomp<Chat.ChatHistoryView,_,_> model dispatch {attr.empty()}
                     }
                 }
             }

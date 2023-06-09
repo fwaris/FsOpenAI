@@ -18,6 +18,7 @@ type Model =
         temperature : float
         max_tokens : int
         top_prob : float
+        highlight_busy : bool
     }
 
 let initModel =
@@ -34,6 +35,7 @@ let initModel =
         temperature = 1.0
         max_tokens = 600
         top_prob = 0.95
+        highlight_busy = false
     }
 
 let newMessage (cntnt:string) = ChatMessage(role=ChatRole.User,content=cntnt)
@@ -55,47 +57,67 @@ type Message =
     | SetTemperature of float
     | SetMaxTokens of int
     | SetTopProb of float
+    | HighlightBusy of bool
     //| RequestKey
 
 let notEmpty (s:string) = String.IsNullOrWhiteSpace s |> not
 
+let checkBusy model apply = if model.busy then model,Cmd.ofMsg (HighlightBusy true) else apply() 
 
+let submitChat model message () = 
+    if (notEmpty model.prompt && (model.chat.IsEmpty || (List.last model.chat).Role = ChatRole.System))
+       || (model.chat.IsEmpty |> not && (List.last model.chat).Role=ChatRole.User) then 
+        let sysMsg = if notEmpty model.systemPrompt then [ChatMessage(ChatRole.System,model.systemPrompt)] else []
+        let chat = model.chat @ [newMessage model.prompt]
+        let chatSubmit = sysMsg @ chat
+        let opts = 
+            ChatCompletionsOptions(
+                MaxTokens = model.max_tokens,
+                Temperature = float32 model.temperature,
+                NucleusSamplingFactor  = float32 model.top_prob,
+                FrequencyPenalty = 0.0f,
+                PresencePenalty = 0.0f        
+        )
+        let cmd = Cmd.OfTask.either Api.getCompletions ((model.key,model.apiKey,model.resourceGroup), chatSubmit,opts) GotChat Error
+        {model with prompt=""; chat = chat ; busy=true},cmd
+    else 
+        //failwith "To submit, chat history last message should be User role OR User prompt is not empty"           
+        model,Cmd.none
+
+let addDummyContent message model () = 
+        {model with
+            chat = [for i in 1 .. 20 -> ChatMessage((if i%2=0 then ChatRole.Assistant else ChatRole.User),$"This the text for item {i}")]
+        },Cmd.none
+
+let highlightBusy model t = 
+        let delayTask () = 
+            async{
+                do! Async.Sleep 500
+                return false}
+        {model with highlight_busy = t}, 
+        if not t then 
+            Cmd.none 
+        else 
+            Cmd.OfAsync.perform delayTask () HighlightBusy
+            
 let update message model =
     printfn $"message: {message}"; 
     match message with
     | SetPrompt s -> {model with prompt = s},Cmd.none
     | SetSystemPrompt s -> {model with systemPrompt = s},Cmd.none
     | AddItem ci -> {model with chat = model.chat @ [ci]},Cmd.none
-    | Clear      -> {model with systemPrompt = ""; chat=[]},Cmd.none
+    | Clear      -> checkBusy model <| fun () -> {model with systemPrompt = ""; chat=[]},Cmd.none
     | Error exn -> {model with error = Some exn.Message; busy = false},Cmd.none
     | ClearError -> {model with error = None},Cmd.none
-    | SubmitChat -> if notEmpty model.prompt && not model.busy then 
-                        let sysMsg = if notEmpty model.systemPrompt then [ChatMessage(ChatRole.System,model.systemPrompt)] else []
-                        let chat = model.chat @ [newMessage model.prompt]
-                        let chatSubmit = sysMsg @ chat
-                        let opts = 
-                            ChatCompletionsOptions(
-                                MaxTokens = model.max_tokens,
-                                Temperature = float32 model.temperature,
-                                NucleusSamplingFactor  = float32 model.top_prob,
-                                FrequencyPenalty = 0.0f,
-                                PresencePenalty = 0.0f        
-                        )
-                        let cmd = Cmd.OfTask.either Api.getCompletions ((model.key,model.apiKey,model.resourceGroup), chatSubmit,opts) GotChat Error
-                        {model with prompt=""; chat = chat ; busy=true},cmd
-                    else 
-                        model,Cmd.none
+    | SubmitChat -> checkBusy model <| submitChat model message
     | GotChat msgs -> {model with chat = msgs; busy=false},Cmd.none
-    | Reset        -> {model with chat=[];systemPrompt="";prompt=""},Cmd.none
+    | Reset        -> checkBusy model <| fun () -> {model with chat=[];systemPrompt="";prompt=""},Cmd.none
     | SetKeys (k,apik,rg) -> {model with key = k; apiKey = apik; resourceGroup=rg; busy=false},Cmd.none
-    | AddDummyContent -> 
-        {model with
-            chat = [for i in 1 .. 20 -> ChatMessage((if i%2=0 then ChatRole.Assistant else ChatRole.User),$"This the text for item {i}")]
-        },Cmd.none
-
+    | AddDummyContent -> checkBusy model <| addDummyContent message model
     | DeleteChatItem c -> {model with chat = model.chat |> List.filter(fun c' -> not(c'=c))},Cmd.none
     | OpenCloseSettings b -> {model with settingsOpen = b},Cmd.none
     | SetTemperature f -> {model with temperature = f},Cmd.none
     | SetMaxTokens t -> {model with max_tokens = t},Cmd.none
     | SetTopProb t -> {model with top_prob = t},Cmd.none
+    | HighlightBusy t -> highlightBusy model t
 
