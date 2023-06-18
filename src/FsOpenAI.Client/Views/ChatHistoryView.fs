@@ -5,7 +5,6 @@ open Bolero.Html
 open Elmish
 open MudBlazor
 open FsOpenAI.Client.Model
-open Azure.AI.OpenAI
 
 type ChatHistoryView() =
     inherit ElmishComponent<Model,Message>()

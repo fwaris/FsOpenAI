@@ -1,4 +1,4 @@
-﻿module Settings
+﻿module GenParameters
 open System
 open Bolero
 open Bolero.Html
@@ -9,7 +9,7 @@ open FsOpenAI.Client.Model
 type SettingsView() =
     inherit ElmishComponent<Model,Message>()
     
-    override this.View model dispatch =
+    override this.View model (dispatch:Message -> unit) =
         comp<MudPopover> {
                 "Style" => "width:300px"
                 "AnchorOrigin" => Origin.BottomLeft

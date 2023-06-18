@@ -6,24 +6,27 @@
   <ItemGroup>
     <Compile Include="SimpleCrypt.fs" />
     <Compile Include="Api.fs" />
+    <Compile Include="Chats.fs" />
     <Compile Include="Model.fs" />
     <Compile Include="Subscription.fs" />
-    <Compile Include="SettingsView.fs" />
-    <Compile Include="SysPromptView.fs" />
-    <Compile Include="PromptView.fs" />
-    <Compile Include="ChatHistoryView.fs" />
-    <Compile Include="AppBar.fs" />
+    <Compile Include="Views\GenParameters.fs" />
+    <Compile Include="Views\SysPromptView.fs" />
+    <Compile Include="Views\PromptView.fs" />
+    <Compile Include="Views\ChatHistoryView.fs" />
+    <Compile Include="AppBar\AppSettingsView.fs" />
+    <Compile Include="AppBar\AppBar.fs" />
     <Compile Include="MainLayout.fs" />
     <Compile Include="App.fs" />
     <Compile Include="Startup.fs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Azure.AI.OpenAI" Version="1.0.0-beta.5" />
     <PackageReference Include="Bolero" Version="0.*" />
     <PackageReference Include="Bolero.Build" Version="0.*" />
     <PackageReference Include="Bolero.HotReload" Version="0.*" />
+    <PackageReference Include="FSharp.Control.AsyncSeq" Version="3.2.1" />
 	<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="7.0.*" />
-	<PackageReference Include="MudBlazor" Version="6.3.1" />
+	<PackageReference Include="MudBlazor" Version="6.4.1" />
+	<PackageReference Include="OpenAI" Version="1.7.2" />
 	<PackageReference Include="Plotly.Blazor" Version="2.18.2" />
 	<PackageReference Include="FSharp.SystemTextJson" Version="1.1.23" />
   </ItemGroup>

@@ -3,7 +3,7 @@ open Bolero.Html
 open MudBlazor
 open FsOpenAI.Client.Model
 
-let appBar model = 
+let appBar model dispatch = 
     comp<MudAppBar> {
         "Style" => $"background:{Colors.BlueGrey.Darken3};"
         "Fixed" => true
@@ -11,14 +11,25 @@ let appBar model =
         comp<MudGrid> {
             comp<MudItem> {
                 "xs" => 2
-                comp<MudLink> {
-                    "Href" => "http://openai.com"  
-                    comp<MudImage> {
-                        "Style" => $"background:{Colors.Grey.Lighten3};padding;20px"
-                        "Src" => "imgs/icon.jpg"
-                        "Width" => 40
+                comp<MudMenu> {
+                    "Icon" => Icons.Material.Filled.Settings
+                    comp<MudMenuItem> {
+                        
+                        comp<MudPaper> {
+                            comp<MudForm> {
+                                concat {
+                                    comp<MudTextField<string>> {
+                                        text "pass"
+                                    }
+                                }
+                            }
+                        }
                     }
-                }                    
+                    comp<MudMenuItem> {
+                        "Icon" => Icons.Material.Filled.Call
+                        on.click (fun ev -> let x = AppSettingsView.dnld "http://google.com" |> Async.RunSynchronously in printfn "%A" x)
+                    }
+                }                
             }
             comp<MudItem> {
                 "xs" => 8                    

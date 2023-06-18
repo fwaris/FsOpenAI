@@ -4,6 +4,7 @@
     <TargetFramework>net7.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <None Include="scripts\TestFunctions.fsx" />
     <None Include="scripts\packages.fsx" />
     <None Include="scripts\testApi.fsx" />
     <Compile Include="Services.fs" />

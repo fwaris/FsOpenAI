@@ -11,7 +11,7 @@ type PromptView() =
     
     override this.View model dispatch =
         concat {  
-            ecomp<Settings.SettingsView,_,_> model dispatch {attr.empty()}
+            ecomp<GenParameters.SettingsView,_,_> model dispatch {attr.empty()}
             comp<MudGrid> {
                 //"Class" => "d-flex flex-grow-1"
                 "Spacing" => 0

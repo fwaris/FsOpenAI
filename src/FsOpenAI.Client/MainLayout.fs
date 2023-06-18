@@ -11,7 +11,7 @@ let view (model:Model) dispatch =
             comp<MudThemeProvider> { "isDarkMode" => true }
             comp<MudDialogProvider> {attr.empty()}
             comp<MudSnackbarProvider> {attr.empty()}
-            AppBar.appBar model
+            AppBar.appBar model dispatch
             comp<MudMainContent> {
                 comp<MudGrid> {
                     "Class" => "py-8 px-4"
