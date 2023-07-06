@@ -1,17 +1,16 @@
-﻿module Prompt
+﻿namespace FsOpenAI.Client.Views
 open System
 open Bolero
 open Bolero.Html
 open Elmish
 open MudBlazor
-open FsOpenAI.Client.Model
+open FsOpenAI.Client
 
 type PromptView() =
-    inherit ElmishComponent<Model,Message>()
+    inherit ElmishComponent<Chat*ChatMessage,Message>()
     
-    override this.View model dispatch =
+    override this.View (chat,message) dispatch =
         concat {  
-            ecomp<GenParameters.SettingsView,_,_> model dispatch {attr.empty()}
             comp<MudGrid> {
                 //"Class" => "d-flex flex-grow-1"
                 "Spacing" => 0
@@ -19,12 +18,12 @@ type PromptView() =
                     //"Class" => "d-flex flex-grow-1"
                     "xs" => 12
                     comp<MudTextField<string>> {
-                        attr.callback "ValueChanged" (fun e -> dispatch (SetPrompt e))
+                        attr.callback "ValueChanged" (fun e -> dispatch (Chat_AddMsg (chat.Id,e)))
                         "Variant" => Variant.Outlined
                         "Label" => "Prompt"
                         "Lines" => 15
                         "Placeholder" => "Enter prompt or question"
-                        "Text" => model.prompt
+                        "Text" => message.Message
                     }
                 }
                 comp<MudItem> {               
@@ -34,7 +33,6 @@ type PromptView() =
                         "Row" => true
                         comp<MudIconButton> {
                             "Icon" => Icons.Material.Filled.Settings
-                            on.click (fun e -> dispatch (OpenCloseSettings (not model.settingsOpen)))
                         }
                         comp<MudIconButton> {
                             "Icon" => Icons.Material.Filled.DeleteSweep

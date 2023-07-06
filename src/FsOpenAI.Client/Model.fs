@@ -1,47 +1,66 @@
-﻿module FsOpenAI.Client.Model
+﻿namespace FsOpenAI.Client 
 open System
-open Elmish
-open Chats
+open OpenAI_API
 
+type ApiParameters = 
+    {
+        OpenAIApiKey : string
+        AzureApiKey : string
+        AzureResourceGroup : string        
+    }
+    static member Default = 
+        {
+            OpenAIApiKey    = ""
+            AzureApiKey = ""
+            AzureResourceGroup = ""
+        }
 
-/// The Elmish application's model.
+type ChatRole = User | Assistant
+type ChatMessage = {Role:ChatRole; Message: string} 
+type ServiceModel = {Model:string; ApiVersion:string} 
+
+type ChatService = Azure of ServiceModel | OpenAI of ServiceModel
+    with 
+        static member DefaultAzure = Azure {Model="gpt-3.5-turbo"; ApiVersion="2023-06-01-preview"}
+        static member DefaultOpenAI = OpenAI {Model="gpt-3.5-turbo"; ApiVersion="v1"}
+
+type ChatParameters = 
+    {
+        Service     : ChatService
+        Temperature : float
+        PresencePenalty : float
+        FrequencyPenalty : float
+        MaxTokens : int 
+
+    }
+    static member Default = 
+        {
+            Service = ChatService.DefaultOpenAI
+            Temperature = 1.0      //0.0 to 2.0
+            PresencePenalty = 0.0  //-2.0 to +2.0
+            FrequencyPenalty = 0.0 //-2.0 to +2.0
+            MaxTokens = 1000            
+        }
+
+type Chat = { 
+    Id : string
+    Name: string
+    System: string;
+    Messages : ChatMessage list
+    Parameters : ChatParameters
+    Timestamp : DateTime
+}
+
 type Model =
     {
-        systemPrompt: string
-        prompt : string
         chats : Chat list 
         error : string option
         busy : bool
-        key  : string
-        apiKey : string
-        resourceGroup: string
         settingsOpen : bool
-        temperature : float
-        max_tokens : int
-        top_prob : float
         highlight_busy : bool
-        serviceParameters : Api.ApiParameters
+        serviceParameters : ApiParameters
     }
 
-let initModel =
-    {
-        prompt = ""
-        systemPrompt = ""
-        chats = Chats.empty
-        error = None
-        busy = false
-        key = ""
-        apiKey = ""
-        resourceGroup = ""
-        settingsOpen = false
-        temperature = 1.0
-        max_tokens = 600
-        top_prob = 0.95
-        highlight_busy = false
-        serviceParameters = Api.ApiParameters.Default        
-    }
-
-let newMessage (cntnt:string) = {Role=ChatRole.User; Message=cntnt} 
 
 type Message =
     | Chat_SysPrompt of string * string
@@ -53,88 +72,10 @@ type Message =
     | Chat_Add 
     | Chat_Remove of string 
     | SubmitChat of string
-    | GotChat of Chat
     | Clear 
     | Error of exn
     | ClearError
-    | SetKeys of string*string*string
     | Reset 
     | AddDummyContent
-    | DeleteChatItem of string*ChatMessage
     | OpenCloseSettings of bool
-    | SetTemperature of float
-    | SetMaxTokens of int
-    | SetTopProb of float
     | HighlightBusy of bool
-
-let notEmpty (s:string) = String.IsNullOrWhiteSpace s |> not
-
-let checkBusy model apply = 
-    if model.busy then 
-        model,
-        if model.highlight_busy then Cmd.none else Cmd.ofMsg (HighlightBusy true) 
-    else 
-        apply() 
-
-let submitChat model message () = 
-    //if (notEmpty model.prompt && (model.chat.IsEmpty || (List.last model.chat).Role = ChatRole.System))
-    //   || (model.chat.IsEmpty |> not && (List.last model.chat).Role=ChatRole.User) then 
-    //    let sysMsg = if notEmpty model.systemPrompt then [ChatMessage(ChatRole.System,model.systemPrompt)] else []
-    //    let chat = model.chat @ [newMessage model.prompt]
-    //    let chatSubmit = sysMsg @ chat
-    //    let opts = 
-    //        ChatCompletionsOptions(
-    //            MaxTokens = model.max_tokens,
-    //            Temperature = float32 model.temperature,
-    //            NucleusSamplingFactor  = float32 model.top_prob,
-    //            FrequencyPenalty = 0.0f,
-    //            PresencePenalty = 0.0f        
-    //    )
-    //    let cmd = Cmd.OfTask.either Api.getCompletions ((model.key,model.apiKey,model.resourceGroup), chatSubmit,opts) GotChat Error
-    //    {model with prompt=""; chat = chat ; busy=true},cmd
-    //else 
-    //    //failwith "To submit, chat history last message should be User role OR User prompt is not empty"           
-        model,Cmd.none
-
-let addDummyContent message model () = 
-        //{model with
-        //    chat = [for i in 1 .. 20 -> ChatMessage((if i%2=0 then ChatRole.Assistant else ChatRole.User),$"This the text for item {i}")]
-        //},Cmd.none
-        model,Cmd.none
-
-let highlightBusy model t = 
-        let delayTask () = 
-            async{
-                do! Async.Sleep 500
-                return false}
-        {model with highlight_busy = t}, 
-        if not t then 
-            Cmd.none 
-        else 
-            Cmd.OfAsync.perform delayTask () HighlightBusy
-            
-let update message model =
-    printfn $"message: {message}"; 
-    match message with
-    | Chat_SysPrompt (id,msg) -> {model with chats = Chats.updateSystem (id,msg) model.chats},Cmd.none
-    | Chat_AddMsg (id,msg) -> {model with chats = Chats.addMessage (id,msg) model.chats},Cmd.none
-    | Chat_DeleteMsg (id,msg) -> {model with chats = Chats.deleteMessage (id,msg) model.chats},Cmd.none
-    | Chat_UpdateName (id,n) -> {model with chats = Chats.updateName (id,n) model.chats},Cmd.none
-    | Chat_UpdateParms (id,p) -> {model with chats = Chats.updateParms (id,p) model.chats},Cmd.none
-    | Chat_Add -> {model with chats = Chats.addChat model.chats},Cmd.none
-    | Chat_Remove id -> {model with chats = Chats.removeChat id model.chats},Cmd.none
-    | Clear -> checkBusy model <| fun () -> {model with chats=Chats.empty},Cmd.none
-    | Error exn -> {model with error = Some exn.Message; busy = false},Cmd.none
-    | ClearError -> {model with error = None},Cmd.none
-    | SubmitChat id -> checkBusy model <| submitChat model message
-    | GotChat msgs -> {model with chat = msgs; busy=false},Cmd.none
-    | Reset        -> checkBusy model <| fun () -> {model with chat=[];systemPrompt="";prompt=""},Cmd.none
-    | SetKeys (k,apik,rg) -> {model with key = k; apiKey = apik; resourceGroup=rg; busy=false},Cmd.none
-    | AddDummyContent -> checkBusy model <| addDummyContent message model
-    | DeleteChatItem c -> {model with chat = model.chat |> List.filter(fun c' -> not(c'=c))},Cmd.none
-    | OpenCloseSettings b -> {model with settingsOpen = b},Cmd.none
-    | SetTemperature f -> {model with temperature = f},Cmd.none
-    | SetMaxTokens t -> {model with max_tokens = t},Cmd.none
-    | SetTopProb t -> {model with top_prob = t},Cmd.none
-    | HighlightBusy t -> highlightBusy model t
-

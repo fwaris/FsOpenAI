@@ -1,7 +1,7 @@
-﻿module AppSettingsView
+﻿namespace FsOpenAI.Client.Views
 open System
 open Bolero
-open FsOpenAI.Client.Model
+open FsOpenAI.Client
 open Bolero.Html
 open MudBlazor
 open System.Net.Http
@@ -18,13 +18,5 @@ type SysPromptView() =
                     }
                 }
             }
-}
-
-let dnld(uri:string) =
-    async {
-        use wc = new HttpClient()
-        let! str = wc.GetStringAsync(uri) |> Async.AwaitTask
-        return str
-    }
-    
+}    
 

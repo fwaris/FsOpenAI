@@ -1,20 +1,19 @@
-﻿module GenParameters
+﻿namespace FsOpenAI.Client.Views
 open System
 open Bolero
 open Bolero.Html
 open Elmish
 open MudBlazor
-open FsOpenAI.Client.Model
+open FsOpenAI.Client
 
-type SettingsView() =
-    inherit ElmishComponent<Model,Message>()
+type ChatParametersView() =
+    inherit ElmishComponent<Chat,Message>()
     
-    override this.View model (dispatch:Message -> unit) =
+    override this.View chat (dispatch:Message -> unit) =
         comp<MudPopover> {
                 "Style" => "width:300px"
                 "AnchorOrigin" => Origin.BottomLeft
                 "TransformOrigin" => Origin.BottomLeft
-                "Open" => model.settingsOpen
                 comp<MudPaper> {
                     "Outlined" => true
                     "Class" => "py-4"
@@ -38,32 +37,32 @@ type SettingsView() =
                         comp<MudSlider<float>> {
                             "Class" => "px-4"
                             "Min" => 0.
-                            "Max" => 1.
+                            "Max" => 2.
                             "Step" => 0.1
                             "ValueLabel" => true
-                            "Value" => model.temperature
-                            on.change (fun e -> dispatch (SetTemperature (e.Value :?> string |> float)))
-                            text $"Temperature: {model.temperature}"
+                            "Value" => chat.Parameters.Temperature
+                            on.change (fun e -> dispatch (Chat_UpdateParms (chat.Id,{chat.Parameters with Temperature = (e.Value :?> string |> float)})))
+                            text $"Temperature: {chat.Parameters.Temperature}"
                         }
                         comp<MudSlider<int>> {
                             "Class" => "px-4"
                             "Min" => 600
-                            "Max" => 3000
+                            "Max" => 5000
                             "Step" => 300
                             "ValueLabel" => true
-                            "Value" => model.max_tokens
-                            on.change (fun e -> dispatch (SetMaxTokens (e.Value :?> string |> int)))
-                            text $"Max Tokens: {model.max_tokens}"
+                            "Value" => chat.Parameters.MaxTokens
+                            on.change (fun e -> dispatch (Chat_UpdateParms (chat.Id,{chat.Parameters with MaxTokens = (e.Value :?> string |> int)})))
+                            text $"Max Tokens: {chat.Parameters.MaxTokens}"
                         }
                         comp<MudSlider<float>> {
                             "Class" => "px-4"
-                            "Min" => 0.5
-                            "Max" => 1.0
+                            "Min" => -2.0
+                            "Max" => 2.0
                             "Step" => 0.1
                             "ValueLabel" => true
-                            "Value" => model.top_prob
-                            on.change (fun e -> dispatch (SetTopProb (e.Value :?> string |> float)))
-                            text $"Top Prob.: {model.top_prob}"
+                            "Value" => chat.Parameters.PresencePenalty
+                            on.change (fun e -> dispatch (Chat_UpdateParms (chat.Id,{chat.Parameters with PresencePenalty = (e.Value :?> string |> float)})))
+                            text $"Presence Penalty: {chat.Parameters.PresencePenalty}"
                         }
                     }
                 }

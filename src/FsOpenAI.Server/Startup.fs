@@ -19,7 +19,7 @@ type Startup() =
         services.AddMvc() |> ignore
         services.AddServerSideBlazor() |> ignore
         services.AddMudServices() |> ignore
-        services.AddSignalR().AddJsonProtocol(fun o ->FsOpenAI.Client.Subscription.serOptions o.PayloadSerializerOptions |> ignore) |> ignore
+        //services.AddSignalR().AddJsonProtocol(fun o ->FsOpenAI.Client.Subscription.serOptions o.PayloadSerializerOptions |> ignore) |> ignore
 
         services
             .AddAuthorization()
@@ -49,7 +49,7 @@ type Startup() =
 #endif
                 endpoints.MapBoleroRemoting() |> ignore
                 endpoints.MapBlazorHub() |> ignore
-                endpoints.MapHub<Services.SubHub>(FsOpenAI.Client.Subscription.subEndpoint) |> ignore
+                //endpoints.MapHub<Services.SubHub>(FsOpenAI.Client.Subscription.subEndpoint) |> ignore
                 endpoints.MapFallbackToBolero(Index.page) |> ignore)
         |> ignore
 

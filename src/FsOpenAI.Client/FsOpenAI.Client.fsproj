@@ -5,14 +5,14 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="SimpleCrypt.fs" />
-    <Compile Include="Api.fs" />
-    <Compile Include="Chats.fs" />
     <Compile Include="Model.fs" />
-    <Compile Include="Subscription.fs" />
-    <Compile Include="Views\GenParameters.fs" />
+    <Compile Include="Chats.fs" />
+    <Compile Include="Update.fs" />
+    <Compile Include="Views\ChatParametersView.fs" />
     <Compile Include="Views\SysPromptView.fs" />
     <Compile Include="Views\PromptView.fs" />
     <Compile Include="Views\ChatHistoryView.fs" />
+    <Compile Include="Views\ChatView.fs" />
     <Compile Include="AppBar\AppSettingsView.fs" />
     <Compile Include="AppBar\AppBar.fs" />
     <Compile Include="MainLayout.fs" />
@@ -29,5 +29,6 @@
 	<PackageReference Include="OpenAI" Version="1.7.2" />
 	<PackageReference Include="Plotly.Blazor" Version="2.18.2" />
 	<PackageReference Include="FSharp.SystemTextJson" Version="1.1.23" />
+	<PackageReference Include="System.Threading.Channels" Version="7.0.0" />
   </ItemGroup>
 </Project>
