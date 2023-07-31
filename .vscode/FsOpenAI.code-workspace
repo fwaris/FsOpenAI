@@ -1,0 +1,11 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		}
+	],
+	"settings": {
+		"FSharp.inlayHints.enabled": false,
+		"FSharp.inlayHints.parameterNames": false
+	}
+}

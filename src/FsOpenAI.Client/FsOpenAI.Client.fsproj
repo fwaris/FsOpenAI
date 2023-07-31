@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="SemanticVectorSearch.fs" />
+    <Compile Include="SimpleCrypt.fs" />
+    <Compile Include="Utils.fs" />
+    <Compile Include="Model.fs" />
+    <Compile Include="Subscription.fs" />
+    <Compile Include="Completions.fs" />
+    <Compile Include="Indexes.fs" />
+    <Compile Include="Interactions.fs" />
+    <Compile Include="QnA.fs" />
+    <Compile Include="ClientHub.fs" />
+    <Compile Include="Update.fs" />
+    <Compile Include="Views\ChatParametersView.fs" />
+    <Compile Include="Views\SysPromptView.fs" />
+    <Compile Include="Views\MessageView.fs" />
+    <Compile Include="Views\ChatHistoryView.fs" />
+    <Compile Include="Views\ChatView.fs" />
+    <Compile Include="Views\IndexSelectionView.fs" />
+    <Compile Include="Views\QAView.fs" />
+    <Compile Include="AppBar\AppBar.fs" />
+    <Compile Include="MainLayout.fs" />
+    <Compile Include="App.fs" />
+    <Compile Include="Startup.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Bolero" Version="0.*" />
+    <PackageReference Include="Bolero.Build" Version="0.*" />
+    <PackageReference Include="Bolero.HotReload" Version="0.*" />
+    <PackageReference Include="FSharp.Control.AsyncSeq" Version="3.2.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="7.0.*" />
+    <PackageReference Include="Microsoft.SemanticKernel" Version="0.18.230725.3-preview" />
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.Memory.AzureCognitiveSearch" Version="0.18.230725.3-preview" />
+    <PackageReference Include="MudBlazor" Version="6.7.0" />
+    <PackageReference Include="Plotly.Blazor" Version="2.18.2" />
+    <PackageReference Include="FSharp.SystemTextJson" Version="1.1.23" />
+    <PackageReference Include="System.Threading.Channels" Version="7.0.0" />
+  </ItemGroup>
+</Project>

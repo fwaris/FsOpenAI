@@ -1,0 +1,38 @@
+{
+  "AZURE_OPENAI_ENDPOINTS": [
+    {
+      "API_KEY": "key1",
+      "RESOURCE_GROUP": "resoruce group 1",
+      "API_VERSION": "2023-03-15-preview"
+    },
+    {
+      "API_KEY": "key2",
+      "RESOURCE_GROUP": "resoruce group 2",
+      "API_VERSION": "2023-03-15-preview"
+    }  
+  ],
+
+  "OPENAI_KEY" :  "",
+
+  "AZURE_SEARCH_ENDPOINTS": [
+    {
+      "API_KEY": "search key 1",
+      "ENDPOINT": "https://[search service 1].search.windows.net"
+    },
+    {
+      "API_KEY": "search key 2",
+      "ENDPOINT": "https://[search service 2].search.windows.net"
+    }  ],
+
+  "AZURE_OPENAI_MODELS": {
+    "CHAT": [ "gpt-35-turbo", "gpt-4", "gpt-4-32k" ],
+    "COMPLETION": [ "text-davinci-003" ],
+    "EMBEDDING": [ "text-embedding-ada-002" ]
+  },
+
+  "OPENAI_MODELS": {
+    "CHAT": [ "gpt-35-turbo", "gpt-4"],
+    "COMPLETION": [ "text-davinci-003" ],
+    "EMBEDDING": [ "text-embedding-ada-002" ]
+  }
+}
