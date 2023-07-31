@@ -3,16 +3,17 @@ open System
 open System.Threading.Channels
 open Elmish
 open FSharp.Control
+open Blazored.LocalStorage
 
 module Update =
     open MudBlazor
 
     let newInteractionTypes = 
         [
-            "New Chat with Azure deployed models", CreateChat AzureOpenAI
-            "New Doc. Q&A with Azure deployed models", CreateQA AzureOpenAI
-            "New Chat with OpenAI models", CreateChat OpenAI
-            "New Doc. Q&A with OpenAI models", CreateQA OpenAI
+            Icons.Material.Outlined.Chat, "New Chat with Azure deployed models", CreateChat AzureOpenAI
+            Icons.Material.Outlined.QuestionAnswer, "New Doc. Q&A with Azure deployed models", CreateQA AzureOpenAI
+            Icons.Material.Outlined.Chat, "New Chat with OpenAI models", CreateChat OpenAI
+            Icons.Material.Outlined.QuestionAnswer,"New Doc. Q&A with OpenAI models", CreateQA OpenAI
         ]
 
     let addQASample model =
@@ -89,11 +90,28 @@ module Update =
             serverDispatch (ClientInitiatedMessages.Clnt_Connected "me")
         }
         |> Async.StartImmediate
+
+    let addDefaultModel f1 f2 (sParms:ServiceSettings option) chatParms =
+        sParms
+        |> Option.map(fun p -> 
+            match chatParms.Backend with AzureOpenAI -> p.AZURE_OPENAI_MODELS | OpenAI -> p.OPENAI_MODELS
+            |> Option.bind(fun d -> List.tryHead (f1 d))
+            |> Option.map (fun m -> f2 chatParms m)
+            |> Option.defaultValue chatParms)
+        |> Option.defaultValue chatParms
         
     let MAX_INTERACTIONS = 15
     let checkAddInteraction ctype model =
         if model.interactions.Length < MAX_INTERACTIONS then
-            let id,cs = Interactions.addNew ctype None model.interactions            
+            let id,cs = Interactions.addNew ctype None model.interactions      
+            let c = cs |> List.find (fun c -> c.Id=id)
+            let sParms = model.serviceParameters
+            let cParms =
+                c.Parameters
+                |> addDefaultModel (fun d -> d.CHAT)       (fun p m -> {p with ChatModel = m})        sParms
+                |> addDefaultModel (fun d -> d.COMPLETION) (fun p m -> {p with CompletionsModel = m}) sParms
+                |> addDefaultModel (fun d -> d.EMBEDDING)  (fun p m -> {p with EmbeddingsModel = m})  sParms
+            let cs = Interactions.updateParms (id,cParms) cs
             {model with interactions = cs},Cmd.none
         else
             model,Cmd.ofMsg (ShowInfo "Max number of tabs reached")
@@ -112,18 +130,22 @@ module Update =
                 |> Option.defaultWith(fun _ -> model.settingsOpen |> Map.add id true)
         }
 
-    let postInit (idxs,err) initial = 
+    let postInit (idxs,err,initial) = 
         let idxMsg = Cmd.ofMsg(IndexesRefreshed(idxs,err))
-        let postInit = if initial && err.IsNone then [idxMsg; Cmd.ofMsg(AddSamples)] else [idxMsg]
+        let postInit = if initial && err.IsNone then [idxMsg; Cmd.ofMsg(AddSamples); Cmd.ofMsg GetOpenAIKey] else [idxMsg; Cmd.ofMsg GetOpenAIKey]
         Cmd.batch postInit
 
+    let getKeyFromLocal (localStore:ILocalStorageService) model =
+        match model.serviceParameters with 
+        | Some p when p.OPENAI_KEY.IsNone || Utils.isEmpty p.OPENAI_KEY.Value ->
+            let t() = task{return! localStore.GetItemAsync<string> C.LS_OPENAI_KEY}
+            model,Cmd.OfTask.either t () SetOpenAIKey IgnoreError
+        | _ -> model,Cmd.none
+
     //if there is an exception when processing a message, the Elmish message loop terminates
-    let update (snkbar:ISnackbar) serverDispatch message model =
+    let update (localStore:ILocalStorageService) (snkbar:ISnackbar) serverDispatch message model =
         printfn "%A" message
         match message with
-        | AddSamples -> addQASample model,Cmd.none
-        | RefreshIndexes initial -> checkBusy model <| refreshIndexes serverDispatch initial
-        | IndexesRefreshed (idxs,err) -> {model with indexRefs = idxs; busy=false}, match err with Some e -> Cmd.ofMsg(ShowError e) | _ -> Cmd.none
         | Chat_SysPrompt (id,msg) -> {model with interactions = Interactions.updateSystemMsg (id,msg) model.interactions},Cmd.none
         | Ia_AddMsg (id,msg) -> {model with interactions = Interactions.addMessage (id,msg) model.interactions},Cmd.none
         | Ia_UpdateLastMsg (id,msg) -> {model with interactions = Interactions.addOrUpdateLastMsg(id,msg) model.interactions},Cmd.none
@@ -148,9 +170,18 @@ module Update =
         | HighlightBusy t -> highlightBusy model t
         | SetServiceParms p -> {model with serviceParameters = Some p},Cmd.none
         | Started -> pingServer serverDispatch; {model with busy=true},Cmd.none
+        | AddSamples -> addQASample model,Cmd.none
+        | RefreshIndexes initial -> checkBusy model <| refreshIndexes serverDispatch initial
+        | IndexesRefreshed (idxs,err) -> {model with indexRefs = idxs; busy=false}, match err with Some e -> Cmd.ofMsg(ShowInfo e) | _ -> Cmd.none
+        | GetOpenAIKey -> getKeyFromLocal localStore model
+        | SetOpenAIKey key -> {model with serviceParameters = model.serviceParameters |> Option.map (fun p -> {p with OPENAI_KEY = Some key})},Cmd.none
+        | UpdateOpenKey key -> model,Cmd.batch [Cmd.ofMsg (SetOpenAIKey key); Cmd.ofMsg (SaveToLocal(C.LS_OPENAI_KEY,key))]
+        | SaveToLocal (k,v) -> localStore.SetItemAsStringAsync(k,v) |> ignore; model,Cmd.none
+        | IgnoreError ex -> model,Cmd.none
         | FromServer (Srv_Parameters p) -> {model with serviceParameters=Some p; busy=false},Cmd.ofMsg(RefreshIndexes true)
         | FromServer (Srv_Ia_Delta(id,i,d)) -> model,Cmd.ofMsg(Ia_AddDelta(id,d))
         | FromServer (Srv_Ia_Done(id,err)) -> model, Cmd.ofMsg(Ia_Completed(id,err))
         | FromServer (Srv_Error err) -> model,Cmd.ofMsg (ShowError err)
-        | FromServer (Srv_IndexesRefreshed (idxs,err,initial)) -> {model with busy=false}, postInit (idxs,err) initial
+        | FromServer (Srv_Info err) -> model,Cmd.ofMsg (ShowInfo err)
+        | FromServer (Srv_IndexesRefreshed (idxs,err,initial)) -> {model with busy=false}, postInit (idxs,err,initial)
         | FromServer (Srv_Ia_Notification (id,note)) -> model,Cmd.ofMsg(Ia_Notification(id,note))

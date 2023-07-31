@@ -7,9 +7,20 @@ open MudBlazor
 open FsOpenAI.Client
 
 type ChatParametersView() =
-    inherit ElmishComponent<bool*Interaction,Message>()    
+    inherit ElmishComponent<bool*Interaction*Model,Message>()    
+    
     override this.View mdl (dispatch:Message -> unit) =
-        let settingsOpen,chat = mdl
+        let settingsOpen,chat,model = mdl
+
+        let chatModels = Interactions.chatModels model.serviceParameters chat 
+        let completionsModels = Interactions.completionsModels model.serviceParameters chat
+        let embeddingsModels = Interactions.embeddingsModel model.serviceParameters chat
+
+        let dispatchSel id f dispatch (xs:string seq)=
+            xs 
+            |> Seq.tryHead
+            |> Option.iter (fun mdl -> dispatch (Ia_UpdateParms (id, f mdl)))
+
         concat {
             comp<MudIconButton> {
                 "Icon" => Icons.Material.Outlined.Settings
@@ -69,6 +80,15 @@ type ChatParametersView() =
                                 "Value" => chat.Parameters.PresencePenalty
                                 on.change (fun e -> dispatch (Ia_UpdateParms (chat.Id,{chat.Parameters with PresencePenalty = (e.Value :?> string |> float)})))
                                 text $"Presence Penalty: {chat.Parameters.PresencePenalty}"
+                            }
+                            comp<MudSelect<string>> {
+                                "Label" => "Chat Model"
+                                attr.callback "SelectedValuesChanged" (dispatchSel chat.Id (fun m -> {chat.Parameters with ChatModel=m}) dispatch)
+                                "SelectedValues" => (chatModels |> List.filter snd |> List.map fst)
+                                for (ch,b) in Interactions.chatModels model.serviceParameters chat do
+                                    comp<MudSelectItem<string>> {
+                                        "Value" => ch
+                                    }
                             }
                         }
                     }

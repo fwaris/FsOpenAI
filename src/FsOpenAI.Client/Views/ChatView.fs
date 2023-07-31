@@ -18,7 +18,7 @@ type ChatView() =
                 "class" => "d-flex flex-grow-1 gap-1"
                 comp<MudPaper> {
                     "Class" => "d-flex flex-none align-self-start mt-4"
-                    ecomp<ChatParametersView,_,_> (settingsOpen,chat) dispatch {attr.empty()}
+                    ecomp<ChatParametersView,_,_> (settingsOpen,chat,model) dispatch {attr.empty()}
                 }
                 comp<MudPaper> {
                     "Class" => "d-flex flex-1 ma-3"

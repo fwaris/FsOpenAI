@@ -20,8 +20,8 @@ type ServerHub() =
 
             | Clnt_Connected _ -> 
                 try
-                    let! parms = Env.getParameters()
-                    do! ServerHub.SendMessage(client,Srv_Parameters(parms))
+                    let dispatch msg = ServerHub.SendMessage(client,msg) |> ignore
+                    do! Env.getParameters dispatch
                 with ex ->
                     do! ServerHub.SendMessage(client,Srv_Error(ex.Message))
 

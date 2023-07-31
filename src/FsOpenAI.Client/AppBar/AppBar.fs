@@ -17,8 +17,9 @@ module AppBar =
                         "Icon" => Icons.Material.Filled.Add
                         "Size" => Size.Large
                         concat {
-                            for (name,createType) in model.interactionCreateTypes do 
+                            for (icon,name,createType) in model.interactionCreateTypes do 
                                 comp<MudMenuItem> {
+                                    "Icon" => icon
                                     on.click(fun _ -> dispatch (Ia_Add createType))
                                     text name
                                 }
@@ -35,7 +36,7 @@ module AppBar =
                     }
                 }
                 comp<MudItem> {
-                    "xs" => 2
+                    "xs" => 1
                     //"Class" => "d-flex justify-center align-content-center flex-grow-0"
                     concat {
                         if model.busy then 
@@ -47,6 +48,9 @@ module AppBar =
                             }                            
                     }
                 }
-
+                comp<MudItem> {
+                    "xs" => 1
+                    ecomp<MainSettingsView,_,_> model dispatch {attr.empty()}
+                }
             }  
-        }
+        }    

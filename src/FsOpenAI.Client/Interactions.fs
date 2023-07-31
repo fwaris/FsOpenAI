@@ -109,4 +109,20 @@ module Interactions =
     let endBuffering id errorOccured cs = updateWith (Interaction.endBuffering errorOccured) id cs 
  
     let updateNotification id note cs = updateWith (fun c -> {c with Notification=note}) id cs 
-    
+
+    let getModels (sp:ServiceSettings option) (ch:Interaction) (f:ModelDeployments->string list) =
+        match ch.Parameters.Backend with
+        | Backend.AzureOpenAI -> sp |> Option.bind(fun sp -> sp.AZURE_OPENAI_MODELS |> Option.map f) |> Option.defaultValue []
+        | Backend.OpenAI -> sp |> Option.bind(fun sp -> sp.OPENAI_MODELS |> Option.map f) |> Option.defaultValue []
+
+    let chatModels (sp:ServiceSettings option) (ch:Interaction) =
+        let models = getModels sp ch (fun x->x.CHAT)
+        models |> List.map(fun m -> m, (ch.Parameters.ChatModel=m))
+
+    let completionsModels (sp:ServiceSettings option) (ch:Interaction) =
+        let models = getModels sp ch (fun x->x.COMPLETION)
+        models |> List.map(fun m -> m, (ch.Parameters.ChatModel=m))
+
+    let embeddingsModel (sp:ServiceSettings option) (ch:Interaction) =
+        let models = getModels sp ch (fun x->x.EMBEDDING)
+        models |> List.map(fun m -> m, (ch.Parameters.ChatModel=m))

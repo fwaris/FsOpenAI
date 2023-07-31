@@ -21,6 +21,9 @@ module App =
         inherit ProgramComponent<Model, Message>()
 
         [<Inject>]
+        member val LocalStore : Blazored.LocalStorage.ILocalStorageService = Unchecked.defaultof<_> with get, set
+
+        [<Inject>]
         member val Snackbar : ISnackbar = Unchecked.defaultof<_> with get, set
 
         [<Inject>]
@@ -35,7 +38,9 @@ module App =
             let serverDispatch = ClientHub.send this.hubConn
             this.hubConn.On<ServerInitiatedMessages>(ClientHub.fromServer,clientDispatch) |> ignore
 
-            Program.mkProgram (fun _ -> Update.initModel, Cmd.ofMsg Started) (Update.update this.Snackbar serverDispatch) view 
+            let update = Update.update this.LocalStore this.Snackbar serverDispatch
+
+            Program.mkProgram (fun _ -> Update.initModel, Cmd.ofMsg Started) update view 
             |> Program.withSubscription Subscription.asyncMessages
     #if DEBUG
             |> Program.withHotReload

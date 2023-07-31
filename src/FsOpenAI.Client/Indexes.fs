@@ -18,7 +18,6 @@ module Indexes =
             let ep = Utils.randSelect xs
             SearchIndexClient(Uri ep.ENDPOINT,AzureKeyCredential(ep.API_KEY))
 
-
     let filterIndex (idx:SearchIndex) =
         let idSet = idx.Fields |> Seq.map(fun c -> c.Name) |> set
         let diff = Set.intersect idSet refFieldSet

@@ -12,6 +12,8 @@ module Utils =
     let notEmpty (s:string) = String.IsNullOrWhiteSpace s |> not
     let isEmpty (s:string) = String.IsNullOrWhiteSpace s 
 
+    let isOpen key map = map |> Map.tryFind key |> Option.defaultValue false
+
     let asAsyncSeq<'t> (xs:System.Collections.Generic.IAsyncEnumerable<'t>) = 
         asyncSeq {
             let mutable hs = false
@@ -26,3 +28,7 @@ module Utils =
         }
 
     exception NoOpenAIKey
+
+module C =
+    let LS_OPENAI_KEY = "LS_OPENAI_KEY"
+    let MAIN_SETTINGS = "MAIN_SETTINGS"

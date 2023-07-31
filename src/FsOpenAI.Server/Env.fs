@@ -6,6 +6,7 @@ open Azure.Identity;
 open Azure.Security.KeyVault.Secrets
 open Microsoft.Extensions.Logging
 open Microsoft.Extensions.Configuration
+open FsOpenAI.Client
 
 type FsOpenAILog() = class end //type for log categorization
 
@@ -66,17 +67,20 @@ module Env =
                return raise ex
         }
 
-    let getParameters() = 
+    let getParameters dispatch = 
         task {
-            let! settingsText = 
-                let path = Environment.ExpandEnvironmentVariables(config.SettingsFile)
-                if File.Exists path then 
-                    logInfo $"reading settings from {path}"
-                    readSettingsFile path
-                else
-                    getFromKeyVault()
-            let parms = System.Text.Json.JsonSerializer.Deserialize<FsOpenAI.Client.ServiceSettings>(settingsText)
-            return parms
+            try 
+                let! settingsText = 
+                    let path = Environment.ExpandEnvironmentVariables(config.SettingsFile)
+                    if File.Exists path then 
+                        logInfo $"reading settings from {path}"
+                        readSettingsFile path
+                    else
+                        getFromKeyVault()
+                let parms = System.Text.Json.JsonSerializer.Deserialize<FsOpenAI.Client.ServiceSettings>(settingsText)
+                dispatch (Srv_Parameters parms)
+            with ex ->
+                dispatch (Srv_Info ex.Message) 
         }
 
  

@@ -113,7 +113,7 @@ type InteractionCreateType =
 type Model =
     {
         interactions : Interaction list 
-        interactionCreateTypes : (string * InteractionCreateType) list
+        interactionCreateTypes : (string*string * InteractionCreateType) list
         indexRefs : IndexRef list
         error : string option
         busy : bool
@@ -128,6 +128,7 @@ type ServerInitiatedMessages =
     | Srv_Ia_Done of string*string option //chat id (optional error)
     | Srv_Ia_Notification of string*string option //chat id (optional error)
     | Srv_Error of string
+    | Srv_Info of string    
     | Srv_IndexesRefreshed of IndexRef list * string option * bool
 
 type ClientInitiatedMessages =
@@ -165,3 +166,8 @@ type Message =
     | Started
     | FromServer of ServerInitiatedMessages
     | AddSamples
+    | GetOpenAIKey
+    | SetOpenAIKey of string
+    | UpdateOpenKey of string
+    | SaveToLocal of string*string
+    | IgnoreError of exn

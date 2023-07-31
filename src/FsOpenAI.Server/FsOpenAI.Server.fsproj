@@ -5,6 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <None Include="scripts\SerializeSettings.fsx" />
+    <None Include="scripts\TestOpenAIClient.fsx" />
     <Compile Include="Env.fs" />
     <Compile Include="ServerHub.fs" />
     <Compile Include="Index.fs" />

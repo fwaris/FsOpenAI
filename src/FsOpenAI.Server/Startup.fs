@@ -12,6 +12,7 @@ open Bolero.Templating.Server
 open MudBlazor.Services
 open Microsoft.Extensions.Logging
 open Microsoft.Extensions.Logging.AzureAppServices
+open Blazored.LocalStorage
 
 type Startup() =
 
@@ -21,10 +22,11 @@ type Startup() =
         services.AddMvc() |> ignore
         services.AddServerSideBlazor() |> ignore
         services.AddMudServices() |> ignore
+        services.AddBlazoredLocalStorage() |> ignore
         services.AddSignalR().AddJsonProtocol(fun o ->FsOpenAI.Client.ClientHub.serOptions o.PayloadSerializerOptions |> ignore) |> ignore
 
         services
-            .AddAuthorization()
+            .AddAuthorization()            
             .AddLogging(fun logging -> logging.AddConsole().AddDebug().AddAzureWebAppDiagnostics() |> ignore)
             .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie()
@@ -42,6 +44,7 @@ type Startup() =
         //configuration
         let config = app.ApplicationServices.GetRequiredService<IConfiguration>()
         let logger = app.ApplicationServices.GetRequiredService<ILogger<FsOpenAILog>>()
+
         Env.init(config,logger)
 
         app

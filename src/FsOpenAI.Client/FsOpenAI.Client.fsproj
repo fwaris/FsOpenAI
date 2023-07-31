@@ -16,6 +16,7 @@
     <Compile Include="ClientHub.fs" />
     <Compile Include="Update.fs" />
     <Compile Include="Views\ChatParametersView.fs" />
+    <Compile Include="Views\MainSettingsView.fs" />
     <Compile Include="Views\SysPromptView.fs" />
     <Compile Include="Views\MessageView.fs" />
     <Compile Include="Views\ChatHistoryView.fs" />
@@ -28,6 +29,7 @@
     <Compile Include="Startup.fs" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Blazored.LocalStorage" Version="4.3.0" />
     <PackageReference Include="Bolero" Version="0.*" />
     <PackageReference Include="Bolero.Build" Version="0.*" />
     <PackageReference Include="Bolero.HotReload" Version="0.*" />
