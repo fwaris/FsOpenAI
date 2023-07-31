@@ -5,6 +5,7 @@ open FsOpenAI.Client
 open Azure.AI.OpenAI
 
 module Completions =
+    
     type ApiMsg = Azure.AI.OpenAI.ChatMessage // OpenAI_API.Chat.ChatMessage
     type ApiRole = Azure.AI.OpenAI.ChatRole // OpenAI_API.Chat.ChatMessageRole
 
@@ -43,7 +44,7 @@ module Completions =
                                 | Assistant  _ -> ApiRole.Assistant
                             if String.IsNullOrWhiteSpace m.Message |> not then 
                                 yield ApiMsg(role,m.Message)                                 
-                    }
+                    }                
                 let caller =  getClient parms ch
                 let opts = Azure.AI.OpenAI.ChatCompletionsOptions(messages)
                 opts.Temperature <- float32 ch.Parameters.Temperature

@@ -121,8 +121,8 @@ module Interactions =
 
     let completionsModels (sp:ServiceSettings option) (ch:Interaction) =
         let models = getModels sp ch (fun x->x.COMPLETION)
-        models |> List.map(fun m -> m, (ch.Parameters.ChatModel=m))
+        models |> List.map(fun m -> m, (ch.Parameters.CompletionsModel=m))
 
     let embeddingsModel (sp:ServiceSettings option) (ch:Interaction) =
         let models = getModels sp ch (fun x->x.EMBEDDING)
-        models |> List.map(fun m -> m, (ch.Parameters.ChatModel=m))
+        models |> List.map(fun m -> m, (ch.Parameters.EmbeddingsModel=m))

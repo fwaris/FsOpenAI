@@ -77,9 +77,8 @@ Answers:
             try
                 let question = ch.Messages |> List.rev |> List.find (fun m -> m.IsUser)
                 let prompt = questionAnswerPrompt (DateTime.Now.ToShortDateString()) (joinText docs) question.Message
-                let id,cs = Interactions.addNew(CreateChat ch.Parameters.Backend) (Some question.Message) []  //switch to chat model as GPT-4 does not support completion
-                let p = {cs.[0].Parameters with ChatModel=ch.Parameters.ChatModel; CompletionsModel=ch.Parameters.CompletionsModel; EmbeddingsModel=ch.Parameters.EmbeddingsModel}
-                let cs = Interactions.updateParms (id,p) cs
+                let id,cs = Interactions.addNew(CreateChat ch.Parameters.Backend) (Some question.Message) []  //switch to chat model as GPT-4 does not support completion              
+                let cs = Interactions.updateParms (id,ch.Parameters) cs
                 let c = {cs.[0] with Id=ch.Id; InteractionType=Chat prompt}
                 do! Completions.completeChat parms c dispatch        
             with ex -> 

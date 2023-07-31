@@ -82,6 +82,7 @@ type ChatParametersView() =
                                 text $"Presence Penalty: {chat.Parameters.PresencePenalty}"
                             }
                             comp<MudSelect<string>> {
+                                "Class" => "px-4"
                                 "Label" => "Chat Model"
                                 attr.callback "SelectedValuesChanged" (dispatchSel chat.Id (fun m -> {chat.Parameters with ChatModel=m}) dispatch)
                                 "SelectedValues" => (chatModels |> List.filter snd |> List.map fst)
@@ -90,6 +91,39 @@ type ChatParametersView() =
                                         "Value" => ch
                                     }
                             }
+                            comp<MudSelect<string>> {
+                                "Class" => "px-4"
+                                "Label" => "Completions Model"
+                                attr.callback "SelectedValuesChanged" (dispatchSel chat.Id (fun m -> {chat.Parameters with CompletionsModel=m}) dispatch)
+                                "SelectedValues" => (completionsModels |> List.filter snd |> List.map fst)
+                                for (ch,b) in Interactions.completionsModels model.serviceParameters chat do
+                                    comp<MudSelectItem<string>> {
+                                        "Value" => ch
+                                    }
+                            }
+                            comp<MudSelect<string>> {
+                                "Class" => "px-4"
+                                "Label" => "Embeddings Model"
+                                attr.callback "SelectedValuesChanged" (dispatchSel chat.Id (fun m -> {chat.Parameters with EmbeddingsModel=m}) dispatch)
+                                "SelectedValues" => (embeddingsModels |> List.filter snd |> List.map fst)
+                                for (ch,b) in Interactions.embeddingsModel model.serviceParameters chat do
+                                    comp<MudSelectItem<string>> {
+                                        "Value" => ch
+                                    }
+                            }
+                            match chat.InteractionType with
+                            | QA bag ->
+                                comp<MudSlider<int>> {
+                                    "Class" => "px-4"
+                                    "Min" => 5
+                                    "Max" => 30
+                                    "Step" => 1
+                                    "ValueLabel" => true
+                                    "Value" => bag.MaxDocs
+                                    on.change (fun e -> dispatch (Ia_UpdateQaBag (chat.Id,{bag with MaxDocs = (e.Value :?> string |> int)})))
+                                    text $"Max Documents: {bag.MaxDocs}"
+                                }
+                            | _ -> ()
                         }
                     }
                 }
