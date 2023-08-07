@@ -4,6 +4,7 @@ open System.Threading.Channels
 open Elmish
 open FSharp.Control
 open Blazored.LocalStorage
+open FsOpenAI.Client.Interactions
 
 module Update =
     open MudBlazor
@@ -17,20 +18,30 @@ module Update =
         ]
 
     let addQASample model =
-        let cId2,cs = Interactions.addNew (CreateQA AzureOpenAI) (Some "Did T-Mobile buyback stock in 2019?") model.interactions
-        let c2 = cs |> List.find (fun c->c.Id = cId2) 
-        let c2bag = match c2.InteractionType with QA bag -> bag | _ -> failwith ""
+        let backend = 
+            model.serviceParameters 
+            |> Option.map(fun p -> if not(p.AZURE_OPENAI_ENDPOINTS.IsEmpty) then AzureOpenAI else OpenAI) 
+            |> Option.defaultValue OpenAI
+
+        let chatModel = match backend with OpenAI -> "gpt-3.5-turbo-16k" | AzureOpenAI -> "gpt-4-32k"
+
+        //sample 1
+        let cId,cs = Interactions.addNew (CreateChat backend) (Some "What are the phases of the moon?") model.interactions
+        let cs = Interactions.updateSystemMsg (cId,"You are a helpful AI") cs
+        let cs = Interactions.updateParms (cId,{(List.last cs).Parameters with ChatModel=chatModel}) cs
+
+        //sample 2
+        let cId2,cs = Interactions.addNew (CreateQA backend) (Some "Did T-Mobile buyback stock in 2019?") cs
+        let cs = Interactions.updateParms (cId2,{(List.last cs).Parameters with ChatModel=chatModel}) cs
+        let bag = match (List.last cs).InteractionType with QA bag -> bag | _ -> failwith ""
         let iref = model.indexRefs |> List.tryFind (function (Azure n) -> n.Name="tmobile-sec")
-        let cs = Interactions.updateQABag cId2 {c2bag with Index=iref; MaxDocs=20} cs
-        let parms =  {c2.Parameters with ChatModel="gpt-4-32k"}
-        let cs = Interactions.updateParms (cId2,parms) cs
+        let cs = Interactions.updateQABag cId2 {bag with Index=iref; MaxDocs=20} cs
+
         {model with interactions=cs}
         
     let initModel =    
-        let cId,cs = Interactions.addNew (CreateChat AzureOpenAI) (Some "What are the phases of the moon?") Interactions.empty
-        let cs = Interactions.updateSystemMsg (cId,"You are a helpful AI") cs
         {
-            interactions = cs
+            interactions = []
             interactionCreateTypes = newInteractionTypes
             indexRefs = []
             error = None
@@ -54,7 +65,7 @@ module Update =
                 let chats = 
                     model.interactions
                     |> Interactions.addOrUpdateLastMsg (id,lastMsg)
-                    |> Interactions.addMessage (id,Interactions.Interaction.newAsstantMessage "")
+                    |> Interactions.addMessage (id,Interaction.newAsstantMessage "")
                     |> Interactions.startBuffering id
                 let model = {model with interactions = chats; error=None}
                 let ch = model.interactions |> List.find(fun x->x.Id=id)
@@ -185,3 +196,4 @@ module Update =
         | FromServer (Srv_Info err) -> model,Cmd.ofMsg (ShowInfo err)
         | FromServer (Srv_IndexesRefreshed (idxs,err,initial)) -> {model with busy=false}, postInit (idxs,err,initial)
         | FromServer (Srv_Ia_Notification (id,note)) -> model,Cmd.ofMsg(Ia_Notification(id,note))
+        | FromServer (Srv_Ia_SetDocs (id,docs)) -> updateDocs model

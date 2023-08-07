@@ -31,7 +31,7 @@
   },
 
   "OPENAI_MODELS": {
-    "CHAT": [ "gpt-35-turbo", "gpt-4"],
+    "CHAT": [ "gpt-35-turbo", "gpt-3.5-turbo-16k"],
     "COMPLETION": [ "text-davinci-003" ],
     "EMBEDDING": [ "text-embedding-ada-002" ]
   }

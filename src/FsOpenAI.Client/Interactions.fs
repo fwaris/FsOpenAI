@@ -1,65 +1,85 @@
-﻿namespace FsOpenAI.Client
+﻿namespace FsOpenAI.Client.Interactions
 open System
 open FSharp.Control
+open FsOpenAI.Client
+
+module Interaction = 
+    let newUserMessage cntnt = {Role=MessageRole.User Open; Message=cntnt}
+    let newAsstantMessage cntnt =  {Role=MessageRole.Assistant; Message=cntnt}
+
+    let updateQABag bag c = 
+        match c.InteractionType with 
+        | QA _ -> {c with InteractionType = QA bag}
+        | _    -> c
+
+    let updateLastMsgWith f c = 
+        let h,tail = match List.rev c.Messages with h::t -> h,t | _ -> failwith "no messages in chat"
+        let h = f h 
+        {c with Messages = List.rev (h::tail)}
+
+    let updateSystemMsg msg c = 
+        match c.InteractionType with
+        | Chat _ -> {c with InteractionType= Chat msg }
+        | _      -> c
+
+    let endBuffering errOccured c  = 
+        let msgs = List.rev c.Messages  
+        let msgs =
+            if errOccured then 
+                msgs |> List.skipWhile(fun m -> Utils.isEmpty m.Message)
+            else
+                msgs
+        let msgs =
+            match msgs with 
+            | [] -> [newUserMessage ""]
+            | h::rest when h.IsUser -> {h with Role=User Open}::rest
+            | xs                    -> (newUserMessage "")::xs
+        {c with Messages=List.rev msgs; IsBuffering=false}            
+
+    let addOrUpdateLastMsg msg c = 
+        let (h,t) = match List.rev c.Messages with h::t -> {h with Message=msg},t | _ -> (newUserMessage msg),[]
+        match h.Role with | MessageRole.User _ -> () | _ -> failwith "user role expected"
+        let h = {h with Role=MessageRole.User Closed}
+        {c with Messages = List.rev (h::t)}
+
+    let tryDeleteMessage msg (c:Interaction) = 
+        if c.IsBuffering then 
+            c
+        else 
+            let c = {c with Messages = c.Messages |> List.takeWhile (fun msg' -> msg<>msg')}
+            let msgs = match c.Messages with [] -> [newUserMessage ""] | x::[] -> [newUserMessage x.Message] | xs -> xs
+            {c with Messages = msgs}                
+
+    let chatParameters ct = {InteractionParameters.Default with Backend = ct}
+
+    let defaultName n = function
+        | CreateChat AzureOpenAI -> $"Chat [Azure] {n}"
+        | CreateQA AzureOpenAI -> $"Q&A [Azure] {n}"
+        | CreateChat OpenAI -> $"Chat [OpenAI] {n}"
+        | CreateQA OpenAI -> $"Q&A [OpenAI] {n}"
+
+    let addDelta delta c = updateLastMsgWith (fun m -> {m with Message=m.Message+delta}) c
+
+    let getModels (sp:ServiceSettings option) (ch:Interaction) (f:ModelDeployments->string list) =
+        match ch.Parameters.Backend with
+        | Backend.AzureOpenAI -> sp |> Option.bind(fun sp -> sp.AZURE_OPENAI_MODELS |> Option.map f) |> Option.defaultValue []
+        | Backend.OpenAI -> sp |> Option.bind(fun sp -> sp.OPENAI_MODELS |> Option.map f) |> Option.defaultValue []
+
+    let chatModels (sp:ServiceSettings option) (ch:Interaction) =
+        let models = getModels sp ch (fun x->x.CHAT)
+        models |> List.map(fun m -> m, (ch.Parameters.ChatModel=m))
+
+    let completionsModels (sp:ServiceSettings option) (ch:Interaction) =
+        let models = getModels sp ch (fun x->x.COMPLETION)
+        models |> List.map(fun m -> m, (ch.Parameters.CompletionsModel=m))
+
+    let embeddingsModel (sp:ServiceSettings option) (ch:Interaction) =
+        let models = getModels sp ch (fun x->x.EMBEDDING)
+        models |> List.map(fun m -> m, (ch.Parameters.EmbeddingsModel=m))
+
+    let maxDocs defaultVal (ch:Interaction) = match ch.InteractionType with QA bag -> bag.MaxDocs | _ -> defaultVal
 
 module Interactions =
-    
-    module Interaction = 
-        let newUserMessage cntnt = {Role=MessageRole.User Open; Message=cntnt}
-        let newAsstantMessage cntnt =  {Role=MessageRole.Assistant; Message=cntnt}
-
-        let updateQABag bag c = 
-            match c.InteractionType with 
-            | QA _ -> {c with InteractionType = QA bag}
-            | _    -> c
-
-        let updateLastMsgWith f c = 
-            let h,tail = match List.rev c.Messages with h::t -> h,t | _ -> failwith "no messages in chat"
-            let h = f h 
-            {c with Messages = List.rev (h::tail)}
-
-        let updateSystemMsg msg c = 
-            match c.InteractionType with
-            | Chat _ -> {c with InteractionType= Chat msg }
-            | _      -> c
-
-        let endBuffering errOccured c  = 
-            let msgs = List.rev c.Messages  
-            let msgs =
-                if errOccured then 
-                    msgs |> List.skipWhile(fun m -> Utils.isEmpty m.Message)
-                else
-                    msgs
-            let msgs =
-                match msgs with 
-                | [] -> [newUserMessage ""]
-                | h::rest when h.IsUser -> {h with Role=User Open}::rest
-                | xs                    -> (newUserMessage "")::xs
-            {c with Messages=List.rev msgs; IsBuffering=false}            
-
-        let addOrUpdateLastMsg msg c = 
-            let (h,t) = match List.rev c.Messages with h::t -> {h with Message=msg},t | _ -> (newUserMessage msg),[]
-            match h.Role with | MessageRole.User _ -> () | _ -> failwith "user role expected"
-            let h = {h with Role=MessageRole.User Closed}
-            {c with Messages = List.rev (h::t)}
-
-        let tryDeleteMessage msg (c:Interaction) = 
-            if c.IsBuffering then 
-                c
-            else 
-                let c = {c with Messages = c.Messages |> List.takeWhile (fun msg' -> msg<>msg')}
-                let msgs = match c.Messages with [] -> [newUserMessage ""] | x::[] -> [newUserMessage x.Message] | xs -> xs
-                {c with Messages = msgs}                
-
-        let chatParameters ct = {InteractionParameters.Default with Backend = ct}
-
-        let defaultName n = function
-            | CreateChat AzureOpenAI -> $"Chat [Azure] {n}"
-            | CreateQA AzureOpenAI -> $"Q&A [Azure] {n}"
-            | CreateChat OpenAI -> $"Chat [OpenAI] {n}"
-            | CreateQA OpenAI -> $"Q&A [OpenAI] {n}"
-
-        let addDelta delta c = updateLastMsgWith (fun m -> {m with Message=m.Message+delta}) c
 
     let empty = []
 
@@ -110,19 +130,3 @@ module Interactions =
  
     let updateNotification id note cs = updateWith (fun c -> {c with Notification=note}) id cs 
 
-    let getModels (sp:ServiceSettings option) (ch:Interaction) (f:ModelDeployments->string list) =
-        match ch.Parameters.Backend with
-        | Backend.AzureOpenAI -> sp |> Option.bind(fun sp -> sp.AZURE_OPENAI_MODELS |> Option.map f) |> Option.defaultValue []
-        | Backend.OpenAI -> sp |> Option.bind(fun sp -> sp.OPENAI_MODELS |> Option.map f) |> Option.defaultValue []
-
-    let chatModels (sp:ServiceSettings option) (ch:Interaction) =
-        let models = getModels sp ch (fun x->x.CHAT)
-        models |> List.map(fun m -> m, (ch.Parameters.ChatModel=m))
-
-    let completionsModels (sp:ServiceSettings option) (ch:Interaction) =
-        let models = getModels sp ch (fun x->x.COMPLETION)
-        models |> List.map(fun m -> m, (ch.Parameters.CompletionsModel=m))
-
-    let embeddingsModel (sp:ServiceSettings option) (ch:Interaction) =
-        let models = getModels sp ch (fun x->x.EMBEDDING)
-        models |> List.map(fun m -> m, (ch.Parameters.EmbeddingsModel=m))

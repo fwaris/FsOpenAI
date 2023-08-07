@@ -7,7 +7,7 @@ open Azure.Search.Documents.Models
 open Azure.Search.Documents
 open FSharp.Control
 
-type CognitiveSearch(srchClient:SearchClient,embeddingClient:OpenAIClient,embeddingModel:string,k,vectorField,contentField,sourceRefField) =
+type CognitiveSearch(srchClient:SearchClient,embeddingClient:OpenAIClient,embeddingModel:string,vectorField,contentField,sourceRefField) =
     let idField = "id"
 
     let toMetadata (d:SearchDocument) =
@@ -39,10 +39,10 @@ type CognitiveSearch(srchClient:SearchClient,embeddingClient:OpenAIClient,embedd
                 let! resp = embeddingClient.GetEmbeddingsAsync(embeddingModel,EmbeddingsOptions(query)) |> Async.AwaitTask
                 let eVec = resp.Value.Data.[0].Embedding
                 let vec = SearchQueryVector(
-                    KNearestNeighborsCount = k,
+                    KNearestNeighborsCount = limit,
                     Fields = vectorField,
                     Value = eVec)
-                let so = SearchOptions(Vector=vec, Size=k)
+                let so = SearchOptions(Vector=vec, Size=limit)
                 [idField; contentField; sourceRefField] |> Seq.iter so.Select.Add 
                 let! srchRslt = srchClient.SearchAsync<SearchDocument>(null,so)  |> Async.AwaitTask
                 let rs = srchRslt.Value.GetResultsAsync() |> AsyncSeq.ofAsyncEnum |> AsyncSeq.map toMemoryResult

@@ -125,6 +125,7 @@ type Model =
 type ServerInitiatedMessages =
     | Srv_Parameters of ServiceSettings
     | Srv_Ia_Delta of string*int*string   //chat id,index,delta
+    | Srv_Ia_SetDocs of string*Document list //
     | Srv_Ia_Done of string*string option //chat id (optional error)
     | Srv_Ia_Notification of string*string option //chat id (optional error)
     | Srv_Error of string

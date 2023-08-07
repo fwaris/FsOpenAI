@@ -2,12 +2,14 @@
 <Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
+	  <LangVersion>preview</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="SemanticVectorSearch.fs" />
     <Compile Include="SimpleCrypt.fs" />
-    <Compile Include="Utils.fs" />
+    <Compile Include="Prompts.fs" />
     <Compile Include="Model.fs" />
+    <Compile Include="Utils.fs" />
     <Compile Include="Subscription.fs" />
     <Compile Include="Completions.fs" />
     <Compile Include="Indexes.fs" />
@@ -35,9 +37,9 @@
     <PackageReference Include="Bolero.HotReload" Version="0.*" />
     <PackageReference Include="FSharp.Control.AsyncSeq" Version="3.2.1" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="7.0.*" />
-    <PackageReference Include="Microsoft.SemanticKernel" Version="0.18.230725.3-preview" />
-    <PackageReference Include="Microsoft.SemanticKernel.Connectors.Memory.AzureCognitiveSearch" Version="0.18.230725.3-preview" />
-    <PackageReference Include="MudBlazor" Version="6.7.0" />
+    <PackageReference Include="Microsoft.SemanticKernel" Version="0.19.230804.2-preview" />
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.Memory.AzureCognitiveSearch" Version="0.19.230804.2-preview" />
+    <PackageReference Include="MudBlazor" Version="6.8.0" />
     <PackageReference Include="Plotly.Blazor" Version="2.18.2" />
     <PackageReference Include="FSharp.SystemTextJson" Version="1.1.23" />
     <PackageReference Include="System.Threading.Channels" Version="7.0.0" />

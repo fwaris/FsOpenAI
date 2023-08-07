@@ -5,6 +5,7 @@ open Bolero.Html
 open Elmish
 open MudBlazor
 open FsOpenAI.Client
+open FsOpenAI.Client.Interactions
 
 type ChatParametersView() =
     inherit ElmishComponent<bool*Interaction*Model,Message>()    
@@ -12,9 +13,9 @@ type ChatParametersView() =
     override this.View mdl (dispatch:Message -> unit) =
         let settingsOpen,chat,model = mdl
 
-        let chatModels = Interactions.chatModels model.serviceParameters chat 
-        let completionsModels = Interactions.completionsModels model.serviceParameters chat
-        let embeddingsModels = Interactions.embeddingsModel model.serviceParameters chat
+        let chatModels = Interaction.chatModels model.serviceParameters chat 
+        let completionsModels = Interaction.completionsModels model.serviceParameters chat
+        let embeddingsModels = Interaction.embeddingsModel model.serviceParameters chat
 
         let dispatchSel id f dispatch (xs:string seq)=
             xs 
@@ -86,7 +87,7 @@ type ChatParametersView() =
                                 "Label" => "Chat Model"
                                 attr.callback "SelectedValuesChanged" (dispatchSel chat.Id (fun m -> {chat.Parameters with ChatModel=m}) dispatch)
                                 "SelectedValues" => (chatModels |> List.filter snd |> List.map fst)
-                                for (ch,b) in Interactions.chatModels model.serviceParameters chat do
+                                for (ch,b) in Interaction.chatModels model.serviceParameters chat do
                                     comp<MudSelectItem<string>> {
                                         "Value" => ch
                                     }
@@ -96,7 +97,7 @@ type ChatParametersView() =
                                 "Label" => "Completions Model"
                                 attr.callback "SelectedValuesChanged" (dispatchSel chat.Id (fun m -> {chat.Parameters with CompletionsModel=m}) dispatch)
                                 "SelectedValues" => (completionsModels |> List.filter snd |> List.map fst)
-                                for (ch,b) in Interactions.completionsModels model.serviceParameters chat do
+                                for (ch,b) in Interaction.completionsModels model.serviceParameters chat do
                                     comp<MudSelectItem<string>> {
                                         "Value" => ch
                                     }
@@ -106,7 +107,7 @@ type ChatParametersView() =
                                 "Label" => "Embeddings Model"
                                 attr.callback "SelectedValuesChanged" (dispatchSel chat.Id (fun m -> {chat.Parameters with EmbeddingsModel=m}) dispatch)
                                 "SelectedValues" => (embeddingsModels |> List.filter snd |> List.map fst)
-                                for (ch,b) in Interactions.embeddingsModel model.serviceParameters chat do
+                                for (ch,b) in Interaction.embeddingsModel model.serviceParameters chat do
                                     comp<MudSelectItem<string>> {
                                         "Value" => ch
                                     }
