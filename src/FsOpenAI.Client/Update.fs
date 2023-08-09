@@ -31,10 +31,10 @@ module Update =
         let cs = Interactions.updateParms (cId,{(List.last cs).Parameters with ChatModel=chatModel}) cs
 
         //sample 2
-        let cId2,cs = Interactions.addNew (CreateQA backend) (Some "Did T-Mobile buyback stock in 2019?") cs
+        let cId2,cs = Interactions.addNew (CreateQA backend) (Some "List the names, trades and dates of insider trades from Form 4 filings") cs
         let cs = Interactions.updateParms (cId2,{(List.last cs).Parameters with ChatModel=chatModel}) cs
         let bag = match (List.last cs).InteractionType with QA bag -> bag | _ -> failwith ""
-        let iref = model.indexRefs |> List.tryFind (function (Azure n) -> n.Name="tmobile-sec")
+        let iref = model.indexRefs |> List.tryFind (function (Azure n) -> n.Name="verizon-sec")
         let cs = Interactions.updateQABag cId2 {bag with Index=iref; MaxDocs=20} cs
 
         {model with interactions=cs}

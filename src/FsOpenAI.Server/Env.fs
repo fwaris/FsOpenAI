@@ -13,16 +13,17 @@ type FsOpenAILog() = class end //type for log categorization
 
 module Env =
     module N =
-        let SETTINGS_FILE = "Parms:Settings"                          //1st: look for file key in appSettings.json
-        let FSOPENAI_AZURE_KEYVAULT = "FSOPENAI_AZURE_KEYVAULT"       //2nd: look for in key vault
-        let KEY_VAULT_KEY = "genai-settings"
+        let SETTINGS_FILE = "Parms:Settings"                            //1st: look for file key in appSettings.json
+        let FSOPENAI_AZURE_KEYVAULT = "FSOPENAI_AZURE_KEYVAULT"         //2nd: look for in key vault
+        let FSOPENAI_AZURE_KEYVAULT_KEY = "FSOPENAI_AZURE_KEYVAULT_KEY" //2nd: with this key
 
     type Config = 
         {
             SettingsFile : string
             KeyVault : string
+            KeyVaultKey : string 
         }
-        with static member Default = {SettingsFile=""; KeyVault=""}
+        with static member Default = {SettingsFile=""; KeyVault=""; KeyVaultKey=""}
 
     let mutable private config = Config.Default
     let mutable private logger : ILogger<FsOpenAILog> = Unchecked.defaultof<_>
@@ -33,6 +34,7 @@ module Env =
             {
                 SettingsFile = cfg.[N.SETTINGS_FILE]
                 KeyVault = System.Environment.GetEnvironmentVariable(N.FSOPENAI_AZURE_KEYVAULT)
+                KeyVaultKey = System.Environment.GetEnvironmentVariable(N.FSOPENAI_AZURE_KEYVAULT_KEY)
             }
 
     let logError str =
@@ -49,7 +51,7 @@ module Env =
             let c = new DefaultAzureCredential()
             let client = new SecretClient(new Uri(kvUri), c);
             try             
-                let! sec = client.GetSecretAsync(N.KEY_VAULT_KEY)                
+                let! sec = client.GetSecretAsync(config.KeyVaultKey)                
                 return sec.Value.Value |> Convert.FromBase64String |> System.Text.UTF8Encoding.Default.GetString
             with ex -> 
                 let msg = $"unable to get secret {ex.Message}"

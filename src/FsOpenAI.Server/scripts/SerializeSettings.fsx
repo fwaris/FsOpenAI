@@ -6,7 +6,7 @@ open System.IO
 open System.Net.Http
 
 //encode settings
-let txt = File.ReadAllText(@"C:\s\openai\ServiceSettings.json")
+let txt = File.ReadAllText(@"C:\Users\fwaris1\.fsopenai\ServiceSettings.json")
 let txtArr = System.Text.UTF8Encoding.Default.GetBytes(txt)
 let txt64 = System.Convert.ToBase64String(txtArr)
 

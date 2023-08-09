@@ -6,6 +6,7 @@ open Microsoft.SemanticKernel.Memory
 open FsOpenAI.Client.Interactions
 open Microsoft.SemanticKernel.Connectors.AI.OpenAI.Tokenizers
 open Microsoft.SemanticKernel.SemanticFunctions
+open Azure.AI.OpenAI
 
 module QnA =
     let history buffer model msgs =
@@ -35,6 +36,48 @@ module QnA =
             |> Seq.map fst
             |> Seq.toList
         String.Join("\n\n",docs)
+
+    let formulateQueryPrompt chatHistory question = $"""
+Below is a history of the conversation so far, and a new question asked by the user that needs to be answered by searching in a knowledge base.
+Generate a search query based on the conversation and the new question.
+The search query should be optimized to find the answer to the question in the knowledge base.
+
+Chat History:
+{chatHistory}
+
+Question:
+{question}
+
+Search query:
+"""
+
+    let formulateQuery (completionsClient:OpenAIClient) completionsModel (ch:Interaction) dispatch = 
+        task {
+            try
+                let msgs = List.rev ch.Messages
+                let chatHistory = msgs |> List.skipWhile (fun m-> m.IsUser) |> List.rev |> history 100 completionsModel
+                let question = msgs |> List.find (fun m -> m.IsUser)
+                let prompt = formulateQueryPrompt chatHistory question
+                let! req = completionsClient.GetCompletionsStreamingAsync(completionsModel,CompletionsOptions([prompt]))
+                let choices = req.Value.GetChoicesStreaming() |> AsyncSeq.ofAsyncEnum
+                let texts = choices |> AsyncSeq.collect(fun c -> c.GetTextStreaming() |> AsyncSeq.ofAsyncEnum)
+                let mutable resp = ""
+                do! texts |> AsyncSeq.iter(fun t -> resp <- resp + t)
+                return resp
+
+//                 let xs =
+//                     req.Value.GetChoicesStreaming() 
+//                     |> AsyncSeq.ofAsyncEnum
+//                     |> AsyncSeq.collect(fun x-> x.GetTextStreaming() |> AsyncSeq.ofAsyncEnum)
+// //                    |> AsyncSeq.map(fun m-> dispatch(Srv_Ia_Notification(ch.Id,Some m));m)            
+//                     |> AsyncSeq.toBlockingSeq
+//                     |> Seq.toList
+//                 return String.Join("",xs)
+            with ex -> 
+                return raise ex
+        }
+
+
 
     let questionAnswerPrompt date documents question = $"""
 SEARCH DOCUMENTS is a collection of documents that match the queries in QUESTION.
@@ -100,6 +143,9 @@ Answers:
                 ctx.Variables.Set("chatHistory",chatHistory)      
                 let! ctx' = fn.InvokeAsync(ctx) |> Async.AwaitTask
                 let query = ctx'.Variables.Input
+                //let openAIClient = Utils.getClient parms ch
+                //let! query = formulateQuery openAIClient ch.Parameters.CompletionsModel ch dispatch |> Async.AwaitTask
+
                 dispatch (Srv_Ia_Notification (ch.Id,$"Searching with: {query}"))
                 let docs = k.Memory.SearchAsync("",query,maxDocs) |> AsyncSeq.ofAsyncEnum |> AsyncSeq.toBlockingSeq |> Seq.toList
                 dispatch (Srv_Ia_Notification(ch.Id,$"{docs.Length} query results found. Generating answer..."))

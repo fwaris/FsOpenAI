@@ -17,8 +17,7 @@ type SearchResultsView() =
     override this.View model dispatch =
         let panelId,isPanelOpen,bag = model
         comp<MudPopover> {
-            "Class" => "mud-height-full"
-            "Style" => "width:75%"
+            "Style" => "width:75%; height:500px;"
             "AnchorOrigin" => Origin.TopRight
             "TransformOrigin" => Origin.TopRight
             "Open" => isPanelOpen
