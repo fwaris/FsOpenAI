@@ -106,7 +106,7 @@ module Interactions =
                 Parameters = Interaction.chatParameters bknd iType
                 Timestamp = DateTime.Now
                 IsBuffering = false
-                Notification = None
+                Notifications = []
             }
         c.Id,cs @ [c]
 
@@ -135,5 +135,7 @@ module Interactions =
     
     let endBuffering id errorOccured cs = updateWith (Interaction.endBuffering errorOccured) id cs 
  
-    let updateNotification id note cs = updateWith (fun c -> {c with Notification=note}) id cs 
+    let updateNotification id note cs = updateWith (fun c -> {c with Notifications=c.Notifications @ [note]}) id cs 
+
+    let clearNotifications id cs = updateWith (fun c -> {c with Notifications=[]}) id cs
 

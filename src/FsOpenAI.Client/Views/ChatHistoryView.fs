@@ -28,15 +28,14 @@ type ChatHistoryView() =
                             }
                         }
                 if chat.IsBuffering then 
-                    match chat.Notification with
-                    | Some note -> 
-                        yield 
-                            comp<MudListItem> { 
-                                comp<MudPaper> {
-                                    "Class" => $"d-flex"
-                                    text note
+                    if chat.Notifications.IsEmpty |> not then
+                        for note in chat.Notifications do
+                            yield 
+                                comp<MudListItem> { 
+                                    comp<MudPaper> {
+                                        "Class" => $"d-flex"
+                                        text note
+                                    }
                                 }
-                            }
-                    | None -> ()                                                            
             }                            
         }

@@ -7,9 +7,6 @@ open MudBlazor
 open FsOpenAI.Client
 open System.Linq.Expressions
 
-type SVAttr =
-    static member Property(expr:Expression<Func<Document,string>>) =
-        "Property" => expr
 
 type QAView() =
     inherit ElmishComponent<QABag*Interaction*Model,Message>()
@@ -24,7 +21,11 @@ type QAView() =
             div {
                 "class" => "d-flex flex-grow-1 gap-1"
                 comp<MudPaper> {
-                    "Class" => "d-flex flex-none align-self-start mt-4"
+                    "Class" => "d-flex flex-none ma-3"
+                    comp<MudIconButton> { 
+                        "Icon" => Icons.Material.Outlined.Settings
+                        on.click(fun e -> dispatch (OpenCloseSettings chat.Id))
+                    }
                     ecomp<ChatParametersView,_,_> (settingsOpen,chat,model) dispatch {attr.empty()}
                 }
                 comp<MudPaper> {
@@ -41,43 +42,6 @@ type QAView() =
                 }
             }
             ecomp<ChatHistoryView,_,_> (chat,model) dispatch { attr.empty() }
-            comp<MudPopover> {
-                "Class" => "mud-height-full"
-                "Style" => "width:500px"
-                "AnchorOrigin" => Origin.TopRight
-                "TransformOrigin" => Origin.TopRight
-                "Open" => isPanelOpen
-                comp<MudDataGrid<Document>> {
-                    "Striped" => true
-                    "Items" => bag.Documents
-                    "RowsPerPage" => 1
-                    "Dense" => true
-                    "Height" => "600px"
-                    attr.fragment "ToolBarContent" (
-                        concat {
-                            comp<MudText> {"Typo" => Typo.h6; "Search Results"}
-                            comp<MudSpacer> {attr.empty()}
-                            comp<MudIconButton> {
-                                "Icon" => Icons.Material.Filled.Close
-                                on.click(fun _ -> dispatch (OpenCloseSettings panelId))
-                            }
-                        }
-                    )
-                    attr.fragment "Columns" (
-                        concat {
-                            comp<PropertyColumn<Document,string>> {
-                                SVAttr.Property (fun d->d.Text)
-                                "Title" => "Text"
-                            }
-                            comp<PropertyColumn<Document,string>> {
-                                SVAttr.Property (fun d->d.Ref)
-                                "Title" => "Ref"
-                            }
-                        }
-                    )
-                    attr.fragment "PagerContent" (
-                        comp<MudDataGridPager<Document>> {attr.empty()}
-                    )
-                }            
-            }
+            ecomp<SearchResultsView,_,_> (panelId,isPanelOpen,bag) dispatch {attr.empty()}
+
         }

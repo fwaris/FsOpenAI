@@ -66,6 +66,7 @@ module Update =
                     model.interactions
                     |> Interactions.addOrUpdateLastMsg (id,lastMsg)
                     |> Interactions.addMessage (id,Interaction.newAsstantMessage "")
+                    |> Interactions.clearNotifications id 
                     |> Interactions.startBuffering id
                 let model = {model with interactions = chats; error=None}
                 let ch = model.interactions |> List.find(fun x->x.Id=id)

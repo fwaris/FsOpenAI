@@ -12,8 +12,6 @@ module ClientHub =
     let urlPath = "/fsopenaihub"
 
     let serOptions (o:JsonSerializerOptions)= 
-        //o.Converters.Add(PcmdTimeConverter())
-        //o.Converters.Add(NodenameConverter())
         JsonFSharpOptions.Default()
             .WithAllowNullFields(true)
             .WithAllowOverride(true)
@@ -34,5 +32,6 @@ module ClientHub =
         (hubConnection.StartAsync()) |> Async.AwaitTask |> Async.Start
         hubConnection
 
-    let send (conn:HubConnection) (msg:ClientInitiatedMessages) = conn.SendAsync(fromClient,msg) |> ignore
+    let send (conn:HubConnection) (msg:ClientInitiatedMessages) = 
+        conn.SendAsync(fromClient,msg) |> ignore
 

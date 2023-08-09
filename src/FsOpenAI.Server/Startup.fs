@@ -23,7 +23,10 @@ type Startup() =
         services.AddServerSideBlazor() |> ignore
         services.AddMudServices() |> ignore
         services.AddBlazoredLocalStorage() |> ignore
-        services.AddSignalR().AddJsonProtocol(fun o ->FsOpenAI.Client.ClientHub.serOptions o.PayloadSerializerOptions |> ignore) |> ignore
+        
+        services
+            .AddSignalR(fun o -> o.MaximumReceiveMessageSize <- 1_000_000)
+            .AddJsonProtocol(fun o ->FsOpenAI.Client.ClientHub.serOptions o.PayloadSerializerOptions |> ignore) |> ignore
 
         services
             .AddAuthorization()            

@@ -12,7 +12,7 @@ open Microsoft.SemanticKernel.SemanticFunctions
 
 module QnA =
     let history buffer model msgs =
-        let maxTkns = (Utils.safeTokenLimit model) - buffer |> min 0
+        let maxTkns = (Utils.safeTokenLimit model) - buffer |> max 0
 
         let hist = 
             msgs
@@ -122,10 +122,10 @@ Answers:
                 let maxDocs = Interaction.maxDocs 1 ch
                 let openAIClient = Utils.getClient parms ch
                 let! query = formulateQuery openAIClient ch.Parameters.CompletionsModel ch dispatch |> Async.AwaitTask
-                dispatch (Srv_Ia_Notification (ch.Id,Some $"Searching with: {query}"))
+                dispatch (Srv_Ia_Notification (ch.Id,$"Searching with: {query}"))
                 do! Async.Sleep 100
                 let docs = cogMem.SearchAsync("",query,limit=maxDocs) |> AsyncSeq.ofAsyncEnum |> AsyncSeq.toBlockingSeq |> Seq.toList
-                dispatch (Srv_Ia_Notification(ch.Id,Some $"{docs.Length} query results found. Generating answer..."))
+                dispatch (Srv_Ia_Notification(ch.Id,$"{docs.Length} query results found. Generating answer..."))
                 do! answerQuestion parms ch docs dispatch |> Async.AwaitTask
             with ex -> dispatch (Srv_Ia_Done(ch.Id, Some ex.Message))
         }
@@ -134,31 +134,29 @@ Answers:
         async {  
             try
                 let cogMem = chatPdfMemory parms ch                         //memory that supports chatpdf document format                
-                let k = (Utils.baseKernel parms ch).WithMemory(cogMem).Build()
-               
-                let ctx = k.CreateNewContext()
+                let k = (Utils.baseKernel parms ch).WithMemory(cogMem).Build()               
                 let maxDocs = Interaction.maxDocs 1 ch
-                let cfg = ch.Parameters
                 let completionsConfig = Utils.toCompletionsConfig ch.Parameters
                 let msgs = ch.Messages |> List.rev |> List.skipWhile (fun x-> not x.IsUser)
                 let userMessage = List.head msgs
                 let historyMessages = List.tail msgs
                 let chatModel = ch.Parameters.ChatModel
-                let chatHistory = history (Prompts.QnA.refineQuery.Length) chatModel ch.Messages
+                let chatHistory = history (Prompts.QnA.refineQuery.Length) chatModel historyMessages
+                printfn "Chat History: %A" chatHistory
                 let fn = k.CreateSemanticFunction(Prompts.QnA.refineQuery,PromptTemplateConfig(Completion=completionsConfig))              
                 let ctx = k.CreateNewContext()
                 ctx.Variables.Set("INPUT",userMessage.Message)
                 ctx.Variables.Set("chatHistory",chatHistory)      
                 let! ctx' = fn.InvokeAsync(ctx) |> Async.AwaitTask
                 let query = ctx'.Variables.Input
-                dispatch (Srv_Ia_Notification (ch.Id,Some $"Searching with: {query}"))
+                dispatch (Srv_Ia_Notification (ch.Id,$"Searching with: {query}"))
                 let docs = k.Memory.SearchAsync("",query,maxDocs) |> AsyncSeq.ofAsyncEnum |> AsyncSeq.toBlockingSeq |> Seq.toList
-                dispatch (Srv_Ia_Notification(ch.Id,Some $"{docs.Length} query results found. Generating answer..."))
+                dispatch (Srv_Ia_Notification(ch.Id,$"{docs.Length} query results found. Generating answer..."))
                 dispatch (Srv_Ia_SetDocs (ch.Id,docs |> List.map(fun d -> 
                     {
                         Text=d.Metadata.Text
                         Embedding=if d.Embedding.HasValue then d.Embedding.Value.Vector |> Seq.toArray else [||] 
-                        Ref=d.Metadata.AdditionalMetadata})))
+                        Ref=d.Metadata.ExternalSourceName})))
                 do! Async.Sleep 100
                 do! answerQuestion parms ch docs dispatch |> Async.AwaitTask
             with ex -> dispatch (Srv_Ia_Done(ch.Id, Some ex.Message))

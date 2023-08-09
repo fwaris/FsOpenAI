@@ -23,10 +23,6 @@ type ChatParametersView() =
             |> Option.iter (fun mdl -> dispatch (Ia_UpdateParms (id, f mdl)))
 
         concat {
-            comp<MudIconButton> {
-                "Icon" => Icons.Material.Outlined.Settings
-                on.click(fun e -> dispatch (OpenCloseSettings chat.Id))
-            }
             comp<MudPopover> {
                     "Style" => "width:300px"
                     "AnchorOrigin" => Origin.TopLeft

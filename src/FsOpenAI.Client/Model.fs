@@ -103,7 +103,7 @@ type Interaction = {
     Parameters : InteractionParameters
     Timestamp : DateTime  
     IsBuffering : bool
-    Notification : string option
+    Notifications : string list
 }
 
 type InteractionCreateType =
@@ -127,7 +127,7 @@ type ServerInitiatedMessages =
     | Srv_Ia_Delta of string*int*string   //chat id,index,delta
     | Srv_Ia_SetDocs of string*Document list //
     | Srv_Ia_Done of string*string option //chat id (optional error)
-    | Srv_Ia_Notification of string*string option //chat id (optional error)
+    | Srv_Ia_Notification of string*string //chat id (optional error)
     | Srv_Error of string
     | Srv_Info of string    
     | Srv_IndexesRefreshed of IndexRef list * string option * bool
@@ -150,7 +150,7 @@ type Message =
     | Ia_Add of InteractionCreateType
     | Ia_Remove of string 
     | Ia_UpdateQaBag of string * QABag
-    | Ia_Notification of string * string option
+    | Ia_Notification of string * string
     | SubmitInteraction of string*string
     | RefreshIndexes of bool
     | IndexesRefreshed of IndexRef list * string option //indexes or error

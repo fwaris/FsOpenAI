@@ -19,6 +19,7 @@
     <Compile Include="Update.fs" />
     <Compile Include="Views\ChatParametersView.fs" />
     <Compile Include="Views\MainSettingsView.fs" />
+    <Compile Include="Views\SearchResultsView.fs" />
     <Compile Include="Views\SysPromptView.fs" />
     <Compile Include="Views\MessageView.fs" />
     <Compile Include="Views\ChatHistoryView.fs" />
@@ -36,12 +37,15 @@
     <PackageReference Include="Bolero.Build" Version="0.*" />
     <PackageReference Include="Bolero.HotReload" Version="0.*" />
     <PackageReference Include="FSharp.Control.AsyncSeq" Version="3.2.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="7.0.*" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="7.0.10" />
     <PackageReference Include="Microsoft.SemanticKernel" Version="0.19.230804.2-preview" />
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.Memory.AzureCognitiveSearch" Version="0.19.230804.2-preview" />
     <PackageReference Include="MudBlazor" Version="6.8.0" />
     <PackageReference Include="Plotly.Blazor" Version="2.18.2" />
     <PackageReference Include="FSharp.SystemTextJson" Version="1.1.23" />
     <PackageReference Include="System.Threading.Channels" Version="7.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Update="FSharp.Core" Version="7.0.400" />
   </ItemGroup>
 </Project>

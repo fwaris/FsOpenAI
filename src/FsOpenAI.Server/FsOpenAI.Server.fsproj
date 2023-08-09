@@ -16,12 +16,15 @@
     <PackageReference Include="Azure.Security.KeyVault.Secrets" Version="4.5.0" />
     <PackageReference Include="Bolero.Server" Version="0.*" />
     <PackageReference Include="Bolero.HotReload.Server" Version="0.*" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="7.0.*" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="7.0.10" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Logging.AzureAppServices" Version="7.0.9" />
+    <PackageReference Include="Microsoft.Extensions.Logging.AzureAppServices" Version="7.0.10" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\FsOpenAI.Client\FsOpenAI.Client.fsproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Update="FSharp.Core" Version="7.0.400" />
   </ItemGroup>
 </Project>
