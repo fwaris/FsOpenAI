@@ -33,7 +33,7 @@ type ChatHistoryView() =
                         yield 
                             comp<MudListItem> { 
                                 comp<MudPaper> {
-                                    "Class" => $"d-flex mud-info"
+                                    "Class" => $"d-flex"
                                     text note
                                 }
                             }

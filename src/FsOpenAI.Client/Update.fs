@@ -153,9 +153,17 @@ module Update =
             model,Cmd.OfTask.either t () SetOpenAIKey IgnoreError
         | _ -> model,Cmd.none
 
+    let updateDocs (id,docs) model =
+        model.interactions
+        |> List.tryFind(fun c -> c.Id = id)
+        |> Option.bind (fun c -> match c.InteractionType with QA bag -> Some bag | _ -> None)
+        |> Option.map(fun bag -> Interactions.updateQABag id {bag with Documents = docs} model.interactions)
+        |> Option.map(fun cs -> {model with interactions = cs})
+        |> Option.defaultValue model
+
     //if there is an exception when processing a message, the Elmish message loop terminates
     let update (localStore:ILocalStorageService) (snkbar:ISnackbar) serverDispatch message model =
-        printfn "%A" message
+        //printfn "%A" message
         match message with
         | Chat_SysPrompt (id,msg) -> {model with interactions = Interactions.updateSystemMsg (id,msg) model.interactions},Cmd.none
         | Ia_AddMsg (id,msg) -> {model with interactions = Interactions.addMessage (id,msg) model.interactions},Cmd.none
@@ -196,4 +204,4 @@ module Update =
         | FromServer (Srv_Info err) -> model,Cmd.ofMsg (ShowInfo err)
         | FromServer (Srv_IndexesRefreshed (idxs,err,initial)) -> {model with busy=false}, postInit (idxs,err,initial)
         | FromServer (Srv_Ia_Notification (id,note)) -> model,Cmd.ofMsg(Ia_Notification(id,note))
-        | FromServer (Srv_Ia_SetDocs (id,docs)) -> updateDocs model
+        | FromServer (Srv_Ia_SetDocs (id,docs)) -> updateDocs (id,docs) model, Cmd.none

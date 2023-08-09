@@ -50,7 +50,14 @@ module Interaction =
             let msgs = match c.Messages with [] -> [newUserMessage ""] | x::[] -> [newUserMessage x.Message] | xs -> xs
             {c with Messages = msgs}                
 
-    let chatParameters ct = {InteractionParameters.Default with Backend = ct}
+    let chatParameters backend interactionType = 
+        {InteractionParameters.Default with 
+            Backend = backend
+            Temperature = 
+                match interactionType with 
+                | QA _  -> 0.1 //default to low for improved precision
+                | _     -> InteractionParameters.Default.Temperature
+        }
 
     let defaultName n = function
         | CreateChat AzureOpenAI -> $"Chat [Azure] {n}"
@@ -96,7 +103,7 @@ module Interactions =
                 Name = Interaction.defaultName id ctype
                 InteractionType = iType
                 Messages = [Interaction.newUserMessage msg]
-                Parameters = Interaction.chatParameters bknd
+                Parameters = Interaction.chatParameters bknd iType
                 Timestamp = DateTime.Now
                 IsBuffering = false
                 Notification = None

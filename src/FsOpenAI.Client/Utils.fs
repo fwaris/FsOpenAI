@@ -101,3 +101,4 @@ module Utils =
 module C =
     let LS_OPENAI_KEY = "LS_OPENAI_KEY"
     let MAIN_SETTINGS = "MAIN_SETTINGS"
+    let CHAT_DOCS chatId = $"{chatId}_docs"
