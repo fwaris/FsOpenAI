@@ -67,11 +67,12 @@ module Update =
                     |> Interactions.addOrUpdateLastMsg (id,lastMsg)
                     |> Interactions.addMessage (id,Interaction.newAsstantMessage "")
                     |> Interactions.clearNotifications id 
+                    |> Interactions.clearDocuments id
                     |> Interactions.startBuffering id
                 let model = {model with interactions = chats; error=None}
                 let ch = model.interactions |> List.find(fun x->x.Id=id)
                 match ch.InteractionType with
-                | QA _ -> serverDispatch (Clnt_StreamAnswer(sp,ch))
+                | QA _   -> serverDispatch (Clnt_StreamAnswer(sp,ch))
                 | Chat _ -> serverDispatch (Clnt_StreamChat(sp,ch))
                 model,Cmd.none
             | None -> model,Cmd.ofMsg(ShowInfo "Service configuration not yet received from server")

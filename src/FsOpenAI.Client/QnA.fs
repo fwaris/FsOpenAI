@@ -2,18 +2,14 @@
 open System
 open FSharp.Control
 open Microsoft.SemanticKernel
-open Microsoft.SemanticKernel.AI
 open Microsoft.SemanticKernel.Memory
-open Azure.AI.OpenAI
 open FsOpenAI.Client.Interactions
-open Microsoft.SemanticKernel.AI.ChatCompletion
 open Microsoft.SemanticKernel.Connectors.AI.OpenAI.Tokenizers
 open Microsoft.SemanticKernel.SemanticFunctions
 
 module QnA =
     let history buffer model msgs =
         let maxTkns = (Utils.safeTokenLimit model) - buffer |> max 0
-
         let hist = 
             msgs
             |> List.filter (fun m -> Utils.notEmpty m.Message)
@@ -24,51 +20,21 @@ module QnA =
             |> List.scan (fun (_,acc) (t,c) -> t,acc + c ) ("",0)
             |> List.skip 1
             |> List.takeWhile (fun (_,c) -> c < maxTkns)
-            |> List.map fst
-            
+            |> List.map fst            
         String.Join("\n\n",hist)        
 
-    let joinText (rs:MemoryQueryResult seq) = String.Join("\n",rs |> Seq.map(fun x -> x.Metadata.Text))
-
-    let formulateQueryPrompt chatHistory question = $"""
-Below is a history of the conversation so far, and a new question asked by the user that needs to be answered by searching in a knowledge base.
-Generate a search query based on the conversation and the new question.
-The search query should be optimized to find the answer to the question in the knowledge base.
-
-Chat History:
-{chatHistory}
-
-Question:
-{question}
-
-Search query:
-"""
-
-    let formulateQuery (completionsClient:OpenAIClient) completionsModel (ch:Interaction) dispatch = 
-        task {
-            try
-                let msgs = List.rev ch.Messages
-                let chatHistory = msgs |> List.skipWhile (fun m-> m.IsUser) |> List.rev |> history 100 completionsModel
-                let question = msgs |> List.find (fun m -> m.IsUser)
-                let prompt = formulateQueryPrompt chatHistory question
-                let! req = completionsClient.GetCompletionsStreamingAsync(completionsModel,CompletionsOptions([prompt]))
-                let choices = req.Value.GetChoicesStreaming() |> AsyncSeq.ofAsyncEnum
-                let texts = choices |> AsyncSeq.collect(fun c -> c.GetTextStreaming() |> AsyncSeq.ofAsyncEnum)
-                let mutable resp = ""
-                do! texts |> AsyncSeq.iter(fun t -> resp <- resp + t)
-                return resp
-
-//                 let xs =
-//                     req.Value.GetChoicesStreaming() 
-//                     |> AsyncSeq.ofAsyncEnum
-//                     |> AsyncSeq.collect(fun x-> x.GetTextStreaming() |> AsyncSeq.ofAsyncEnum)
-// //                    |> AsyncSeq.map(fun m-> dispatch(Srv_Ia_Notification(ch.Id,Some m));m)            
-//                     |> AsyncSeq.toBlockingSeq
-//                     |> Seq.toList
-//                 return String.Join("",xs)
-            with ex -> 
-                return raise ex
-        }
+    let combineSearchResults buffer model (docs:MemoryQueryResult seq) =
+        let maxTkns = (Utils.safeTokenLimit model) - buffer |> max 0
+        let docs = 
+            docs
+            |> Seq.sortByDescending(fun d->d.Relevance)
+            |> Seq.map(fun d -> d.Metadata.Text,GPT3Tokenizer.Encode(d.Metadata.Text).Count)
+            |> Seq.scan (fun (_,acc) (t,c) -> t,acc + c ) ("",0)
+            |> Seq.skip 1
+            |> Seq.takeWhile (fun (_,c) -> c < maxTkns)
+            |> Seq.map fst
+            |> Seq.toList
+        String.Join("\n\n",docs)
 
     let questionAnswerPrompt date documents question = $"""
 SEARCH DOCUMENTS is a collection of documents that match the queries in QUESTION.
@@ -94,7 +60,8 @@ Answers:
         task {
             try
                 let question = ch.Messages |> List.rev |> List.find (fun m -> m.IsUser)
-                let prompt = questionAnswerPrompt (DateTime.Now.ToShortDateString()) (joinText docs) question.Message
+                let combinedSearch = combineSearchResults 500 ch.Parameters.ChatModel docs
+                let prompt = questionAnswerPrompt (DateTime.Now.ToShortDateString()) combinedSearch question.Message
                 let id,cs = Interactions.addNew(CreateChat ch.Parameters.Backend) (Some question.Message) []  //switch to chat model as GPT-4 does not support completion              
                 let cs = Interactions.updateParms (id,ch.Parameters) cs
                 let c = {cs.[0] with Id=ch.Id; InteractionType=Chat prompt}
@@ -102,7 +69,6 @@ Answers:
             with ex -> 
                 raise ex
         }
-
 
     ///semantic memory supporting chatpdf format
     let chatPdfMemory (parms:ServiceSettings) (ch:Interaction) : ISemanticTextMemory =
@@ -114,21 +80,6 @@ Answers:
         let openAIClient = Utils.getClient parms ch
         SemanticVectorSearch.CognitiveSearch(srchClient,openAIClient,embModel,"contentVector","content","sourcefile")
 
-
-    let runPlan2 (parms:ServiceSettings) (ch:Interaction) dispatch =
-        async {  
-            try
-                let cogMem = chatPdfMemory parms ch                         //memory that supports chatpdf document format
-                let maxDocs = Interaction.maxDocs 1 ch
-                let openAIClient = Utils.getClient parms ch
-                let! query = formulateQuery openAIClient ch.Parameters.CompletionsModel ch dispatch |> Async.AwaitTask
-                dispatch (Srv_Ia_Notification (ch.Id,$"Searching with: {query}"))
-                do! Async.Sleep 100
-                let docs = cogMem.SearchAsync("",query,limit=maxDocs) |> AsyncSeq.ofAsyncEnum |> AsyncSeq.toBlockingSeq |> Seq.toList
-                dispatch (Srv_Ia_Notification(ch.Id,$"{docs.Length} query results found. Generating answer..."))
-                do! answerQuestion parms ch docs dispatch |> Async.AwaitTask
-            with ex -> dispatch (Srv_Ia_Done(ch.Id, Some ex.Message))
-        }
 
     let runPlan (parms:ServiceSettings) (ch:Interaction) dispatch =
         async {  

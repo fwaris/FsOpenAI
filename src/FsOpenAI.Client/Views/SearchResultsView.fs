@@ -18,16 +18,12 @@ type SearchResultsView() =
         let panelId,isPanelOpen,bag = model
         comp<MudPopover> {
             "Class" => "mud-height-full"
-            "Style" => "width:500px"
+            "Style" => "width:75%"
             "AnchorOrigin" => Origin.TopRight
             "TransformOrigin" => Origin.TopRight
             "Open" => isPanelOpen
-            comp<MudDataGrid<Document>> {
-                "Striped" => true
+            comp<MudTable<Document>> {
                 "Items" => bag.Documents
-                "RowsPerPage" => 1
-                "Dense" => true
-                "Height" => "600px"
                 attr.fragment "ToolBarContent" (
                     concat {
                         comp<MudText> {"Typo" => Typo.h6; "Search Results"}
@@ -38,20 +34,24 @@ type SearchResultsView() =
                         }
                     }
                 )
-                attr.fragment "Columns" (
-                    concat {
-                        comp<PropertyColumn<Document,string>> {
-                            SVAttr.Property (fun d->d.Text)
-                            "Title" => "Text"
+                attr.fragmentWith "RowTemplate" (fun (o:Document) ->
+                    comp<MudStack> {
+                        "Class" => "ma-4"
+                        comp<MudLink> {                            
+                            "Href" => o.Ref
+                            "Target" => "_blank"
+                            o.Ref
                         }
-                        comp<PropertyColumn<Document,string>> {
-                            SVAttr.Property (fun d->d.Ref)
-                            "Title" => "Ref"
+                        comp<MudText> {
+                            "Style" => "height:400px"
+                            text o.Text
                         }
                     }
                 )
                 attr.fragment "PagerContent" (
-                    comp<MudDataGridPager<Document>> {attr.empty()}
+                    comp<MudTablePager> {
+                        "PageSizeOptions" => [|1|]
+                    }
                 )
-            }            
+            }
         }

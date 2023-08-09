@@ -29,13 +29,17 @@ type ChatHistoryView() =
                         }
                 if chat.IsBuffering then 
                     if chat.Notifications.IsEmpty |> not then
-                        for note in chat.Notifications do
-                            yield 
-                                comp<MudListItem> { 
-                                    comp<MudPaper> {
-                                        "Class" => $"d-flex"
-                                        text note
+                        yield
+                            comp<MudListItem> { 
+                                div {
+                                    attr.``class`` "d-flex"
+                                    attr.style $"color:{Colors.Blue.Default};"
+                                    ul {
+                                        attr.style "list-style-type: square;"
+                                        for t in chat.Notifications do
+                                                li {t}                                        
+                                        }
                                     }
-                                }
+                                }                            
             }                            
         }

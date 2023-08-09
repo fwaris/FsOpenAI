@@ -12,6 +12,11 @@ module Interaction =
         | QA _ -> {c with InteractionType = QA bag}
         | _    -> c
 
+    let clearDocuments c =
+        match c.InteractionType with
+        | QA bag -> {c with InteractionType = QA {bag with Documents=[]}}
+        | _      -> c
+
     let updateLastMsgWith f c = 
         let h,tail = match List.rev c.Messages with h::t -> h,t | _ -> failwith "no messages in chat"
         let h = f h 
@@ -139,3 +144,4 @@ module Interactions =
 
     let clearNotifications id cs = updateWith (fun c -> {c with Notifications=[]}) id cs
 
+    let clearDocuments id cs = updateWith Interaction.clearDocuments id cs
