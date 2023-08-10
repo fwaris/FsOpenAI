@@ -10,8 +10,15 @@ module Utils =
     let rng = Random()
     let randSelect (ls:_ list) = ls.[rng.Next(ls.Length)]
 
-    let mutable private id = 0
-    let nextId() = Threading.Interlocked.Increment(&id)
+    //let mutable private id = 0
+    //let nextId() = Threading.Interlocked.Increment(&id)
+
+    let newId() = 
+        Guid.NewGuid().ToByteArray() 
+        |> Convert.ToBase64String 
+        |> Seq.takeWhile (fun c -> c <> '=') 
+        |> Seq.toArray 
+        |> String
 
     let notEmpty (s:string) = String.IsNullOrWhiteSpace s |> not
     let isEmpty (s:string) = String.IsNullOrWhiteSpace s 
@@ -98,7 +105,3 @@ module Utils =
         FrequencyPenalty = p.FrequencyPenalty,
         PresencePenalty = p.PresencePenalty)
 
-module C =
-    let LS_OPENAI_KEY = "LS_OPENAI_KEY"
-    let MAIN_SETTINGS = "MAIN_SETTINGS"
-    let CHAT_DOCS chatId = $"{chatId}_docs"

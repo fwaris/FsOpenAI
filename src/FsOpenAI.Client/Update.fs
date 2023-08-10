@@ -17,11 +17,16 @@ module Update =
             Icons.Material.Outlined.QuestionAnswer,"New Doc. Q&A with OpenAI models", CreateQA OpenAI
         ]
 
-    let addQASample model =
+    let addSamples model =
         let backend = 
             model.serviceParameters 
             |> Option.map(fun p -> if not(p.AZURE_OPENAI_ENDPOINTS.IsEmpty) then AzureOpenAI else OpenAI) 
             |> Option.defaultValue OpenAI
+
+        let serchConfigured =
+            model.serviceParameters
+            |> Option.map(fun x -> not(x.AZURE_SEARCH_ENDPOINTS.IsEmpty))
+            |> Option.defaultValue false
 
         let chatModel = match backend with OpenAI -> "gpt-3.5-turbo-16k" | AzureOpenAI -> "gpt-4-32k"
 
@@ -30,13 +35,16 @@ module Update =
         let cs = Interactions.updateSystemMsg (cId,"You are a helpful AI") cs
         let cs = Interactions.updateParms (cId,{(List.last cs).Parameters with ChatModel=chatModel}) cs
 
-        //sample 2
-        let cId2,cs = Interactions.addNew (CreateQA backend) (Some "List the names, trades and dates of insider trades from Form 4 filings") cs
-        let cs = Interactions.updateParms (cId2,{(List.last cs).Parameters with ChatModel=chatModel}) cs
-        let bag = match (List.last cs).InteractionType with QA bag -> bag | _ -> failwith ""
-        let iref = model.indexRefs |> List.tryFind (function (Azure n) -> n.Name="verizon-sec")
-        let cs = Interactions.updateQABag cId2 {bag with Index=iref; MaxDocs=20} cs
-
+        let cs = 
+            if serchConfigured then 
+                //sample 2
+                let cId2,cs = Interactions.addNew (CreateQA backend) (Some "List the names, trades and dates of insider trades from Form 4 filings") cs
+                let cs = Interactions.updateParms (cId2,{(List.last cs).Parameters with ChatModel=chatModel}) cs
+                let bag = match (List.last cs).InteractionType with QA bag -> bag | _ -> failwith ""
+                let iref = model.indexRefs |> List.tryFind (function (Azure n) -> n.Name="verizon-sec")
+                Interactions.updateQABag cId2 {bag with Index=iref; MaxDocs=20} cs            
+            else 
+                cs
         {model with interactions=cs}
         
     let initModel =    
@@ -49,6 +57,7 @@ module Update =
             settingsOpen = Map.empty 
             highlight_busy = false
             serviceParameters = None   
+            darkTheme = true
         }
 
     let checkBusy model apply = 
@@ -145,7 +154,11 @@ module Update =
 
     let postInit (idxs,err,initial) = 
         let idxMsg = Cmd.ofMsg(IndexesRefreshed(idxs,err))
-        let postInit = if initial && err.IsNone then [idxMsg; Cmd.ofMsg(AddSamples); Cmd.ofMsg GetOpenAIKey] else [idxMsg; Cmd.ofMsg GetOpenAIKey]
+        let postInit = 
+            if initial && err.IsNone then 
+                [idxMsg; Cmd.ofMsg GetOpenAIKey; Cmd.ofMsg Ia_Load] 
+            else 
+                [idxMsg; Cmd.ofMsg GetOpenAIKey; Cmd.ofMsg Ia_Load]
         Cmd.batch postInit
 
     let getKeyFromLocal (localStore:ILocalStorageService) model =
@@ -163,11 +176,47 @@ module Update =
         |> Option.map(fun cs -> {model with interactions = cs})
         |> Option.defaultValue model
 
+    let saveChats (model,(localStore:ILocalStorageService)) =
+        let cs = model.interactions |> List.map Interaction.clearDocuments 
+        task {
+            do! localStore.SetItemAsync(C.CHATS,cs)
+            return "Chats saved"
+        }
+
+    let loadChats (localStore:ILocalStorageService) =
+        task {
+            try               
+                let! haveChats = localStore.ContainKeyAsync(C.CHATS)
+                if haveChats then
+                    let! cs = localStore.GetItemAsync<Interaction list>(C.CHATS)              
+                    return cs
+                else
+                    return []
+            with ex ->
+                return failwith $"Unable to load saved chats: '{ex.Message}'"
+        }
+
+    let deleteSavedChats (localStore:ILocalStorageService) =
+        task {
+            try               
+                let! haveChats = localStore.ContainKeyAsync(C.CHATS)
+                if haveChats then
+                    do! localStore.RemoveItemAsync(C.CHATS)
+                return "Saved chats deleted"
+            with ex ->                
+                return failwith $"Unable to delete saved chats: '{ex.Message}'"
+        }
+
     //if there is an exception when processing a message, the Elmish message loop terminates
     let update (localStore:ILocalStorageService) (snkbar:ISnackbar) serverDispatch message model =
         //printfn "%A" message
         match message with
         | Chat_SysPrompt (id,msg) -> {model with interactions = Interactions.updateSystemMsg (id,msg) model.interactions},Cmd.none
+        | Ia_Save -> model, Cmd.OfTask.either saveChats (model,localStore) ShowInfo Error
+        | Ia_Load -> model, Cmd.OfTask.either loadChats localStore Ia_Loaded Error
+        | Ia_Loaded cs -> {model with interactions = cs},if cs.IsEmpty then Cmd.ofMsg AddSamples else Cmd.none
+        | Ia_ClearChats -> {model with interactions=[]},Cmd.ofMsg(ShowInfo "Chats cleared")
+        | Ia_DeleteSavedChats -> model,Cmd.OfTask.either deleteSavedChats localStore ShowInfo Error
         | Ia_AddMsg (id,msg) -> {model with interactions = Interactions.addMessage (id,msg) model.interactions},Cmd.none
         | Ia_UpdateLastMsg (id,msg) -> {model with interactions = Interactions.addOrUpdateLastMsg(id,msg) model.interactions},Cmd.none
         | Ia_DeleteMsg (id,msg) -> {model with interactions = model.interactions |> Interactions.tryDeleteMessage (id,msg)},Cmd.none
@@ -191,13 +240,14 @@ module Update =
         | HighlightBusy t -> highlightBusy model t
         | SetServiceParms p -> {model with serviceParameters = Some p},Cmd.none
         | Started -> pingServer serverDispatch; {model with busy=true},Cmd.none
-        | AddSamples -> addQASample model,Cmd.none
+        | AddSamples -> addSamples model,Cmd.none
         | RefreshIndexes initial -> checkBusy model <| refreshIndexes serverDispatch initial
         | IndexesRefreshed (idxs,err) -> {model with indexRefs = idxs; busy=false}, match err with Some e -> Cmd.ofMsg(ShowInfo e) | _ -> Cmd.none
         | GetOpenAIKey -> getKeyFromLocal localStore model
         | SetOpenAIKey key -> {model with serviceParameters = model.serviceParameters |> Option.map (fun p -> {p with OPENAI_KEY = Some key})},Cmd.none
         | UpdateOpenKey key -> model,Cmd.batch [Cmd.ofMsg (SetOpenAIKey key); Cmd.ofMsg (SaveToLocal(C.LS_OPENAI_KEY,key))]
         | SaveToLocal (k,v) -> localStore.SetItemAsStringAsync(k,v) |> ignore; model,Cmd.none
+        | ToggleTheme -> {model with darkTheme = not model.darkTheme},Cmd.none
         | IgnoreError ex -> model,Cmd.none
         | FromServer (Srv_Parameters p) -> {model with serviceParameters=Some p; busy=false},Cmd.ofMsg(RefreshIndexes true)
         | FromServer (Srv_Ia_Delta(id,i,d)) -> model,Cmd.ofMsg(Ia_AddDelta(id,d))

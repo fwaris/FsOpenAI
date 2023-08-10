@@ -12,6 +12,7 @@ type MainSettingsView() =
         let settingsOpen = Utils.isOpen C.MAIN_SETTINGS mdl.settingsOpen
         concat {
             comp<MudIconButton> {
+                "Class" => "mt-1"
                 "Icon" => Icons.Material.Outlined.Key
                 on.click(fun e -> dispatch (OpenCloseSettings C.MAIN_SETTINGS))
             }

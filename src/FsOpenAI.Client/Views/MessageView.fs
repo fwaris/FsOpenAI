@@ -23,19 +23,25 @@ type MessageView() =
             "Size" => Size.Medium
         }
 
+    let padding (c:InteractionMessage) = if c.IsUser then "margin-right:20px;" else "margin-left:20px"
+
+    let color (c:InteractionMessage) = if c.IsUser then Colors.BlueGrey.Darken2 else Colors.BlueGrey.Darken4
+
+    let border (c:InteractionMessage) = if c.IsUser then "mud-border-primary" else "mud-border-secondary"
+
     override this.View model dispatch =
         let isBusy,chat,msg = model
-        comp<MudContainer> {
-            "Class" => "d-flex flex-grow-1 ma-1 pa-1"
+        comp<MudPaper> {
+            "Class" => $"d-flex border-solid border {border msg} rounded-lg"
+            "Style" => $"{padding msg}"
+            //"Style" => $"{padding msg} border-solid border-5 mud-border-primary"
+            "Elevation" => 0
             comp<MudPaper> {
-                "Class" => "d-flex"  
-                "Width" => "100%"
+                "Class" => "d-flex flex-grow-1 ma-2 pa-2"  
                 concat {
                     icon msg
                     if msg.IsOpen then 
                         comp<MudTextField<string>> {
-                            //attr.callback "ValueChanged" (fun e -> dispatch (Chat_UpdateLastMsg (chat.Id,e)))
-                            //"Variant" => Variant.Outlined
                             "Label" => "Question"
                             "Lines" => 2
                             "Placeholder" => "Enter prompt or question"
@@ -50,7 +56,7 @@ type MessageView() =
                 }
             }
             comp<MudPaper> {
-                "Class" => "d-flex flex-none"
+                "Class" => "d-flex flex-none align-start ma-2 pa-2"
                 if not chat.IsBuffering && not msg.IsOpen then
                     comp<MudIconButton> {
                         "Icon" => Icons.Material.Filled.Delete
@@ -59,6 +65,7 @@ type MessageView() =
                     }   
                 if msg.IsOpen then
                     comp<MudIconButton> {
+                        "Class" => "mt-4"
                         "Icon" => Icons.Material.Filled.Send
                         "Disabled" => isBusy
                         "Size" => Size.Small

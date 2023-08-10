@@ -26,8 +26,9 @@ let page = doctypeHtml {
     }
     body {
         //attr.style "background: #32333dff; height: 100vh; display:flex; overflow; hidden"
-        attr.style "background: #32333dff;"
-        div { attr.id "main"; attr.style "background: #32333dff;"; comp<Client.App.MyApp> }
+        //attr.style "background: #32333dff;"
+        //div { attr.id "main"; attr.style "background: #32333dff;"; comp<Client.App.MyApp> }
+        div { attr.id "main"; comp<Client.App.MyApp> }
         boleroScript
         //comp<MudContainer> {
         //    "Style" => "background: #32333dff;"

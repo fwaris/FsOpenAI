@@ -49,6 +49,7 @@ type SearchResultsView() =
                 )
                 attr.fragment "PagerContent" (
                     comp<MudTablePager> {
+                        "HideRowsPerPage" => true
                         "PageSizeOptions" => [|1|]
                     }
                 )

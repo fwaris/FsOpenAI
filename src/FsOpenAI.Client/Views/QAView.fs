@@ -16,12 +16,11 @@ type QAView() =
         let settingsOpen = model.settingsOpen |> Map.tryFind chat.Id |> Option.defaultValue false
         let panelId = C.CHAT_DOCS chat.Id
         let isPanelOpen = model.settingsOpen |> Map.tryFind panelId |> Option.defaultValue false
-        comp<MudContainer> {
-            "Class" => "mud-height-full"            
-            div {
+        comp<MudPaper> {            
+            comp<MudPaper> {
                 "class" => "d-flex flex-grow-1 gap-1"
                 comp<MudPaper> {
-                    "Class" => "d-flex flex-none ma-3"
+                    "Class" => "d-flex flex-none align-self-center ma-3"
                     comp<MudIconButton> { 
                         "Icon" => Icons.Material.Outlined.Settings
                         on.click(fun e -> dispatch (OpenCloseSettings chat.Id))
@@ -33,15 +32,18 @@ type QAView() =
                     ecomp<IndexSelectionView,_,_> (bag,chat,model) dispatch {attr.empty()}
                 }
                 comp<MudPaper> {
-                    "Class" => "d-flex flex-none ma-3"
-                    comp<MudIconButton> {
-                        "Icon" => Icons.Material.Outlined.Folder
-                        "Disabled" => bag.Documents.IsEmpty
-                        on.click (fun _ -> dispatch (OpenCloseSettings panelId))
+                    "Class" => "d-flex flex-none align-self-center ma-3"
+                    comp<MudTooltip> {
+                        "Text" => "View search results"
+                        "Arrow" => true
+                        comp<MudIconButton> {
+                            "Icon" => Icons.Material.Outlined.Folder
+                            "Disabled" => bag.Documents.IsEmpty
+                            on.click (fun _ -> dispatch (OpenCloseSettings panelId))
+                        }
                     }
                 }
             }
             ecomp<ChatHistoryView,_,_> (chat,model) dispatch { attr.empty() }
             ecomp<SearchResultsView,_,_> (panelId,isPanelOpen,bag) dispatch {attr.empty()}
-
         }

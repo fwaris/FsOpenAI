@@ -7,6 +7,8 @@ module Interaction =
     let newUserMessage cntnt = {Role=MessageRole.User Open; Message=cntnt}
     let newAsstantMessage cntnt =  {Role=MessageRole.Assistant; Message=cntnt}
 
+    let genName name msg = if Utils.isEmpty msg then name else (msg |>Seq.truncate 14 |> Seq.toArray |> String)
+
     let updateQABag bag c = 
         match c.InteractionType with 
         | QA _ -> {c with InteractionType = QA bag}
@@ -45,7 +47,7 @@ module Interaction =
         let (h,t) = match List.rev c.Messages with h::t -> {h with Message=msg},t | _ -> (newUserMessage msg),[]
         match h.Role with | MessageRole.User _ -> () | _ -> failwith "user role expected"
         let h = {h with Role=MessageRole.User Closed}
-        {c with Messages = List.rev (h::t)}
+        {c with Messages = List.rev (h::t); Name=genName c.Name h.Message}
 
     let tryDeleteMessage msg (c:Interaction) = 
         if c.IsBuffering then 
@@ -64,7 +66,9 @@ module Interaction =
                 | _     -> InteractionParameters.Default.Temperature
         }
 
-    let defaultName n = function
+    let defaultName n bkend = 
+        let n = n |> Seq.truncate 3 |> Seq.toArray |> String
+        match bkend with
         | CreateChat AzureOpenAI -> $"Chat [Azure] {n}"
         | CreateQA AzureOpenAI -> $"Q&A [Azure] {n}"
         | CreateChat OpenAI -> $"Chat [OpenAI] {n}"
@@ -101,11 +105,12 @@ module Interactions =
             | CreateChat bk -> InteractionType.Chat "", bk
             | CreateQA bk -> InteractionType.QA QABag.Default, bk
         let msg = defaultArg msg ""
-        let id = string <| Utils.nextId()
+        let id = Utils.newId()
+        let name = Interaction.genName (Interaction.defaultName id ctype) msg
         let c = 
             {
                 Id = id
-                Name = Interaction.defaultName id ctype
+                Name = name
                 InteractionType = iType
                 Messages = [Interaction.newUserMessage msg]
                 Parameters = Interaction.chatParameters bknd iType

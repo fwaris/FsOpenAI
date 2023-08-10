@@ -22,33 +22,30 @@ type MainLayout() =
             | None   -> -1)
 
     override this.View model dispatch =        
-        div {           
+        div {            
+            comp<MudThemeProvider> { "isDarkMode" => model.darkTheme }
+            comp<MudDialogProvider> {attr.empty()}
+            comp<MudSnackbarProvider> {attr.empty()}                
             comp<MudLayout> {
-                comp<MudThemeProvider> { "isDarkMode" => true }
-                comp<MudDialogProvider> {attr.empty()}
-                comp<MudSnackbarProvider> {attr.empty()}                
                 AppBar.appBar model dispatch
                 comp<MudMainContent> {
-                    comp<MudContainer> {
-                        comp<MudDynamicTabs> {                            
-                            "ActivePanelIndex" => selChat model.interactions
-                            "AddTabIcon" => ""
-                            attr.callback "CloseTab" (fun (t:MudTabPanel) -> let c = t.Tag :?> Interaction in dispatch (Ia_Remove c.Id))
-                            tabs
-                            concat {
-                                for c in model.interactions do
-                                    comp<MudTabPanel> {
-                                        "Text" => c.Name
-                                        "tag" => c
-                                        "ShowCloseIcon" => true
-                                        match c.InteractionType with 
-                                        | Chat _ -> ecomp<ChatView,_,_> (c,model) dispatch {attr.empty()}
-                                        | QA bag -> ecomp<QAView,_,_> (bag,c,model) dispatch {attr.empty()}
-                                    }
-                            }                            
-                        }                        
-                     }
+                    comp<MudDynamicTabs> {                                 
+                        "ActivePanelIndex" => selChat model.interactions
+                        "AddTabIcon" => ""
+                        attr.callback "CloseTab" (fun (t:MudTabPanel) -> let c = t.Tag :?> Interaction in dispatch (Ia_Remove c.Id))
+                        tabs
+                        concat {
+                            for c in model.interactions do
+                                comp<MudTabPanel> {
+                                    "Text" => c.Name
+                                    "tag" => c
+                                    "ShowCloseIcon" => true
+                                    match c.InteractionType with 
+                                    | Chat _ -> ecomp<ChatView,_,_> (c,model) dispatch {attr.empty()}
+                                    | QA bag -> ecomp<QAView,_,_> (bag,c,model) dispatch {attr.empty()}
+                                }
+                        }                            
+                    }                        
                 }
             }         
         }
-

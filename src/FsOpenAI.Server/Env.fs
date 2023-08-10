@@ -11,11 +11,7 @@ open FsOpenAI.Client
 type FsOpenAILog() = class end //type for log categorization
 
 
-module Env =
-    module N =
-        let SETTINGS_FILE = "Parms:Settings"                            //1st: look for file key in appSettings.json
-        let FSOPENAI_AZURE_KEYVAULT = "FSOPENAI_AZURE_KEYVAULT"         //2nd: look for in key vault
-        let FSOPENAI_AZURE_KEYVAULT_KEY = "FSOPENAI_AZURE_KEYVAULT_KEY" //2nd: with this key
+module Env =    
 
     type Config = 
         {
@@ -32,9 +28,9 @@ module Env =
         logger <- lggr
         config <- 
             {
-                SettingsFile = cfg.[N.SETTINGS_FILE]
-                KeyVault = System.Environment.GetEnvironmentVariable(N.FSOPENAI_AZURE_KEYVAULT)
-                KeyVaultKey = System.Environment.GetEnvironmentVariable(N.FSOPENAI_AZURE_KEYVAULT_KEY)
+                SettingsFile = cfg.[C.SETTINGS_FILE]
+                KeyVault = System.Environment.GetEnvironmentVariable(C.FSOPENAI_AZURE_KEYVAULT)
+                KeyVaultKey = System.Environment.GetEnvironmentVariable(C.FSOPENAI_AZURE_KEYVAULT_KEY)
             }
 
     let logError str =

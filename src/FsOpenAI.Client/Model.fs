@@ -64,9 +64,9 @@ type InteractionParameters =
     static member Default = 
         {
             Backend = AzureOpenAI
-            Temperature = 1.0      //0.0 to 2.0
-            PresencePenalty = 0.0  //-2.0 to +2.0
-            FrequencyPenalty = 0.0 //-2.0 to +2.0
+            Temperature = 1.0      // 0.0 to 2.0
+            PresencePenalty = 0.0  // -2.0 to +2.0
+            FrequencyPenalty = 0.0 // -2.0 to +2.0
             MaxTokens = 1000            
             ChatModel = "gpt-4"
             CompletionsModel = "text-davinci-003"
@@ -120,6 +120,7 @@ type Model =
         settingsOpen : Map<string,bool>
         highlight_busy : bool
         serviceParameters : ServiceSettings option
+        darkTheme : bool
     }
 
 type ServerInitiatedMessages =
@@ -140,6 +141,11 @@ type ClientInitiatedMessages =
 
 type Message =
     | Chat_SysPrompt of string * string
+    | Ia_Save
+    | Ia_Load
+    | Ia_Loaded of Interaction list
+    | Ia_ClearChats 
+    | Ia_DeleteSavedChats
     | Ia_AddMsg of string * InteractionMessage    
     | Ia_UpdateLastMsg of string * string    
     | Ia_AddDelta of string * string
@@ -172,3 +178,4 @@ type Message =
     | UpdateOpenKey of string
     | SaveToLocal of string*string
     | IgnoreError of exn
+    | ToggleTheme

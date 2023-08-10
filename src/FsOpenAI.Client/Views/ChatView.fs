@@ -12,12 +12,12 @@ type ChatView() =
     override this.View m dispatch =
         let chat,model = m
         let settingsOpen = model.settingsOpen |> Map.tryFind chat.Id |> Option.defaultValue false
-        comp<MudContainer> {
+        comp<MudPaper> {
             "Class" => "mt2"            
             div {
                 "class" => "d-flex flex-grow-1 gap-1"
                 comp<MudPaper> {                    
-                    "Class" => "d-flex flex-none ma-3"
+                    "Class" => "d-flex flex-none align-self-center ma-3"
                     comp<MudIconButton> { 
                         "Icon" => Icons.Material.Outlined.Settings
                         on.click(fun e -> dispatch (OpenCloseSettings chat.Id))
