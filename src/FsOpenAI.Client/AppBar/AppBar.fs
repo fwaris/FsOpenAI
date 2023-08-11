@@ -1,9 +1,38 @@
 ﻿namespace FsOpenAI.Client.Views
+open System
 open Bolero.Html
 open MudBlazor
 open FsOpenAI.Client
 
 module AppBar =
+    let createMenuGroup group dispatch =
+        concat {
+            for (icon,name,createType) in group do 
+                comp<MudMenuItem> {
+                    "Icon" => icon
+                    on.click(fun _ -> dispatch (Ia_Add createType))
+                    text name
+                }
+        }        
+
+    let createMenu model dispatch =
+        let groups = 
+            model.interactionCreateTypes 
+            |> List.groupBy (fun (_,_,c) -> match c with CreateChat bkend -> bkend | CreateQA bkend -> bkend)
+            |> List.map snd
+      
+        let rec loop (acc:Bolero.Node) gs =
+            match gs with 
+            | [] -> acc
+            | g1::rest -> 
+                let n1 = createMenuGroup g1 dispatch
+                concat {
+                    yield acc
+                    yield comp<MudDivider> {"DividerType" => DividerType.Middle}                        
+                    yield n1 
+                }
+        let g1,rest = groups.Head,groups.Tail
+        loop (createMenuGroup g1 dispatch) rest
 
     let appBar model dispatch = 
         comp<MudAppBar> {
@@ -12,17 +41,18 @@ module AppBar =
             "Dense" => true
             comp<MudGrid> {
                 comp<MudItem> {
-                    "xs" => 1
-                    comp<MudTooltip> {
-                        "Text" => "Save chats to local browser storage"
-                        "Arrow" => true
-                        "Placement" => Placement.Right
-                        comp<MudIconButton> {
-                            "Icon" => Icons.Material.Filled.Save
-                            "Class" => "mt-1"
-                            //"Size" => Size.Large
-                            on.click (fun _ -> dispatch Ia_Save)
-                        }                    
+                    "xs" => 5                    
+                    //"Class" => "d-flex justify-center align-content-center flex-grow-1"
+                    comp<MudLink> {
+                        "Href" => "https://github.com/fwaris/FsOpenAI"
+                        "Target" => "_blank"
+                        comp<MudImage> {
+                            "Class" => "mt-2"
+                            "ObectFit" => ObjectFit.ScaleDown
+                            //"Height" => Nullable 40
+                            "Width" => Nullable 160
+                            "Src" => "imgs/logo.png"
+                        }
                     }
                 }
                 comp<MudItem> {
@@ -33,14 +63,22 @@ module AppBar =
                         comp<MudMenu> {
                             "Icon" => Icons.Material.Filled.Add
                             "Size" => Size.Large
-                            concat {
-                                for (icon,name,createType) in model.interactionCreateTypes do 
-                                    comp<MudMenuItem> {
-                                        "Icon" => icon
-                                        on.click(fun _ -> dispatch (Ia_Add createType))
-                                        text name
-                                    }
-                            }
+                            "Color" => Color.Tertiary
+                            createMenu model dispatch
+                        }                    
+                    }
+                }
+                comp<MudItem> {
+                    "xs" => 1
+                    comp<MudTooltip> {
+                        "Text" => "Save chats to local browser storage"
+                        "Arrow" => true
+                        "Placement" => Placement.Bottom
+                        comp<MudIconButton> {
+                            "Icon" => Icons.Material.Filled.Save
+                            "Class" => "mt-1"
+                            //"Size" => Size.Large
+                            on.click (fun _ -> dispatch Ia_Save)
                         }                    
                     }
                 }
@@ -50,28 +88,6 @@ module AppBar =
                         "Class" => "mt-1"
                         "Icon" => if model.darkTheme then Icons.Material.Filled.WbSunny else Icons.Material.Outlined.WbSunny
                         on.click (fun _ -> dispatch ToggleTheme)
-                    }
-                }
-                comp<MudItem> {
-                    "xs" => 5                    
-                    "Class" => "d-flex justify-center align-content-center flex-grow-1"
-                    comp<MudText> {
-                        "Type" => Typo.h2
-                        "Class" => "align-self-center"
-                        text "Azure OpenAI Chat"
-                    }
-                }
-                comp<MudItem> {
-                    "xs" => 1
-                    //"Class" => "d-flex justify-center align-content-center flex-grow-0"
-                    concat {
-                        if model.busy then 
-                            comp<MudProgressCircular> {
-                                "Class" => "mt-4"
-                                "Color" => Color.Secondary
-                                "Indeterminate" => true
-                                "Size" => if model.highlight_busy then Size.Medium else Size.Small
-                            }                            
                     }
                 }
                 comp<MudItem> {
@@ -95,5 +111,18 @@ module AppBar =
                         }
                     }
                 }
-            }  
+                comp<MudItem> {
+                    "xs" => 1
+                    //"Class" => "d-flex justify-center align-content-center flex-grow-0"
+                    concat {
+                        if model.busy then 
+                            comp<MudProgressCircular> {
+                                "Class" => "mt-4"
+                                "Color" => Color.Secondary
+                                "Indeterminate" => true
+                                "Size" => if model.highlight_busy then Size.Medium else Size.Small
+                            }                            
+                    }
+                }
+            }
         }    

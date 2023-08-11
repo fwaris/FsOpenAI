@@ -6,7 +6,7 @@ open FsOpenAI.Client
 open Bolero
 
 type MainLayout() =
-    inherit ElmishComponent<Model,Message>()
+    inherit ElmishComponent<Model,Message>()    
 
     let tabs = Ref<MudDynamicTabs>()
     //make any newly created chat the active chat
@@ -39,6 +39,11 @@ type MainLayout() =
                                 comp<MudTabPanel> {
                                     "Text" => c.Name
                                     "tag" => c
+                                    "BadgeColor" => 
+                                        match c.InteractionType with 
+                                        | QA _   -> Color.Info
+                                        | Chat _ -> Color.Warning
+                                    "BadgeDot" => true
                                     "ShowCloseIcon" => true
                                     match c.InteractionType with 
                                     | Chat _ -> ecomp<ChatView,_,_> (c,model) dispatch {attr.empty()}
