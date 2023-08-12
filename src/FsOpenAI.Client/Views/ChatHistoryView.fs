@@ -4,13 +4,41 @@ open Bolero
 open Bolero.Html
 open MudBlazor
 open FsOpenAI.Client
+open Microsoft.AspNetCore.Components
+open Microsoft.JSInterop
 
 type ChatHistoryView() =
     inherit ElmishComponent<Interaction*Model,Message>()
 
+    let marker = HtmlRef()
+
+    member val IsBuffering = false with get, set
+    member val markerId = "" with get, set
+
+    [<Inject>]
+    member val JSRuntime = Unchecked.defaultof<IJSRuntime> with get, set
+
+    member this.ScrollToEnd() =
+        if Utils.notEmpty this.markerId then 
+            task {
+                try
+                    do! this.JSRuntime.InvokeVoidAsync ("scrollTo", [|this.markerId|])
+                with ex ->
+                    printfn $"{ex.Message}"
+            }
+            |> ignore
+
+    override this.OnAfterRenderAsync(a) =
+        if this.IsBuffering then this.ScrollToEnd()
+        base.OnAfterRenderAsync(a)
+
+
     override this.View model dispatch =
         let chat,mdl = model
-        let lastM = List.tryLast chat.Messages
+        if chat.IsBuffering then
+            this.markerId <- $"{chat.Id}_marker"        
+            this.IsBuffering <- true
+
         comp<MudList> {            
             concat {
                 for m in chat.Messages do
@@ -28,6 +56,7 @@ type ChatHistoryView() =
                             comp<MudListItem> { 
                                 "Class" => "d-flex ml-5"
                                 div {
+                                    attr.id this.markerId      
                                     attr.style $"color:{Colors.Blue.Default};"
                                     ul {
                                         attr.style "list-style-type: square;"
@@ -35,6 +64,6 @@ type ChatHistoryView() =
                                                 li {t}                                        
                                         }
                                     }
-                                }                            
+                                }
             }                            
         }

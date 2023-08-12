@@ -22,7 +22,7 @@ let page = doctypeHtml {
         link {attr.href "https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap"; attr.rel "stylesheet"}
         link {attr.href "_content/MudBlazor/MudBlazor.min.css"; attr.rel "stylesheet"}
         script {attr.src "_content/MudBlazor/MudBlazor.min.js"}
-        script {attr.``type`` "module"; attr.src "scripts/utils.js"}
+        script {attr.src "scripts/utils.js"}
     }
     body {
         //attr.style "background: #32333dff; height: 100vh; display:flex; overflow; hidden"
