@@ -65,5 +65,16 @@ type ChatHistoryView() =
                                         }
                                     }
                                 }
-            }                            
+                    else
+                        yield
+                            comp<MudListItem> {
+                                "Class" => "d-flex ml-5"
+                                div {
+                                    attr.id this.markerId      
+                                    attr.style $"color:{Colors.Blue.Default};"
+                                    "Generating answer ..."
+                                }
+                            }
+                       
+            }
         }
