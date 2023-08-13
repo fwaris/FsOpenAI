@@ -43,7 +43,7 @@ type MessageView() =
                     if msg.IsOpen then 
                         comp<MudTextField<string>> {
                             "Label" => "Question"
-                            "Lines" => 2
+                            "Lines" => 3
                             "Placeholder" => "Enter prompt or question"
                             "Text" => msg.Message
                             lastMsgRef

@@ -31,14 +31,14 @@ module Update =
         let chatModel = match backend with OpenAI -> "gpt-3.5-turbo-16k" | AzureOpenAI -> "gpt-4-32k"
 
         //sample 1
-        let cId,cs = Interactions.addNew (CreateChat backend) (Some "What are the phases of the moon?") model.interactions
+        let cId,cs = Interactions.addNew (CreateChat backend) (Some "Given me 10 best tips for effective story telling in a corporate setting.") model.interactions
         let cs = Interactions.updateSystemMsg (cId,"You are a helpful AI") cs
         let cs = Interactions.updateParms (cId,{(List.last cs).Parameters with ChatModel=chatModel}) cs
 
         let cs = 
             if serchConfigured then 
                 //sample 2
-                let cId2,cs = Interactions.addNew (CreateQA backend) (Some "List the names, trades and dates of insider trades from Form 4 filings") cs
+                let cId2,cs = Interactions.addNew (CreateQA backend) (Some "Summarize the GAAP related policy decisions make by Verizon over the past few years") cs
                 let cs = Interactions.updateParms (cId2,{(List.last cs).Parameters with ChatModel=chatModel}) cs
                 let bag = match (List.last cs).InteractionType with QA bag -> bag | _ -> failwith ""
                 let iref = model.indexRefs |> List.tryFind (function (Azure n) -> n.Name="verizon-sec")

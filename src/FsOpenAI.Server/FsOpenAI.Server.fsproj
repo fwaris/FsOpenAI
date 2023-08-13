@@ -4,6 +4,10 @@
     <TargetFramework>net7.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <None Include="scripts\packages.fsx" />
+    <None Include="scripts\Env.fsx" />
+    <None Include="scripts\LoadIndex.fsx" />
+    <None Include="scripts\ListOpenAIModels.fsx" />
     <None Include="scripts\SerializeSettings.fsx" />
     <None Include="scripts\TestOpenAIClient.fsx" />
     <Compile Include="Env.fs" />

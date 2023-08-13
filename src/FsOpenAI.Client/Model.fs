@@ -1,6 +1,5 @@
 ﻿namespace FsOpenAI.Client 
 open System
-open Elmish
 
 type AzureOpenAIEndpoints = 
     {

@@ -10,10 +10,10 @@ let page = doctypeHtml {
     head {
         meta { attr.charset "UTF-8" }
         meta { attr.name "viewport"; attr.content "width=device-width, initial-scale=1.0" }
-        title { "Azure OpenAI" }
+        title { "FsOpenAI" }
         ``base`` { attr.href "/" }
+        link {attr.rel "short icon"; attr.``type`` "image/png"; attr.href "favicon.png"}
         link { attr.rel "stylesheet"; attr.href "https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.4/css/bulma.min.css" }
-        link { attr.rel "stylesheet"; attr.href "TmOpenAI.Client.styles.css" }
         link { attr.rel "stylesheet"; attr.href "css/index.css" }
         //plotly
         script { attr.src "_content/Plotly.Blazor/plotly-latest.min.js"; attr.``type`` "text/javascript" }

@@ -21,37 +21,40 @@ type SearchResultsView() =
             "AnchorOrigin" => Origin.TopRight
             "TransformOrigin" => Origin.TopRight
             "Open" => isPanelOpen
-            comp<MudTable<Document>> {
-                "Items" => bag.Documents
-                attr.fragment "ToolBarContent" (
-                    concat {
-                        comp<MudText> {"Typo" => Typo.h6; "Search Results"}
-                        comp<MudSpacer> {attr.empty()}
-                        comp<MudIconButton> {
-                            "Icon" => Icons.Material.Filled.Close
-                            on.click(fun _ -> dispatch (OpenCloseSettings panelId))
+            comp<MudPaper> {
+                "Class" => "border-solid border mud-border-warning rounded-lg ma-2 pa-2"
+                comp<MudTable<Document>> {
+                    "Items" => bag.Documents
+                    attr.fragment "ToolBarContent" (
+                        concat {
+                            comp<MudText> {"Typo" => Typo.h6; "Search Results"}
+                            comp<MudSpacer> {attr.empty()}
+                            comp<MudIconButton> {
+                                "Icon" => Icons.Material.Filled.Close
+                                on.click(fun _ -> dispatch (OpenCloseSettings panelId))
+                            }
                         }
-                    }
-                )
-                attr.fragmentWith "RowTemplate" (fun (o:Document) ->
-                    comp<MudStack> {
-                        "Class" => "ma-4"
-                        comp<MudLink> {                            
-                            "Href" => o.Ref
-                            "Target" => "_blank"
-                            o.Ref
+                    )
+                    attr.fragmentWith "RowTemplate" (fun (o:Document) ->
+                        comp<MudStack> {
+                            "Class" => "ma-4"
+                            comp<MudLink> {                            
+                                "Href" => o.Ref
+                                "Target" => "_blank"
+                                o.Ref
+                            }
+                            comp<MudText> {
+                                "Style" => "height:400px"
+                                text o.Text
+                            }
                         }
-                        comp<MudText> {
-                            "Style" => "height:400px"
-                            text o.Text
+                    )
+                    attr.fragment "PagerContent" (
+                        comp<MudTablePager> {
+                            "HideRowsPerPage" => true
+                            "PageSizeOptions" => [|1|]
                         }
-                    }
-                )
-                attr.fragment "PagerContent" (
-                    comp<MudTablePager> {
-                        "HideRowsPerPage" => true
-                        "PageSizeOptions" => [|1|]
-                    }
-                )
+                    )
+                }
             }
         }
