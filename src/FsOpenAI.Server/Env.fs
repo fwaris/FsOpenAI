@@ -65,6 +65,21 @@ module Env =
                return raise ex
         }
 
+    let defaultConfg() = 
+        {
+            AZURE_OPENAI_ENDPOINTS = []
+            AZURE_SEARCH_ENDPOINTS = []
+            AZURE_OPENAI_MODELS = None
+            OPENAI_MODELS = Some(
+                {
+                    CHAT = ["gpt-3.5-turbo-16k"; "gpt-3.5-turbo"; "gpt-4"]
+                    COMPLETION = ["text-davinci-003"]
+                    EMBEDDING = ["text-embedding-ada-002"]
+                }
+            )
+            OPENAI_KEY = None
+        }
+
     let getParameters dispatch = 
         task {
             try 
@@ -78,7 +93,8 @@ module Env =
                 let parms = System.Text.Json.JsonSerializer.Deserialize<FsOpenAI.Client.ServiceSettings>(settingsText)
                 dispatch (Srv_Parameters parms)
             with ex ->
-                dispatch (Srv_Info ex.Message) 
+                dispatch(Srv_Parameters (defaultConfg()))
+                dispatch (Srv_Info "No configuration information found. Initialized with default OpenAI config.") 
         }
 
  

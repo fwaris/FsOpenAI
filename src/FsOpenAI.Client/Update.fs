@@ -155,10 +155,10 @@ module Update =
     let postInit (idxs,err,initial) = 
         let idxMsg = Cmd.ofMsg(IndexesRefreshed(idxs,err))
         let postInit = 
-            if initial && err.IsNone then 
-                [idxMsg; Cmd.ofMsg GetOpenAIKey; Cmd.ofMsg Ia_Load] 
+            if initial then
+                [idxMsg; Cmd.ofMsg GetOpenAIKey; Cmd.ofMsg Ia_Load]   //run at startup
             else 
-                [idxMsg; Cmd.ofMsg GetOpenAIKey; Cmd.ofMsg Ia_Load]
+                [idxMsg]
         Cmd.batch postInit
 
     let getKeyFromLocal (localStore:ILocalStorageService) model =
