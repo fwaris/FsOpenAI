@@ -15,9 +15,6 @@ let page = doctypeHtml {
         link {attr.rel "short icon"; attr.``type`` "image/png"; attr.href "favicon.png"}
         link { attr.rel "stylesheet"; attr.href "https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.4/css/bulma.min.css" }
         link { attr.rel "stylesheet"; attr.href "css/index.css" }
-        //plotly
-        script { attr.src "_content/Plotly.Blazor/plotly-latest.min.js"; attr.``type`` "text/javascript" }
-        script {attr.src "_content/Plotly.Blazor/plotly-interop.js"; attr.``type`` "text/javascript"}
         //mud blazor
         link {attr.href "https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap"; attr.rel "stylesheet"}
         link {attr.href "_content/MudBlazor/MudBlazor.min.css"; attr.rel "stylesheet"}

@@ -19,14 +19,8 @@ type ChatHistoryView() =
     member val JSRuntime = Unchecked.defaultof<IJSRuntime> with get, set
 
     member this.ScrollToEnd() =
-        if Utils.notEmpty this.markerId then 
-            task {
-                try
-                    do! this.JSRuntime.InvokeVoidAsync ("scrollTo", [|this.markerId|])
-                with ex ->
-                    printfn $"{ex.Message}"
-            }
-            |> ignore
+        if Utils.notEmpty this.markerId then
+            this.JSRuntime.InvokeVoidAsync ("scrollTo", [|this.markerId|]) |> ignore
 
     override this.OnAfterRenderAsync(a) =
         if this.IsBuffering then this.ScrollToEnd()
