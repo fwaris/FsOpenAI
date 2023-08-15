@@ -3,6 +3,7 @@ open System
 open Bolero.Html
 open MudBlazor
 open FsOpenAI.Client
+open Microsoft.AspNetCore.Components.Web
 
 module AppBar =
     let createMenuGroup group dispatch =
@@ -11,6 +12,7 @@ module AppBar =
                 comp<MudMenuItem> {
                     "Icon" => icon
                     on.click(fun _ -> dispatch (Ia_Add createType))
+                    attr.callback "OnTouch" (fun (e:TouchEventArgs) -> dispatch (Ia_Add createType)) //touch handlers needed for mobile
                     text name
                 }
         }        
@@ -102,10 +104,12 @@ module AppBar =
                         concat {
                             comp<MudMenuItem> {
                                 on.click(fun _ -> dispatch Ia_ClearChats)
+                                attr.callback "OnTouch" (fun (e:TouchEventArgs) -> dispatch (Ia_ClearChats))
                                 "Remove all chats tabs"
                             }
                             comp<MudMenuItem> {
                                 on.click (fun _ -> dispatch Ia_DeleteSavedChats)
+                                attr.callback "OnTouch" (fun (e:TouchEventArgs) -> dispatch (Ia_DeleteSavedChats))
                                 "Delete all saved chats from browser storage"
                             }
                         }

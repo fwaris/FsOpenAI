@@ -17,9 +17,9 @@ type MainSettingsView() =
                 on.click(fun e -> dispatch (OpenCloseSettings C.MAIN_SETTINGS))
             }
             comp<MudPopover> {
-                    "Style" => "width:300px"
-                    "AnchorOrigin" => Origin.TopLeft
-                    "TransformOrigin" => Origin.TopLeft
+                    "Style" => "width:75%; max-width:300px;"
+                    "AnchorOrigin" => Origin.TopRight
+                    "TransformOrigin" => Origin.TopRight
                     "Open" => settingsOpen
                     comp<MudPaper> {
                         "Outlined" => true
@@ -43,6 +43,7 @@ type MainSettingsView() =
                             }
                             comp<MudTextField<string>> {
                                 "Label" => "OpenAI Key"
+                                "Class" => "ma-2"
                                 "InputType" => InputType.Password
                                 attr.callback "ValueChanged" (fun e -> dispatch (UpdateOpenKey e))
                                 "Variant" => Variant.Outlined

@@ -36,6 +36,7 @@ type QAView() =
                     comp<MudTooltip> {
                         "Text" => "View search results"
                         "Arrow" => true
+                        "Delayed" => 200.0
                         comp<MudIconButton> {
                             "Icon" => Icons.Material.Outlined.Folder
                             "Disabled" => bag.Documents.IsEmpty
