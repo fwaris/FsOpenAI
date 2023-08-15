@@ -14,8 +14,13 @@ let indexName = "<your index name>";
 let rng = Random()
 let randSelect (ls:_ list) = ls.[rng.Next(ls.Length)]
 
-let settingsFile = @"C:\s\openai\ServiceSettings.json"
-let settings = System.Text.Json.JsonSerializer.Deserialize<FsOpenAI.Client.ServiceSettings>(System.IO.File.ReadAllText settingsFile)
+let settingsFile = 
+    let fn = @"%USERPROFILE%\.fsopenai\ServiceSettings.json"
+    Environment.ExpandEnvironmentVariables(fn)
+
+
+let settings = 
+    System.Text.Json.JsonSerializer.Deserialize<FsOpenAI.Client.ServiceSettings>(System.IO.File.ReadAllText settingsFile)
 
 let openAIEndpoint = randSelect settings.AZURE_OPENAI_ENDPOINTS
 let searchEndpoint = randSelect settings.AZURE_SEARCH_ENDPOINTS

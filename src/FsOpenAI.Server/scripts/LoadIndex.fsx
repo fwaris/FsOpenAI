@@ -18,16 +18,15 @@ open Microsoft.SemanticKernel.Text
 open FSharp.Data
 open Env
 
-let indexName = "<your index name here>";
+let indexName = "gaap";
 let srchClient = indexClient.GetSearchClient(indexName)
 let PARLELLISM = 2
 
 let newField name = SemanticField(FieldName=name)
 
-let root = @"<folder containing pdf documents>"
+let root = @"E:\s\genai\gaap"
 let (@@) a b = Path.Combine(a,b)
 let docName (s:string) = Path.GetFileName(s)
-
 
 let docsFiles = Directory.GetFiles(root,"*.pdf") //get all pdfs to shred
 let citations = root @@ "citations.csv"          //html link for each pdf document 
@@ -44,17 +43,19 @@ let docText (r:Readers.IDocReader) =
     |> Seq.collect(fun (i,t) -> TextChunker.SplitPlainTextParagraphs(ResizeArray [t],1500,100) |> Seq.map(fun c -> i,c))   
     |> Seq.toList
 
+type Doc = {File:string; Page:int; Chunk:string}
+
 let loadDocs() = 
     docsFiles 
     |> Seq.map(fun x -> docName x,x)
     |> Seq.map(fun (d,fn) -> d, docText (DocLib.Instance.GetDocReader(fn,Models.PageDimensions(1.0))))
-    |> Seq.collect(fun (d,txs) -> txs |> Seq.map(fun (i,c) -> d,$"{d} Page {i+1}",c))
+    |> Seq.collect(fun (d,txs) -> txs |> Seq.map(fun (i,c) -> {File=d; Page=i; Chunk=c}))
 
 let checkCitations() =
     loadDocs() 
-    |> Seq.iter(fun (n,_,_) -> 
-        printfn $"checkign {n}"
-        let link = citationsMap.[n]
+    |> Seq.iter(fun doc -> 
+        printfn $"checkign {doc.File}"
+        let link = citationsMap.[doc.File]
         ())
 
 checkCitations() //ensure that citations are correct
@@ -135,25 +136,25 @@ let loadIndexAsync
     let indexDocs() = 
         docs
         //|> AsyncSeq.mapAsyncParallelThrottled PARLELLISM (fun (k,tokens) ->
-        |> AsyncSeq.mapAsyncParallelRateLimit 10.0 (fun (k,chunkRef,tokens) ->
+        |> AsyncSeq.mapAsyncParallelRateLimit 10.0 (fun doc ->
             async {
                 let t1 = DateTime.Now
-                let t = openAiClient.GetEmbeddingsAsync(embModel,EmbeddingsOptions(tokens)) |> Async.AwaitTask                
+                let t = openAiClient.GetEmbeddingsAsync(embModel,EmbeddingsOptions(doc.Chunk)) |> Async.AwaitTask                
                 let! emb = submitLoop "embedding" 0 t
-                return t1,k,chunkRef,tokens,emb.Value.Data.[0].Embedding |> Seq.toArray            
+                return t1,doc,emb.Value.Data.[0].Embedding |> Seq.toArray            
             })
         |> AsyncSeq.bufferByCountAndTime 100 3000
         |> AsyncSeq.map(fun xs -> 
-                let t1 = xs |> Seq.map(fun (t,_,_,_,_) -> t) |> Seq.min
+                let t1 = xs |> Seq.map(fun (t,_,_) -> t) |> Seq.min
                 let docs =
                     xs 
-                    |> Seq.map(fun (_,k,chunkRef,text,embs) ->
+                    |> Seq.map(fun (_,doc,embs) ->
                         //printfn "%A" (k,text,embs)
                         let d = SearchDocument()
                         d.["id"] <- Guid.NewGuid()
-                        d.["title"] <- chunkRef
-                        d.["sourcefile"] <- citationsMap.[k]
-                        d.["content"] <- text
+                        d.["title"] <- $"{doc.File}, Page {doc.Page}"
+                        d.["sourcefile"] <- $"{citationsMap.[doc.File]}#page={doc.Page}"
+                        d.["content"] <- doc.Chunk
                         d.["contentVector"] <- embs
                         d)
                     |> Seq.toList
