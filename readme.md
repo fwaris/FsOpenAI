@@ -4,7 +4,8 @@ A rich web application (webassembly) for interacting with OpenAI models, either 
 
 #### [Write up](https://www.linkedin.com/posts/activity-7096903519516983297-56Yg?utm_source=share&utm_medium=member_desktop)
 
-#### [Online sample](https://fsopenaiserver1.azurewebsites.net)
+#### [Online sample](https://fsopenaiserver1.azurewebsites.net) | App written with [Bolero / F#](https://github.com/fsbolero/Bolero) framework
+
 
 OpenAI deployed models are not suitable for all organizational usecases because of privacy concerns. Most organizations would prefer to use privately accessible models. Azure is currently the only option for private GPT models.
 
