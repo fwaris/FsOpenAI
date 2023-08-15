@@ -41,7 +41,7 @@ type SearchResultsView() =
                             comp<MudLink> {                            
                                 "Href" => o.Ref
                                 "Target" => "_blank"
-                                o.Ref
+                                o.Title
                             }
                             comp<MudText> {
                                 "Style" => "height:400px"

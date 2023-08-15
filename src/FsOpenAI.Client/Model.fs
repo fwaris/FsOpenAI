@@ -75,7 +75,7 @@ type InteractionParameters =
 type IndexRef =
     | Azure of {| Name : string; |}
 
-type Document = {Text:string; Embedding:float32[]; Ref:string}
+type Document = {Text:string; Embedding:float32[]; Ref:string; Title:string}
     
 type QABag =
     {

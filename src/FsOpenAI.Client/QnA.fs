@@ -121,7 +121,7 @@ Answers:
         let idxClient = Indexes.searchClient parms
         let srchClient = idxClient.GetSearchClient(indexName)
         let openAIClient = Utils.getClient parms ch
-        SemanticVectorSearch.CognitiveSearch(srchClient,openAIClient,embModel,"contentVector","content","sourcefile")
+        SemanticVectorSearch.CognitiveSearch(srchClient,openAIClient,embModel,"contentVector","content","sourcefile","title")
 
 
     let runPlan (parms:ServiceSettings) (ch:Interaction) dispatch =
@@ -153,7 +153,9 @@ Answers:
                     {
                         Text=d.Metadata.Text
                         Embedding=if d.Embedding.HasValue then d.Embedding.Value.Vector |> Seq.toArray else [||] 
-                        Ref=d.Metadata.ExternalSourceName})))
+                        Ref=d.Metadata.ExternalSourceName
+                        Title = d.Metadata.Description
+                        })))
                 do! Async.Sleep 100
                 do! answerQuestion parms ch docs dispatch |> Async.AwaitTask
             with ex -> dispatch (Srv_Ia_Done(ch.Id, Some ex.Message))

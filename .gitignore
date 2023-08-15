@@ -366,3 +366,4 @@ FodyWeavers.xsd
 #visual studio service refs
 ServiceDependencies/
 
+/src/FsOpenAI.Client/wwwroot/imgs/logo.png

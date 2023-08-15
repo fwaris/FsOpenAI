@@ -24,7 +24,7 @@ let PARLELLISM = 2
 
 let newField name = SemanticField(FieldName=name)
 
-let root = @"E:\s\genai\gaap"
+let root = @"c:\s\genai\gaap"
 let (@@) a b = Path.Combine(a,b)
 let docName (s:string) = Path.GetFileName(s)
 
@@ -80,7 +80,7 @@ let rec submitLoop<'t> (caller:string) c t : Async<'t> =
             match extractRetryTime ex.Message with
             | Some s -> 
                 printfn $"request to wait {s} seconds - {caller}"
-                do! Async.Sleep (s*1000*PARLELLISM + 1000)
+                do! Async.Sleep (s*1000*PARLELLISM + 5000)
                 return! submitLoop caller c t
             | None -> 
                 printfn $"{ex.Message}"
@@ -136,7 +136,7 @@ let loadIndexAsync
     let indexDocs() = 
         docs
         //|> AsyncSeq.mapAsyncParallelThrottled PARLELLISM (fun (k,tokens) ->
-        |> AsyncSeq.mapAsyncParallelRateLimit 10.0 (fun doc ->
+        |> AsyncSeq.mapAsyncParallelRateLimit 7.0 (fun doc ->
             async {
                 let t1 = DateTime.Now
                 let t = openAiClient.GetEmbeddingsAsync(embModel,EmbeddingsOptions(doc.Chunk)) |> Async.AwaitTask                
@@ -173,7 +173,7 @@ let loadIndexAsync
                 ()
             })
     async {
-        //let! resp = indexClient.DeleteIndexAsync(idx) |> Async.AwaitTask       //delete index
+        let! resp = indexClient.DeleteIndexAsync(idx) |> Async.AwaitTask       //delete index
         let! resp = indexClient.CreateOrUpdateIndexAsync(idx) |> Async.AwaitTask
         do! indexDocs()
     }

@@ -7,18 +7,19 @@ open Azure.Search.Documents.Models
 open Azure.Search.Documents
 open FSharp.Control
 
-type CognitiveSearch(srchClient:SearchClient,embeddingClient:OpenAIClient,embeddingModel:string,vectorField,contentField,sourceRefField) =
+type CognitiveSearch(srchClient:SearchClient,embeddingClient:OpenAIClient,embeddingModel:string,vectorField,contentField,sourceRefField,descriptionField) =
     let idField = "id"
 
     let toMetadata (d:SearchDocument) =
         let id = d.[idField] :?> string
         let content = d.[contentField] :?> string     
         let source = d.[sourceRefField] :?> string
+        let desc = d.[descriptionField] :?> string
         MemoryRecordMetadata(
             isReference = true,
             id = id,
             text = content,
-            description = String.Empty,
+            description = desc,
             externalSourceName = source,
             additionalMetadata = srchClient.IndexName)
 
@@ -43,7 +44,7 @@ type CognitiveSearch(srchClient:SearchClient,embeddingClient:OpenAIClient,embedd
                     Fields = vectorField,
                     Value = eVec)
                 let so = SearchOptions(Vector=vec, Size=limit)
-                [idField; contentField; sourceRefField] |> Seq.iter so.Select.Add 
+                [idField; contentField; sourceRefField; descriptionField] |> Seq.iter so.Select.Add 
                 let! srchRslt = srchClient.SearchAsync<SearchDocument>(null,so)  |> Async.AwaitTask
                 let rs = srchRslt.Value.GetResultsAsync() |> AsyncSeq.ofAsyncEnum |> AsyncSeq.map toMemoryResult
                 yield! rs                
