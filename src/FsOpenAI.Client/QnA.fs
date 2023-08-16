@@ -9,6 +9,8 @@ open Microsoft.SemanticKernel.SemanticFunctions
 open Azure.AI.OpenAI
 
 module QnA =
+    let tokenSize (s:string) = GPT3Tokenizer.Encode(s).Count
+
     let history buffer model msgs =
         let maxTkns = (Utils.safeTokenLimit model) - buffer |> max 0
         let hist = 
@@ -135,7 +137,7 @@ Answers:
                 let userMessage = List.head msgs
                 let historyMessages = List.tail msgs
                 let chatModel = ch.Parameters.ChatModel
-                let chatHistory = history (Prompts.QnA.refineQuery.Length) chatModel historyMessages
+                let chatHistory = history (tokenSize Prompts.QnA.refineQuery) chatModel historyMessages
                 printfn "Chat History: %A" chatHistory
                 let fn = k.CreateSemanticFunction(Prompts.QnA.refineQuery,PromptTemplateConfig(Completion=completionsConfig))              
                 let ctx = k.CreateNewContext()
