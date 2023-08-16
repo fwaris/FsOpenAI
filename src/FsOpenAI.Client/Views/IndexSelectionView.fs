@@ -34,7 +34,7 @@ type IndexSelectionView() =
                 }           
             }
             comp<MudPaper> {
-                "Class" => "d-flex flex-none"
+                "Class" => "d-flex flex-none align-self-start mt-2"
                 comp<MudIconButton> {
                     "Icon" => Icons.Material.Outlined.Refresh
                     on.click(fun _ -> dispatch (RefreshIndexes false))

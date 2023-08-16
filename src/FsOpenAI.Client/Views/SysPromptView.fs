@@ -10,6 +10,7 @@ type SysPromptView() =
     inherit ElmishComponent<Interaction,Message>()
     
     override this.View chat dispatch =
+        let msg = Interactions.Interaction.systemMessage chat
         comp<MudExpansionPanels> {
             "Class" => "d-flex flex-1"
             comp<MudExpansionPanel> {
@@ -23,7 +24,7 @@ type SysPromptView() =
 //                    "Label" => "System Prompt"
                     "Lines" => 10
                     "Placeholder" => "Set the 'tone' of the model"
-                    "Text" => match chat.InteractionType with Chat s -> s | _ -> "n/a"
+                    "Text" => msg
                 }                 
             }            
         }

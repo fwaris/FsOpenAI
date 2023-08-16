@@ -26,8 +26,8 @@ module Interaction =
 
     let updateSystemMsg msg c = 
         match c.InteractionType with
-        | Chat _ -> {c with InteractionType= Chat msg }
-        | _      -> c
+        | Chat _ -> {c with InteractionType = Chat msg }
+        | QA bag -> {c with InteractionType = QA {bag with SystemMessage = msg }}
 
     let endBuffering errOccured c  = 
         let msgs = List.rev c.Messages  
@@ -76,6 +76,8 @@ module Interaction =
 
     let addDelta delta c = updateLastMsgWith (fun m -> {m with Message=m.Message+delta}) c
 
+    let systemMessage c = match c.InteractionType with Chat s -> s | QA bag -> bag.SystemMessage
+
     let getModels (sp:ServiceSettings option) (ch:Interaction) (f:ModelDeployments->string list) =
         match ch.Parameters.Backend with
         | Backend.AzureOpenAI -> sp |> Option.bind(fun sp -> sp.AZURE_OPENAI_MODELS |> Option.map f) |> Option.defaultValue []
@@ -102,7 +104,7 @@ module Interactions =
     let addNew ctype msg cs = 
         let iType,bknd = 
             match ctype with 
-            | CreateChat bk -> InteractionType.Chat "", bk
+            | CreateChat bk -> InteractionType.Chat Prompts.defaultSystemMessage, bk
             | CreateQA bk -> InteractionType.QA QABag.Default, bk
         let msg = defaultArg msg ""
         let id = Utils.newId()

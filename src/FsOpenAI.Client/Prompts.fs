@@ -2,6 +2,7 @@
 
 //based on prompts from the co-pilot chat
 module Prompts =
+    let defaultSystemMessage = "You are a helpful AI Assistant"
 
     module QnA = 
 
