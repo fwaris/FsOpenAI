@@ -7,6 +7,7 @@ open Microsoft.JSInterop
 open MudBlazor
 open FsOpenAI.Client
 open Microsoft.AspNetCore.Components
+open Microsoft.AspNetCore.Components.Web
 
 type MessageView() =
     inherit ElmishComponent<bool*Interaction*InteractionMessage,Message>()
@@ -46,6 +47,9 @@ type MessageView() =
                             "Lines" => 3
                             "Placeholder" => "Enter prompt or question"
                             "Text" => msg.Message
+                            attr.callback "OnBlur" (fun (e:FocusEventArgs) -> 
+                                lastMsgRef.Value
+                                |> Option.iter(fun m -> dispatch (Ia_UpdateLastMsg (chat.Id,m.Text))))
                             lastMsgRef
                         }
                     else                    

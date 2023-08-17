@@ -9,8 +9,7 @@ open FSharp.Control
 
 let inline (!>) (x:^a) : ^b = ((^a or ^b) : (static member op_Implicit : ^a -> ^b) x)
 
-let modelDimensions = 1536;
-let indexName = "<your index name>";
+let modelDimensions = 1536; //dimensions for gpt3 based embedding model
 let rng = Random()
 let randSelect (ls:_ list) = ls.[rng.Next(ls.Length)]
 
@@ -117,7 +116,7 @@ module AsyncSeq =
                 printfn $"rate {rate}"
                 let diffRate = rate - opsPerSecond
                 if diffRate > 0 then
-                    do! Async.Sleep (int diffRate * 1000)
+                    do! Async.Sleep ( int (diffRate * 1000.0))
                 let! b = Async.StartChild (async {                    
                     try return! f a
                     finally () })

@@ -18,13 +18,13 @@ open Microsoft.SemanticKernel.Text
 open FSharp.Data
 open Env
 
-let indexName = "gaap";
+let indexName = "<your index name here>";
 let srchClient = indexClient.GetSearchClient(indexName)
 let PARLELLISM = 2
 
 let newField name = SemanticField(FieldName=name)
 
-let root = @"c:\s\genai\gaap"
+let root = @"<path do pdf and citations files>"
 let (@@) a b = Path.Combine(a,b)
 let docName (s:string) = Path.GetFileName(s)
 
