@@ -101,7 +101,7 @@ TODAY is {date}
 Answers:
 """
 
-    let answerQuestion parms (ch:Interaction) docs dispatch = 
+    let answerQuestion2 parms (ch:Interaction) docs dispatch = 
         task {
             try
                 let question = ch.Messages |> List.rev |> List.find (fun m -> m.IsUser)
@@ -111,6 +111,18 @@ Answers:
                 let cs = Interactions.updateParms (id,ch.Parameters) cs
                 let c = {cs.[0] with Id=ch.Id; InteractionType=Chat prompt}
                 do! Completions.completeChat parms c dispatch        
+            with ex -> 
+                raise ex
+        }
+
+    let answerQuestion parms (ch:Interaction) docs dispatch = 
+        task {
+            try
+                
+                let combinedSearch = combineSearchResults 500 ch.Parameters.ChatModel docs
+                let systemMessage = Prompts.qASystemPromptExclusive (Interaction.systemMessage ch) combinedSearch (DateTime.Now)
+                let ch = Interaction.updateSystemMsg systemMessage ch
+                do! Completions.completeChat parms ch dispatch
             with ex -> 
                 raise ex
         }
@@ -126,7 +138,7 @@ Answers:
         SemanticVectorSearch.CognitiveSearch(srchClient,openAIClient,embModel,"contentVector","content","sourcefile","title")
 
 
-    let runPlan (parms:ServiceSettings) (ch:Interaction) dispatch =
+    let runPlan2 (parms:ServiceSettings) (ch:Interaction) dispatch =
         async {  
             try
                 let cogMem = chatPdfMemory parms ch                         //memory that supports chatpdf document format                
@@ -148,6 +160,40 @@ Answers:
                 //let openAIClient = Utils.getClient parms ch
                 //let! query = formulateQuery openAIClient ch.Parameters.CompletionsModel ch dispatch |> Async.AwaitTask
 
+                dispatch (Srv_Ia_Notification (ch.Id,$"Searching with: {query}"))
+                let docs = k.Memory.SearchAsync("",query,maxDocs) |> AsyncSeq.ofAsyncEnum |> AsyncSeq.toBlockingSeq |> Seq.toList
+                dispatch (Srv_Ia_Notification(ch.Id,$"{docs.Length} query results found. Generating answer..."))
+                dispatch (Srv_Ia_SetDocs (ch.Id,docs |> List.map(fun d -> 
+                    {
+                        Text=d.Metadata.Text
+                        Embedding=if d.Embedding.HasValue then d.Embedding.Value.Vector |> Seq.toArray else [||] 
+                        Ref=d.Metadata.ExternalSourceName
+                        Title = d.Metadata.Description
+                        })))
+                do! Async.Sleep 100
+                do! answerQuestion2 parms ch docs dispatch |> Async.AwaitTask
+            with ex -> dispatch (Srv_Ia_Done(ch.Id, Some ex.Message))
+        }
+
+    let runPlan (parms:ServiceSettings) (ch:Interaction) dispatch =
+        async {  
+            try
+                let cogMem = chatPdfMemory parms ch                         //memory that supports chatpdf document format                
+                let k = (Utils.baseKernel parms ch).WithMemory(cogMem).Build()               
+                let maxDocs = Interaction.maxDocs 1 ch
+                let completionsConfig = Utils.toCompletionsConfig ch.Parameters
+                let msgs = ch.Messages |> List.rev |> List.skipWhile (fun x-> not x.IsUser)
+                let userMessage = List.head msgs
+                let historyMessages = List.tail msgs
+                let chatModel = ch.Parameters.ChatModel
+                let chatHistory = history (tokenSize Prompts.QnA.refineQuery) chatModel historyMessages
+                printfn "Chat History: %A" chatHistory
+                let fn = k.CreateSemanticFunction(Prompts.QnA.refineQuery,PromptTemplateConfig(Completion=completionsConfig))              
+                let ctx = k.CreateNewContext()
+                ctx.Variables.Set("INPUT",userMessage.Message)
+                ctx.Variables.Set("chatHistory",chatHistory)      
+                let! ctx' = fn.InvokeAsync(ctx) |> Async.AwaitTask
+                let query = ctx'.Variables.Input
                 dispatch (Srv_Ia_Notification (ch.Id,$"Searching with: {query}"))
                 let docs = k.Memory.SearchAsync("",query,maxDocs) |> AsyncSeq.ofAsyncEnum |> AsyncSeq.toBlockingSeq |> Seq.toList
                 dispatch (Srv_Ia_Notification(ch.Id,$"{docs.Length} query results found. Generating answer..."))

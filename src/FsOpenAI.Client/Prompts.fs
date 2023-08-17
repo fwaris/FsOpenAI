@@ -22,3 +22,26 @@ Rewrite the QUESTION to reflect the user's intent, taking into consideration the
 REWRITTEN INTENT WITH EMBEDDED CONTEXT:
     """
 
+    let qASystemPromptExclusive basePrompt context date = $"""
+{basePrompt}        
+You will provide answers exclusively from below text:
+{context}
+BE BRIEF AND TO THE POINT, BUT WHEN SUPPLYING OPINION, IF YOU SEE THE NEED, YOU CAN BE LONGER.
+WHEN ANSWERING QUESTIONS, GIVING YOUR OPINION OR YOUR RECOMMENDATIONS, BE CONTEXTUAL.
+If you don't know, ask.
+If you are not sure, ask.
+Based on calculates from TODAY
+TODAY is {date}
+"""
+
+    let qASystemPrompt basePrompt context date = $"""
+{basePrompt}        
+You can provide answers from your background knowledge and the text below:
+{context}
+BE BRIEF AND TO THE POINT, BUT WHEN SUPPLYING OPINION, IF YOU SEE THE NEED, YOU CAN BE LONGER.
+WHEN ANSWERING QUESTIONS, GIVING YOUR OPINION OR YOUR RECOMMENDATIONS, BE CONTEXTUAL.
+If you don't know, ask.
+If you are not sure, ask.
+Based on calculates from TODAY
+TODAY is {date}
+"""

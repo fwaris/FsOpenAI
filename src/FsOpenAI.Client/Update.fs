@@ -73,7 +73,7 @@ module Update =
             | Some sp -> 
                 let chats = 
                     model.interactions
-                    |> Interactions.addOrUpdateLastMsg (id,lastMsg)
+                    |> Interactions.updateAndCloseLastUserMsg (id,lastMsg)
                     |> Interactions.addMessage (id,Interaction.newAsstantMessage "")
                     |> Interactions.clearNotifications id 
                     |> Interactions.clearDocuments id
@@ -209,7 +209,7 @@ module Update =
 
     //if there is an exception when processing a message, the Elmish message loop terminates
     let update (localStore:ILocalStorageService) (snkbar:ISnackbar) serverDispatch message model =
-        //printfn "%A" message
+        printfn "%A" message
         match message with
         | Chat_SysPrompt (id,msg) -> {model with interactions = Interactions.updateSystemMsg (id,msg) model.interactions},Cmd.none
         | Ia_Save -> model, Cmd.OfTask.either saveChats (model,localStore) ShowInfo Error
@@ -218,7 +218,7 @@ module Update =
         | Ia_ClearChats -> {model with interactions=[]},Cmd.ofMsg(ShowInfo "Chats cleared")
         | Ia_DeleteSavedChats -> model,Cmd.OfTask.either deleteSavedChats localStore ShowInfo Error
         | Ia_AddMsg (id,msg) -> {model with interactions = Interactions.addMessage (id,msg) model.interactions},Cmd.none
-        | Ia_UpdateLastMsg (id,msg) -> {model with interactions = Interactions.addOrUpdateLastMsg(id,msg) model.interactions},Cmd.none
+        | Ia_UpdateLastMsg (id,msg) -> {model with interactions = Interactions.setLastUserMessage(id,msg) model.interactions},Cmd.none
         | Ia_DeleteMsg (id,msg) -> {model with interactions = model.interactions |> Interactions.tryDeleteMessage (id,msg)},Cmd.none
         | Ia_UpdateName (id,n) -> {model with interactions = Interactions.updateName (id,n) model.interactions},Cmd.none
         | Ia_UpdateParms (id,p) -> {model with interactions = Interactions.updateParms (id,p) model.interactions},Cmd.none

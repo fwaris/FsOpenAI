@@ -43,11 +43,13 @@ module Interaction =
             | xs                    -> (newUserMessage "")::xs
         {c with Messages=List.rev msgs; IsBuffering=false}            
 
-    let addOrUpdateLastMsg msg c = 
+    let updateUserMessage shouldClose msg c =
         let (h,t) = match List.rev c.Messages with h::t -> {h with Message=msg},t | _ -> (newUserMessage msg),[]
         match h.Role with | MessageRole.User _ -> () | _ -> failwith "user role expected"
-        let h = {h with Role=MessageRole.User Closed}
+        let h = if shouldClose then {h with Role=MessageRole.User Closed} else h
         {c with Messages = List.rev (h::t); Name=genName c.Name h.Message}
+
+    let updateAndCloseLastUserMsg msg c = updateUserMessage true msg c
 
     let tryDeleteMessage msg (c:Interaction) = 
         if c.IsBuffering then 
@@ -127,7 +129,9 @@ module Interactions =
 
     let updateQABag id bag cs = updateWith (Interaction.updateQABag bag) id cs
 
-    let addOrUpdateLastMsg (id,msg) cs = updateWith (Interaction.addOrUpdateLastMsg msg) id cs
+    let updateAndCloseLastUserMsg (id,msg) cs = updateWith (Interaction.updateAndCloseLastUserMsg msg) id cs
+
+    let setLastUserMessage (id,msg) cs = updateWith (Interaction.updateUserMessage false msg) id cs
 
     let addMessage (id,msg) cs = updateWith (fun c -> {c with Messages = c.Messages @ [msg]}) id cs
     

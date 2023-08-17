@@ -18,7 +18,7 @@ type QAView() =
         let isPanelOpen = model.settingsOpen |> Map.tryFind panelId |> Option.defaultValue false
         comp<MudPaper> {            
             comp<MudPaper> {
-                "class" => "d-flex flex-grow-1 gap-1"
+                "class" => "d-flex flex-grow-1 gap-1 ml-2 mr-2"
                 comp<MudPaper> {
                     "Class" => "d-flex flex-none align-self-center ma-3"
                     comp<MudIconButton> { 
@@ -28,11 +28,15 @@ type QAView() =
                     ecomp<ChatParametersView,_,_> (settingsOpen,chat,model) dispatch {attr.empty()}
                 }
                 comp<MudPaper> {
+                    "Class" => "d-flex flex-1 mt-3 mb-3"
+                    ecomp<SysPromptView,_,_> chat dispatch {attr.empty()}
+                }
+                comp<MudPaper> {
                     "Class" => "d-flex flex-1 ma-3"
                     ecomp<IndexSelectionView,_,_> (bag,chat,model) dispatch {attr.empty()}
                 }
                 comp<MudPaper> {
-                    "Class" => "d-flex flex-none align-self-center ma-3"
+                    "Class" => "d-flex flex-none align-self-start mt-5"
                     comp<MudTooltip> {
                         "Text" => "View search results"
                         "Arrow" => true

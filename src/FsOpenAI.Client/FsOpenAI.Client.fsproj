@@ -24,9 +24,9 @@
     <Compile Include="Views\SearchResultsView.fs" />
     <Compile Include="Views\SysPromptView.fs" />
     <Compile Include="Views\MessageView.fs" />
+    <Compile Include="Views\IndexSelectionView.fs" />
     <Compile Include="Views\ChatHistoryView.fs" />
     <Compile Include="Views\ChatView.fs" />
-    <Compile Include="Views\IndexSelectionView.fs" />
     <Compile Include="Views\QAView.fs" />
     <Compile Include="AppBar\AppBar.fs" />
     <Compile Include="MainLayout.fs" />

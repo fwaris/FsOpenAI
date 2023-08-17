@@ -13,7 +13,7 @@ type ChatView() =
         let chat,model = m
         let settingsOpen = model.settingsOpen |> Map.tryFind chat.Id |> Option.defaultValue false
         comp<MudPaper> {
-            "Class" => "mt2"            
+            "Class" => "mt-2 ml-2 mr-2"            
             div {
                 "class" => "d-flex flex-grow-1 gap-1"
                 comp<MudPaper> {                    
