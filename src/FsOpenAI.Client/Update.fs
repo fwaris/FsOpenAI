@@ -32,7 +32,6 @@ module Update =
 
         //sample 1
         let cId,cs = Interactions.addNew (CreateChat backend) (Some "Given me 10 best tips for effective story telling in a corporate setting.") model.interactions
-        let cs = Interactions.updateSystemMsg (cId,"You are a helpful AI") cs
         let cs = Interactions.updateParms (cId,{(List.last cs).Parameters with ChatModel=chatModel}) cs
 
         let cs = 

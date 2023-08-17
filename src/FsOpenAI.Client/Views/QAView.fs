@@ -20,7 +20,7 @@ type QAView() =
             comp<MudPaper> {
                 "class" => "d-flex flex-grow-1 gap-1 ml-2 mr-2"
                 comp<MudPaper> {
-                    "Class" => "d-flex flex-none align-self-center ma-3"
+                    "Class" => "d-flex flex-none align-self-start mt-5"
                     comp<MudIconButton> { 
                         "Icon" => Icons.Material.Outlined.Settings
                         on.click(fun e -> dispatch (OpenCloseSettings chat.Id))

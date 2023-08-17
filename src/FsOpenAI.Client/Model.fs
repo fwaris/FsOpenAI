@@ -79,12 +79,14 @@ type Document = {Text:string; Embedding:float32[]; Ref:string; Title:string}
     
 type QABag =
     {
+        SystemMessage : string
         Index : IndexRef option
         MaxDocs : int                                        
         Documents : Document list
     }
     with static member Default =
             {
+                SystemMessage = Prompts.defaultSystemMessage
                 Index = None
                 MaxDocs = 10
                 Documents = []

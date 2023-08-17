@@ -17,7 +17,7 @@ type ChatView() =
             div {
                 "class" => "d-flex flex-grow-1 gap-1"
                 comp<MudPaper> {                    
-                    "Class" => "d-flex flex-none align-self-center ma-3"
+                    "Class" => "d-flex flex-none align-self-start mt-5"
                     comp<MudIconButton> { 
                         "Icon" => Icons.Material.Outlined.Settings
                         on.click(fun e -> dispatch (OpenCloseSettings chat.Id))
@@ -25,7 +25,7 @@ type ChatView() =
                     ecomp<ChatParametersView,_,_> (settingsOpen,chat,model) dispatch {attr.empty()}
                 }
                 comp<MudPaper> {
-                    "Class" => "d-flex flex-1 ma-3"
+                    "Class" => "d-flex flex-1 mt-3"
                     ecomp<SysPromptView,_,_> chat dispatch {attr.empty()}
                 }
             }
