@@ -112,7 +112,7 @@ type ChatParametersView() =
                             | QA bag ->
                                 comp<MudSlider<int>> {
                                     "Class" => "px-4"
-                                    "Min" => 5
+                                    "Min" => 1
                                     "Max" => 30
                                     "Step" => 1
                                     "ValueLabel" => true

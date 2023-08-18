@@ -131,11 +131,25 @@ Answers:
     let chatPdfMemory (parms:ServiceSettings) (ch:Interaction) : ISemanticTextMemory =
         let embModel = ch.Parameters.EmbeddingsModel
         let bag = match ch.InteractionType with QA bag -> bag | _ -> failwith "QA interaction expected"
-        let indexName = match bag.Index with Some (Azure n) -> n.Name | _ -> failwith "No index selected"
+        let indexName = bag.Indexes |> List.tryHead |> Option.map(function Azure n -> n.Name) |> Option.defaultWith (fun _ -> failwith "No index selected")
         let idxClient = Indexes.searchClient parms
         let srchClient = idxClient.GetSearchClient(indexName)
         let openAIClient = Utils.getClient parms ch
         SemanticVectorSearch.CognitiveSearch(srchClient,openAIClient,embModel,"contentVector","content","sourcefile","title")
+
+    ///semantic memory supporting chatpdf format
+    let chatPdfMemories (parms:ServiceSettings) (ch:Interaction) : ISemanticTextMemory list =
+        let embModel = ch.Parameters.EmbeddingsModel
+        let bag = match ch.InteractionType with QA bag -> bag | _ -> failwith "QA interaction expected"
+        if bag.Indexes.IsEmpty then failwith "No indexes selected"
+        bag.Indexes
+        |> List.map(fun idx -> 
+            let indexName = match idx with Azure n -> n.Name |  _ -> failwith ""
+            let idxClient = Indexes.searchClient parms
+            let srchClient = idxClient.GetSearchClient(indexName)
+            let openAIClient = Utils.getClient parms ch
+            SemanticVectorSearch.CognitiveSearch(srchClient,openAIClient,embModel,"contentVector","content","sourcefile","title"))
+
 
 
     let runPlan2 (parms:ServiceSettings) (ch:Interaction) dispatch =
@@ -178,8 +192,8 @@ Answers:
     let runPlan (parms:ServiceSettings) (ch:Interaction) dispatch =
         async {  
             try
-                let cogMem = chatPdfMemory parms ch                         //memory that supports chatpdf document format                
-                let k = (Utils.baseKernel parms ch).WithMemory(cogMem).Build()               
+                let cogMems = chatPdfMemories parms ch   
+                let k = (Utils.baseKernel parms ch).Build()               
                 let maxDocs = Interaction.maxDocs 1 ch
                 let completionsConfig = Utils.toCompletionsConfig ch.Parameters
                 let msgs = ch.Messages |> List.rev |> List.skipWhile (fun x-> not x.IsUser)
@@ -195,7 +209,16 @@ Answers:
                 let! ctx' = fn.InvokeAsync(ctx) |> Async.AwaitTask
                 let query = ctx'.Variables.Input
                 dispatch (Srv_Ia_Notification (ch.Id,$"Searching with: {query}"))
-                let docs = k.Memory.SearchAsync("",query,maxDocs) |> AsyncSeq.ofAsyncEnum |> AsyncSeq.toBlockingSeq |> Seq.toList
+                let docs = 
+                    cogMems
+                    |> AsyncSeq.ofSeq
+                    |> AsyncSeq.collect(fun cogMem -> 
+                        let k = (Utils.baseKernel parms ch).WithMemory(cogMem).Build()
+                        k.Memory.SearchAsync("",query,maxDocs) |> AsyncSeq.ofAsyncEnum
+                    )
+                    |> AsyncSeq.toBlockingSeq
+                    |> Seq.toList
+                let docs = docs |> List.sortBy (fun x->x.Relevance) |> List.truncate maxDocs
                 dispatch (Srv_Ia_Notification(ch.Id,$"{docs.Length} query results found. Generating answer..."))
                 dispatch (Srv_Ia_SetDocs (ch.Id,docs |> List.map(fun d -> 
                     {

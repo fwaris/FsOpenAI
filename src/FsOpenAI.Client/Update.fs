@@ -40,8 +40,8 @@ module Update =
                 let cId2,cs = Interactions.addNew (CreateQA backend) (Some "Summarize the GAAP related policy decisions make by Verizon over the past few years") cs
                 let cs = Interactions.updateParms (cId2,{(List.last cs).Parameters with ChatModel=chatModel}) cs
                 let bag = match (List.last cs).InteractionType with QA bag -> bag | _ -> failwith ""
-                let iref = model.indexRefs |> List.tryFind (function (Azure n) -> n.Name="verizon-sec")
-                Interactions.updateQABag cId2 {bag with Index=iref; MaxDocs=20} cs            
+                let iref = model.indexRefs |> List.tryFind (function (Azure n) -> n.Name="verizon-sec") |> Option.map(fun x -> [x]) |> Option.defaultValue []
+                Interactions.updateQABag cId2 {bag with Indexes=iref; MaxDocs=20} cs            
             else 
                 cs
         {model with interactions=cs}
