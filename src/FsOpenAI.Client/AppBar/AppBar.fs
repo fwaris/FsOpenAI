@@ -43,7 +43,9 @@ module AppBar =
             "Dense" => true
             comp<MudGrid> {
                 comp<MudItem> {
-                    "xs" => 5                    
+                    "xs" => 1
+                    "sm" => 5
+                    "Class" => "d-none d-sm-flex"
                     //"Class" => "d-flex justify-center align-content-center flex-grow-1"
                     comp<MudLink> {
                         "Href" => "https://github.com/fwaris/FsOpenAI"
@@ -58,7 +60,8 @@ module AppBar =
                     }
                 }
                 comp<MudItem> {
-                    "xs" => 1                   
+                    "xs" => 2                   
+                    "sm" => 1
                     comp<MudTooltip> {
                         "Text" => "New chat tab"
                         "Arrow" => true
@@ -71,7 +74,8 @@ module AppBar =
                     }
                 }
                 comp<MudItem> {
-                    "xs" => 1
+                    "xs" => 2
+                    "sm" => 1
                     comp<MudTooltip> {
                         "Text" => "Save chats to local browser storage"
                         "Arrow" => true
@@ -85,7 +89,8 @@ module AppBar =
                     }
                 }
                 comp<MudItem> {
-                    "xs" => 1
+                    "xs" => 2
+                    "sm" => 1
                     comp<MudIconButton> {
                         "Class" => "mt-1"
                         "Icon" => if model.darkTheme then Icons.Material.Filled.WbSunny else Icons.Material.Outlined.WbSunny
@@ -93,11 +98,13 @@ module AppBar =
                     }
                 }
                 comp<MudItem> {
-                    "xs" => 1
+                    "xs" => 2
+                    "sm" => 1
                     ecomp<MainSettingsView,_,_> model dispatch {attr.empty()}
                 }
                 comp<MudItem> {
-                    "xs" => 1
+                    "xs" => 2
+                    "sm" => 1
                     comp<MudMenu> {
                         "Icon" => Icons.Material.Filled.Menu
                         "Class" => "mt-1"
@@ -116,7 +123,8 @@ module AppBar =
                     }
                 }
                 comp<MudItem> {
-                    "xs" => 1
+                    "xs" => 2
+                    "sm" => 1
                     //"Class" => "d-flex justify-center align-content-center flex-grow-0"
                     concat {
                         if model.busy then 

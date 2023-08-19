@@ -208,7 +208,6 @@ module Update =
 
     //if there is an exception when processing a message, the Elmish message loop terminates
     let update (localStore:ILocalStorageService) (snkbar:ISnackbar) serverDispatch message model =
-        printfn "%A" message
         match message with
         | Chat_SysPrompt (id,msg) -> {model with interactions = Interactions.updateSystemMsg (id,msg) model.interactions},Cmd.none
         | Ia_Save -> model, Cmd.OfTask.either saveChats (model,localStore) ShowInfo Error
@@ -226,7 +225,7 @@ module Update =
         | Ia_Add ctype -> checkAddInteraction ctype model
         | Ia_Notification (id,note) -> {model with interactions = Interactions.updateNotification id note model.interactions},Cmd.none
         | Ia_UpdateQaBag (id,bag) -> {model with interactions = Interactions.updateQABag id bag model.interactions},Cmd.none
-        | Ia_Remove id -> {model with interactions = Interactions.remove id model.interactions},Cmd.none
+        | Ia_Remove id -> {model with interactions = Interactions.remove id model.interactions; },Cmd.none
         | Clear -> checkBusy model <| fun _-> {model with interactions=Interactions.empty},Cmd.none
         | Error exn -> model,Cmd.ofMsg (ShowError exn.Message)
         | ShowError str -> snkbar.Add(str,severity=Severity.Error) |> ignore;model,Cmd.none

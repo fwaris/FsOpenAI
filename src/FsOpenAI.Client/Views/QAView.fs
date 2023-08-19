@@ -28,11 +28,11 @@ type QAView() =
                     ecomp<ChatParametersView,_,_> (settingsOpen,chat,model) dispatch {attr.empty()}
                 }
                 comp<MudPaper> {
-                    "Class" => "d-flex flex-1 mt-3 mb-3"
+                    "Class" => "d-flex flex-lg-1 mt-3 mb-3"
                     ecomp<SysPromptView,_,_> chat dispatch {attr.empty()}
                 }
                 comp<MudPaper> {
-                    "Class" => "d-flex flex-1 ma-3"
+                    "Class" => "d-flex flex-lg-1 ma-3"
                     ecomp<IndexSelectionView,_,_> (bag,chat,model) dispatch {attr.empty()}
                 }
                 comp<MudPaper> {

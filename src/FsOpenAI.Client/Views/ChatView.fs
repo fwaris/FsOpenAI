@@ -13,9 +13,8 @@ type ChatView() =
         let chat,model = m
         let settingsOpen = model.settingsOpen |> Map.tryFind chat.Id |> Option.defaultValue false
         comp<MudPaper> {
-            "Class" => "mt-2 ml-2 mr-2"            
-            div {
-                "class" => "d-flex flex-grow-1 gap-1"
+            comp<MudPaper> {
+                "class" => "d-flex flex-grow-1 gap-1 ml-2 mr-2"
                 comp<MudPaper> {                    
                     "Class" => "d-flex flex-none align-self-start mt-5"
                     comp<MudIconButton> { 

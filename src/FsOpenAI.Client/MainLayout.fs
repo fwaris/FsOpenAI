@@ -21,6 +21,16 @@ type MainLayout() =
             | Some t -> t.ActivePanelIndex
             | None   -> -1)
 
+    override this.OnAfterRender(d) =
+        let now = DateTime.Now
+        tabs.Value
+        |> Option.iter(fun tabs -> 
+            for p in tabs.Panels do
+                let c = p.Tag :?> Interaction
+                if (now - c.Timestamp).TotalSeconds < 1.0 then 
+                    tabs.ActivatePanel(p))
+           
+
     override this.View model dispatch =        
         div {            
             comp<MudThemeProvider> { "isDarkMode" => model.darkTheme }
@@ -30,13 +40,15 @@ type MainLayout() =
                 AppBar.appBar model dispatch
                 comp<MudMainContent> {
                     comp<MudDynamicTabs> {                                 
-                        "ActivePanelIndex" => selChat model.interactions
+                        //"ActivePanelIndex" => selChat model.interactions
                         "AddTabIcon" => ""
+                        "Outlined" => true
                         attr.callback "CloseTab" (fun (t:MudTabPanel) -> let c = t.Tag :?> Interaction in dispatch (Ia_Remove c.Id))
                         tabs
                         concat {
                             for c in model.interactions do
                                 comp<MudTabPanel> {
+                                    "Id" => c.Id
                                     "Text" => c.Name
                                     "tag" => c
                                     "BadgeColor" => 
