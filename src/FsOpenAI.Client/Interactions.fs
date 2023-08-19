@@ -71,10 +71,10 @@ module Interaction =
     let defaultName n bkend = 
         let n = n |> Seq.truncate 3 |> Seq.toArray |> String
         match bkend with
-        | CreateChat AzureOpenAI -> $"Chat [Azure] {n}"
-        | CreateQA AzureOpenAI -> $"Q&A [Azure] {n}"
-        | CreateChat OpenAI -> $"Chat [OpenAI] {n}"
-        | CreateQA OpenAI -> $"Q&A [OpenAI] {n}"
+        | CreateChat AzureOpenAI -> $"Chat [Azure] ..."
+        | CreateQA AzureOpenAI -> $"Q&A [Azure] ..."
+        | CreateChat OpenAI -> $"Chat [OpenAI] ..."
+        | CreateQA OpenAI -> $"Q&A [OpenAI] ..."
 
     let addDelta delta c = updateLastMsgWith (fun m -> {m with Message=m.Message+delta}) c
 
