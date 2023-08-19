@@ -107,6 +107,7 @@ module AppBar =
                     "sm" => 1
                     comp<MudMenu> {
                         "Icon" => Icons.Material.Filled.Menu
+                        "TransformOrigin" => Origin.TopCenter
                         "Class" => "mt-1"
                         concat {
                             comp<MudMenuItem> {

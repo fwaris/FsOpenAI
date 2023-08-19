@@ -18,12 +18,12 @@ type MainSettingsView() =
             }
             comp<MudPopover> {
                     "Style" => "width:75%; max-width:300px;"
-                    "AnchorOrigin" => Origin.TopRight
-                    "TransformOrigin" => Origin.TopRight
+                    "AnchorOrigin" => Origin.BottomRight
+                    "TransformOrigin" => Origin.TopCenter
                     "Open" => settingsOpen
-                    comp<MudPaper> {
+                    comp<MudPaper> {                       
                         "Outlined" => true
-                        "Class" => "py-4"
+                        "Class" => "ma-4"
                         comp<MudStack> {
                             comp<MudStack> {
                                 "Row" => true
