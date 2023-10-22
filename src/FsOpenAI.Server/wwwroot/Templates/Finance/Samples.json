@@ -1,0 +1,66 @@
+[
+  {
+    "SampleChatType": {
+      "Case": "Simple_Chat",
+      "Fields": [
+        true
+      ]
+    },
+    "SystemMessage": "You are a helpful AI assistant",
+    "SampleQuestion": "Analyze the latest trend in Microsoft stock price",
+    "PreferredModels": [
+      "gpt-4-32k",
+      "gpt-3.5-turbo-16k"
+    ],
+    "Temperature": 0.1,
+    "MaxDocs": 5
+  },
+  {
+    "SampleChatType": {
+      "Case": "Simple_Chat",
+      "Fields": [
+        false
+      ]
+    },
+    "SystemMessage": "You are a qualified accountant",
+    "SampleQuestion": "What is cost of capital and how to estimate it accurately?",
+    "PreferredModels": [
+      "gpt-4-32k",
+      "gpt-3.5-turbo-16k"
+    ],
+    "Temperature": 0.1,
+    "MaxDocs": 5
+  },
+  {
+    "SampleChatType": {
+      "Case": "QA_Chat",
+      "Fields": [
+        "verizon-sec"
+      ]
+    },
+    "SystemMessage": "You are a helpful AI Assistant",
+    "SampleQuestion": "List the non GAAP related policy decisions that Verizon disclosed in its SEC filings",
+    "PreferredModels": [
+      "gpt-4-32k",
+      "gpt-3.5-turbo-16k"
+    ],
+    "Temperature": 0.1,
+    "MaxDocs": 30
+  },
+  {
+    "SampleChatType": {
+      "Case": "DocQA_Chat",
+      "Fields": [
+        "verizon-sec"
+      ]
+    },
+    "SystemMessage": "You are a helpful AI Assistant",
+    "SampleQuestion": "How does the content in the DOCUMENT affect the policies in SEARCH RESULTS?",
+    "PreferredModels": [
+      "gpt-4-32k",
+      "gpt-3.5-turbo-16k"
+    ],
+    "Temperature": 0.1,
+    "MaxDocs": 30
+  }
+]

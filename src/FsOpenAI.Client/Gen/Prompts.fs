@@ -24,7 +24,6 @@ REWRITTEN INTENT WITH EMBEDDED CONTEXT:
     """
 
     let qASystemPromptExclusive basePrompt context date = $"""
-{basePrompt}        
 You will provide answers exclusively from below text:
 {context}
 BE BRIEF AND TO THE POINT, BUT WHEN SUPPLYING OPINION, IF YOU SEE THE NEED, YOU CAN BE LONGER.

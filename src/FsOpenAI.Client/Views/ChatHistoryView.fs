@@ -20,7 +20,7 @@ type ChatHistoryView() =
 
     member this.ScrollToEnd() =
         if Utils.notEmpty this.markerId then
-            this.JSRuntime.InvokeVoidAsync ("scrollTo", [|this.markerId|]) |> ignore
+            this.JSRuntime.InvokeVoidAsync ("fso_scrollTo", [|this.markerId|]) |> ignore
 
     override this.OnAfterRenderAsync(a) =
         if this.IsBuffering then this.ScrollToEnd()

@@ -6,6 +6,8 @@ open Microsoft.AspNetCore.Hosting
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Hosting
 open Microsoft.Extensions.Configuration
+open Microsoft.AspNetCore.Authentication.JwtBearer
+open Microsoft.Identity.Web
 open Bolero.Remoting.Server
 open Bolero.Server
 open Bolero.Templating.Server
@@ -14,48 +16,59 @@ open Microsoft.Extensions.Logging
 open Microsoft.Extensions.Logging.AzureAppServices
 open Blazored.LocalStorage
 
-type Startup() =
+module Startup =
 
     // This method gets called by the runtime. Use this method to add services to the container.
     // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
-    member this.ConfigureServices(services: IServiceCollection) =
+    let configureServices (builder:WebApplicationBuilder) =
+        let services = builder.Services
+
+        services
+            .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd")) |> ignore
+
         services.AddMvc() |> ignore
         services.AddServerSideBlazor() |> ignore
         services.AddMudServices() |> ignore
         services.AddBlazoredLocalStorage() |> ignore
+        services.AddControllersWithViews() |> ignore
+        services.AddRazorPages() |> ignore
         
         services
-            .AddSignalR(fun o -> o.MaximumReceiveMessageSize <- 1_000_000)
-            .AddJsonProtocol(fun o ->FsOpenAI.Client.ClientHub.serOptions o.PayloadSerializerOptions |> ignore) |> ignore
+            .AddSignalR(fun o -> o.MaximumReceiveMessageSize <- 5_000_000)
+            .AddJsonProtocol(fun o ->FsOpenAI.Client.ClientHub.configureSer o.PayloadSerializerOptions |> ignore) |> ignore
 
         services
             .AddAuthorization()            
             .AddLogging(fun logging -> logging.AddConsole().AddDebug().AddAzureWebAppDiagnostics() |> ignore)
-            .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-                .AddCookie()
-                .Services
-            //.AddBoleroRemoting<Services.KeyService>()
-            .AddBoleroHost()
+            //.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+            //    .AddCookie()
+            //    .Services
+            ////.AddBoleroRemoting<Services.KeyService>()
+            .AddBoleroHost(prerendered=false)
 #if DEBUG
             .AddHotReload(templateDir = __SOURCE_DIRECTORY__ + "/../FsOpenAI.Client")
 #endif
         |> ignore
 
-    // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-    member this.Configure(app: IApplicationBuilder, env: IWebHostEnvironment) =        
-
+    let configureApp (app:WebApplication) =        
+        let env = app.Environment
+        
         //configuration
-        let config = app.ApplicationServices.GetRequiredService<IConfiguration>()
-        let logger = app.ApplicationServices.GetRequiredService<ILogger<FsOpenAILog>>()
-
-        Env.init(config,logger)
+        let config = app.Services.GetRequiredService<IConfiguration>()
+        let logger = app.Services.GetRequiredService<ILogger<FsOpenAILog>>()       
+        Env.init(config,logger,env.WebRootPath)
 
         app
-            .UseWebSockets()
-            |> ignore
+            .UseWebSockets() |> ignore
+
         if env.IsDevelopment() then
             app.UseWebAssemblyDebugging()
-        app
+        else
+            app.UseHsts() |> ignore
+
+        app            
+            .UseHttpsRedirection()
             .UseAuthentication()
             .UseStaticFiles()
             .UseRouting()
@@ -75,10 +88,10 @@ module Program =
 
     [<EntryPoint>]
     let main args =
-        WebHost
-            .CreateDefaultBuilder(args)
-            .UseStaticWebAssets()
-            .UseStartup<Startup>()
-            .Build()
-            .Run()
+        let builder = WebApplication.CreateBuilder(args)
+        Startup.configureServices builder
+        let app = builder.Build()
+        Startup.configureApp app
+        app.Run()
         0
+

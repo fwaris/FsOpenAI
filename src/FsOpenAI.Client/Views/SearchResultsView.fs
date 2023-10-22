@@ -12,22 +12,22 @@ type SVAttr =
         "Property" => expr
 
 type SearchResultsView() =
-    inherit ElmishComponent<string*bool*QABag,Message>()    
+    inherit ElmishComponent<string*bool*Document list,Message>()    
 
     override this.View model dispatch =
-        let panelId,isPanelOpen,bag = model
+        let panelId,isPanelOpen,docs = model
         comp<MudPopover> {
-            "Style" => "width:75%;height:50%;max-height:500px;"
+            "Style" => "width:75%;max-height:500px;"
             "AnchorOrigin" => Origin.TopRight
             "TransformOrigin" => Origin.TopRight
             "Open" => isPanelOpen
             comp<MudPaper> {
                 "Class" => "border-solid border mud-border-warning rounded-lg ma-2 pa-2"
                 comp<MudTable<Document>> {
-                    "Items" => bag.Documents
+                    "Items" => docs
                     attr.fragment "ToolBarContent" (
                         concat {
-                            comp<MudText> {"Typo" => Typo.h6; "Search Results"}
+                            comp<MudText> {"Typo" => Typo.subtitle2; "Search Results"}
                             comp<MudSpacer> {attr.empty()}
                             comp<MudIconButton> {
                                 "Icon" => Icons.Material.Filled.Close
@@ -44,7 +44,7 @@ type SearchResultsView() =
                                 o.Title
                             }
                             comp<MudText> {
-                                "Style" => "height:400px"
+                                "Style" => "height:14.0rem;"
                                 text o.Text
                             }
                         }

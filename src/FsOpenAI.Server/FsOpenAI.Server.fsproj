@@ -6,29 +6,43 @@
   <ItemGroup>
     <None Include="scripts\packages.fsx" />
     <None Include="scripts\Env.fsx" />
+    <None Include="scripts\CreateSettings.fsx" />
+    <None Include="scripts\CreateSamples.fsx" />
+    <None Include="scripts\CreateConfig.fsx" />
+    <None Include="scripts\MetaIndex.fsx" />
     <None Include="scripts\LoadIndex.fsx" />
     <None Include="scripts\ListOpenAIModels.fsx" />
     <None Include="scripts\SerializeSettings.fsx" />
+    <None Include="scripts\TemplateParsingSandbox.fsx" />
     <None Include="scripts\TestOpenAIClient.fsx" />
     <Compile Include="Env.fs" />
+    <Compile Include="Samples.fs" />
+    <Compile Include="Templates.fs" />
     <Compile Include="ServerHub.fs" />
     <Compile Include="Index.fs" />
     <Compile Include="Startup.fs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Azure.Identity" Version="1.9.0" />
+    <PackageReference Include="Azure.Identity" Version="1.10.2" />
     <PackageReference Include="Azure.Security.KeyVault.Secrets" Version="4.5.0" />
     <PackageReference Include="Bolero.Server" Version="0.*" />
     <PackageReference Include="Bolero.HotReload.Server" Version="0.*" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="7.0.10" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Logging.AzureAppServices" Version="7.0.10" />
+    <PackageReference Include="Microsoft.Extensions.Logging.AzureAppServices" Version="7.0.*" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="7.0.*" />
+	<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="7.0.*" NoWarn="NU1605" />
+	<PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="7.0.*" NoWarn="NU1605" />
+	<PackageReference Include="Microsoft.Identity.Web" Version="2.15.1" />
+	<PackageReference Include="Microsoft.Identity.Web.UI" Version="2.15.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\FsOpenAI.Client\FsOpenAI.Client.fsproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Update="FSharp.Core" Version="7.0.400" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="wwwroot\Config\" />
   </ItemGroup>
 </Project>

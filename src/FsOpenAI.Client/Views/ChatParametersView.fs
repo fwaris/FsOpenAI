@@ -108,8 +108,8 @@ type ChatParametersView() =
                                         "Value" => ch
                                     }
                             }
-                            match chat.InteractionType with
-                            | QA bag ->
+                            match Interaction.qaBag chat with
+                            | Some bag -> 
                                 comp<MudSlider<int>> {
                                     "Class" => "px-4"
                                     "Min" => 1
@@ -125,13 +125,18 @@ type ChatParametersView() =
                     }
                 }
         }
-(*
-  engine="gpt-35-turbo",
-  messages = [],
-  temperature=0.7,
-  max_tokens=800,
-  top_p=0.95,
-  frequency_penalty=0,
-  presence_penalty=0,
-  stop=None)
-*)
+
+type ChatSettingsView() =
+    inherit ElmishComponent<Interaction*Model,Message>()    
+
+    override this.View mdl (dispatch:Message -> unit) =
+        let chat,model = mdl
+        let settingsOpen = model.settingsOpen |> Map.tryFind chat.Id |> Option.defaultValue false
+        concat {
+            comp<MudIconButton> { 
+                "Class" => "d-flex flex-none align-self-center ma-2"
+                "Icon" => Icons.Material.Outlined.Settings
+                on.click(fun e -> dispatch (OpenCloseSettings chat.Id))
+            }
+            ecomp<ChatParametersView,_,_> (settingsOpen,chat,model) dispatch {attr.empty()}
+        }

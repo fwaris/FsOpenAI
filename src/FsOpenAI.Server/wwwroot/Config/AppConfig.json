@@ -1,0 +1,10 @@
+{
+  "EnableOpenAI": true,
+  "EnableVanillaChat": true,
+  "Roles": [],
+  "RequireLogin": false,
+  "PaletteDark": null,
+  "PaletteLight": null,
+  "LogoUrl": "https://github.com/fwaris/FsOpenAI",
+  "IndexGroups": []
+}

@@ -10,7 +10,6 @@ open FsOpenAI.Client
 
 type FsOpenAILog() = class end //type for log categorization
 
-
 module Env =    
 
     type Config = 
@@ -18,20 +17,24 @@ module Env =
             SettingsFile : string
             KeyVault : string
             KeyVaultKey : string 
+            WwwRoot : string
         }
-        with static member Default = {SettingsFile=""; KeyVault=""; KeyVaultKey=""}
+        with static member Default = {SettingsFile=""; KeyVault=""; KeyVaultKey=""; WwwRoot=""}
 
     let mutable private config = Config.Default
     let mutable private logger : ILogger<FsOpenAILog> = Unchecked.defaultof<_>
 
-    let init (cfg:IConfiguration, lggr:ILogger<FsOpenAILog>) =
+    let init (cfg:IConfiguration, lggr:ILogger<FsOpenAILog>, wrootPath) =
         logger <- lggr
         config <- 
             {
                 SettingsFile = cfg.[C.SETTINGS_FILE]
                 KeyVault = System.Environment.GetEnvironmentVariable(C.FSOPENAI_AZURE_KEYVAULT)
                 KeyVaultKey = System.Environment.GetEnvironmentVariable(C.FSOPENAI_AZURE_KEYVAULT_KEY)
+                WwwRoot = wrootPath
             }
+
+    let wwwRootPath() = config.WwwRoot
 
     let logError str =
         if logger <> Unchecked.defaultof<_> then
@@ -65,11 +68,12 @@ module Env =
                return raise ex
         }
 
-    let defaultConfg() = 
+    let defaultSettings() = 
         {
             AZURE_OPENAI_ENDPOINTS = []
             AZURE_SEARCH_ENDPOINTS = []
             AZURE_OPENAI_MODELS = None
+            BING_ENDPOINT = None
             OPENAI_MODELS = Some(
                 {
                     CHAT = ["gpt-3.5-turbo-16k"; "gpt-3.5-turbo"; "gpt-4"]
@@ -80,21 +84,18 @@ module Env =
             OPENAI_KEY = None
         }
 
-    let getParameters dispatch = 
+    let getParameters() = 
         task {
-            try 
-                let! settingsText = 
-                    let path = Environment.ExpandEnvironmentVariables(config.SettingsFile)
-                    if File.Exists path then 
-                        logInfo $"reading settings from {path}"
-                        readSettingsFile path
-                    else
-                        getFromKeyVault()
-                let parms = System.Text.Json.JsonSerializer.Deserialize<FsOpenAI.Client.ServiceSettings>(settingsText)
-                dispatch (Srv_Parameters parms)
-            with ex ->
-                dispatch(Srv_Parameters (defaultConfg()))
-                dispatch (Srv_Info "No configuration information found. Initialized with default OpenAI config.") 
+            let! settingsText = 
+                let path = Environment.ExpandEnvironmentVariables(config.SettingsFile)
+                if File.Exists path then 
+                    logInfo $"reading settings from {path}"
+                    readSettingsFile path
+                else
+                    getFromKeyVault()
+            let parms = System.Text.Json.JsonSerializer.Deserialize<FsOpenAI.Client.ServiceSettings>(settingsText)
+            return parms
         }
+
 
  

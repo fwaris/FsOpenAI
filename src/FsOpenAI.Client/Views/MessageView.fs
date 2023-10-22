@@ -28,10 +28,11 @@ type MessageView() =
 
     let color (c:InteractionMessage) = if c.IsUser then Colors.BlueGrey.Darken2 else Colors.BlueGrey.Darken4
 
-    let border (c:InteractionMessage) = if c.IsUser then "mud-border-primary" else "mud-border-secondary"
+    let border (c:InteractionMessage) = if c.IsUser then "mud-border-primary" else "mud-border-warning"
 
     override this.View model dispatch =
         let isBusy,chat,msg = model
+        let canSend = Interactions.Interaction.canSubmit chat
         comp<MudPaper> {
             "Class" => $"d-flex border-solid border {border msg} rounded-lg"
             "Style" => $"{padding msg}"
@@ -71,11 +72,11 @@ type MessageView() =
                     comp<MudIconButton> {
                         "Class" => "mt-4"
                         "Icon" => Icons.Material.Filled.Send
-                        "Disabled" => isBusy
+                        "Disabled" => (isBusy || not canSend)
                         "Size" => Size.Small
                         on.click(fun e -> 
                             lastMsgRef.Value
-                            |> Option.iter(fun m -> dispatch (SubmitInteraction (chat.Id,m.Text))))
+                            |> Option.iter(fun m -> dispatch (Ia_Submit (chat.Id,m.Text))))
                     }                  
             }                                                                                                 
         }

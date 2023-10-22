@@ -6,41 +6,19 @@ open FsOpenAI.Client
 open Microsoft.AspNetCore.Components.Web
 
 module AppBar =
-    let createMenuGroup group dispatch =
-        concat {
-            for (icon,name,createType) in group do 
-                comp<MudMenuItem> {
-                    "Icon" => icon
-                    on.click(fun _ -> dispatch (Ia_Add createType))
-                    attr.callback "OnTouch" (fun (e:TouchEventArgs) -> dispatch (Ia_Add createType)) //touch handlers needed for mobile
-                    text name
-                }
-        }        
-
-    let createMenu model dispatch =
-        let groups = 
-            model.interactionCreateTypes 
-            |> List.groupBy (fun (_,_,c) -> match c with CreateChat bkend -> bkend | CreateQA bkend -> bkend)
-            |> List.map snd
-      
-        let rec loop (acc:Bolero.Node) gs =
-            match gs with 
-            | [] -> acc
-            | g1::rest -> 
-                let n1 = createMenuGroup g1 dispatch
-                concat {
-                    yield acc
-                    yield comp<MudDivider> {"DividerType" => DividerType.Middle}                        
-                    yield n1 
-                }
-        let g1,rest = groups.Head,groups.Tail
-        loop (createMenuGroup g1 dispatch) rest
 
     let appBar model dispatch = 
         comp<MudAppBar> {
             "Style" => $"background:{if model.darkTheme then Colors.BlueGrey.Darken3 else Colors.BlueGrey.Lighten1};"
             "Fixed" => true
             "Dense" => true
+                            //if model.appConfig.RequireLogin then 
+                //    comp<MudItem> {
+                //        "xs" => 2
+                //        "sm" => 1
+            //ecomp<AvatarView,_,_> model dispatch {attr.empty()}
+                //    }
+
             comp<MudGrid> {
                 comp<MudItem> {
                     "xs" => 1
@@ -48,11 +26,11 @@ module AppBar =
                     "Class" => "d-none d-sm-flex"
                     //"Class" => "d-flex justify-center align-content-center flex-grow-1"
                     comp<MudLink> {
-                        "Href" => "https://github.com/fwaris/FsOpenAI"
+                        "Href" => match model.appConfig.LogoUrl with Some x -> x | None -> "#"
                         "Target" => "_blank"
                         comp<MudImage> {
                             "Class" => "mt-2"
-                            "ObectFit" => ObjectFit.ScaleDown
+                            "ObjectFit" => ObjectFit.ScaleDown
                             //"Height" => Nullable 40
                             "Width" => Nullable 160
                             "Src" => "imgs/logo.png"
@@ -65,6 +43,7 @@ module AppBar =
                     comp<MudTooltip> {
                         "Text" => "New chat tab"
                         "Arrow" => true
+                        "Delay" => 100.
                         comp<MudMenu> {
                             "Icon" => Icons.Material.Filled.Add
                             "Size" => Size.Large
@@ -100,29 +79,39 @@ module AppBar =
                 comp<MudItem> {
                     "xs" => 2
                     "sm" => 1
-                    ecomp<MainSettingsView,_,_> model dispatch {attr.empty()}
-                }
-                comp<MudItem> {
-                    "xs" => 2
-                    "sm" => 1
                     comp<MudMenu> {
                         "Icon" => Icons.Material.Filled.Menu
                         "TransformOrigin" => Origin.TopCenter
                         "Class" => "mt-1"
-                        concat {
+                        concat {            
                             comp<MudMenuItem> {
+                                "Icon" => Icons.Material.Outlined.DeleteSweep
                                 on.click(fun _ -> dispatch Ia_ClearChats)
                                 attr.callback "OnTouch" (fun (e:TouchEventArgs) -> dispatch (Ia_ClearChats))
                                 "Remove all chats tabs"
                             }
                             comp<MudMenuItem> {
+                                "Icon" => Icons.Material.Outlined.DeleteForever
                                 on.click (fun _ -> dispatch Ia_DeleteSavedChats)
                                 attr.callback "OnTouch" (fun (e:TouchEventArgs) -> dispatch (Ia_DeleteSavedChats))
                                 "Delete all saved chats from browser storage"
                             }
+                            if model.appConfig.EnableOpenAI then 
+                                comp<MudMenuItem> {
+                                    "Icon" => Icons.Material.Outlined.Settings
+                                    on.click(fun _ -> dispatch (OpenCloseSettings C.MAIN_SETTINGS))
+                                    attr.callback "OnTouch" (fun (e:TouchEventArgs) -> dispatch (OpenCloseSettings C.MAIN_SETTINGS))
+                                    "Application Settings"
+                                }
                         }
                     }
                 }
+                if model.appConfig.RequireLogin then 
+                    comp<MudItem> {
+                        "xs" => 2
+                        "sm" => 1
+                        ecomp<AvatarView,_,_> model dispatch {attr.empty()}
+                    }
                 comp<MudItem> {
                     "xs" => 2
                     "sm" => 1
@@ -130,12 +119,13 @@ module AppBar =
                     concat {
                         if model.busy then 
                             comp<MudProgressCircular> {
-                                "Class" => "mt-4"
+                                "Class" => "mt-5"
                                 "Color" => Color.Secondary
                                 "Indeterminate" => true
-                                "Size" => if model.highlight_busy then Size.Medium else Size.Small
+                                "Size" => Size.Small
                             }                            
                     }
                 }
             }
+            ecomp<MainSettingsView,_,_> model dispatch {attr.empty()}
         }    

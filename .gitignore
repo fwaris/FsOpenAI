@@ -367,3 +367,8 @@ FodyWeavers.xsd
 ServiceDependencies/
 
 /src/FsOpenAI.Client/wwwroot/imgs/logo.png
+/src/FsOpenAI.Server/appSettings.Development.json
+/src/FsOpenAI.Client/wwwroot/appSettings.Development.json
+/src/FsOpenAI.Client/wwwroot/appSettings.Production.json
+/src/FsOpenAI.Server/appSettings.Production.json
+/src/FsOpenAI.Client/wwwroot/appSettings.Development.json

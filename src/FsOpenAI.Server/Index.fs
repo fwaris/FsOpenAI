@@ -20,16 +20,11 @@ let page = doctypeHtml {
         link {attr.href "_content/MudBlazor/MudBlazor.min.css"; attr.rel "stylesheet"}
         script {attr.src "_content/MudBlazor/MudBlazor.min.js"}
         script {attr.src "scripts/utils.js"}
+        //authentication
+        script {attr.src "_content/Microsoft.Authentication.WebAssembly.Msal/AuthenticationService.js" }
     }
     body {
-        //attr.style "background: #32333dff; height: 100vh; display:flex; overflow; hidden"
-        //attr.style "background: #32333dff;"
-        //div { attr.id "main"; attr.style "background: #32333dff;"; comp<Client.App.MyApp> }
         div { attr.id "main"; comp<Client.App.MyApp> }
         boleroScript
-        //comp<MudContainer> {
-        //    "Style" => "background: #32333dff;"
-        //    "MaxWidth" => MaxWidth.ExtraExtraLarge
-        //}
     }
 }

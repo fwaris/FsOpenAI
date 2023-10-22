@@ -12,7 +12,12 @@
     }  
   ],
 
-  "OPENAI_KEY" :  "",
+  "OPENAI_KEY": "",
+
+  "BING_ENDPOINT": {
+    "API_KEY": "search key 1",
+    "ENDPOINT": "https://api.bing.microsoft.com/"
+  },
 
   "AZURE_SEARCH_ENDPOINTS": [
     {

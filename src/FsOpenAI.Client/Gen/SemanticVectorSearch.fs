@@ -27,7 +27,7 @@ type CognitiveSearch(srchClient:SearchClient,embeddingClient:OpenAIClient,embedd
 
     let toMemoryResult(r:SearchResult<SearchDocument>) =
         //let emb = r.Document.[vectorField] :?> float32 []
-        MemoryQueryResult(toMetadata(r.Document),r.RerankerScore ?> 1.0 ,Nullable())
+        MemoryQueryResult(toMetadata(r.Document),r.Score ?> 1.0 ,Nullable())
         
     interface ISemanticTextMemory with
         member this.GetAsync(collection, key, withEmbedding, cancellationToken) = raise (System.NotImplementedException())
@@ -39,14 +39,14 @@ type CognitiveSearch(srchClient:SearchClient,embeddingClient:OpenAIClient,embedd
             asyncSeq {
                 let! resp = embeddingClient.GetEmbeddingsAsync(embeddingModel,EmbeddingsOptions(query)) |> Async.AwaitTask
                 let eVec = resp.Value.Data.[0].Embedding
-                let vec = SearchQueryVector(
-                    KNearestNeighborsCount = limit,
-                    Fields = vectorField,
-                    Value = eVec)
-                let so = SearchOptions(Vector=vec, Size=limit)
+                let fields = String.Join(",",vectorField |> Seq.toList)
+                let vec = RawVectorQuery(KNearestNeighborsCount = limit,Vector = eVec)
+                vectorField |> Seq.iter vec.Fields.Add
+                let so = SearchOptions(Size=limit)
+                so.VectorQueries.Add(vec)                
                 [idField; contentField; sourceRefField; descriptionField] |> Seq.iter so.Select.Add 
                 let! srchRslt = srchClient.SearchAsync<SearchDocument>(null,so)  |> Async.AwaitTask
-                let rs = srchRslt.Value.GetResultsAsync() |> AsyncSeq.ofAsyncEnum |> AsyncSeq.map toMemoryResult
+                let rs = srchRslt.Value.GetResultsAsync() |> AsyncSeq.ofAsyncEnum |> AsyncSeq.map toMemoryResult                
                 yield! rs                
             }
             |> AsyncSeq.toAsyncEnum

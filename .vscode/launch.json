@@ -4,20 +4,50 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-
         {
-            "type": "msedge",
+            "name": "Debug Client+Server",
+            "type": "coreclr",
             "request": "launch",
-            "name": "FsOpenAI Client",
-            "url": "https://localhost:52035",
-            "webRoot": "${workspaceFolder}"
+            "preLaunchTask": "Build: solution",
+            "launchSettingsFilePath": "${workspaceFolder}/src/FsOpenAI.Server/Properties/launchSettings.json",
+            "launchSettingsProfile": "FsOpenAI.Server",
+            "program": "${workspaceFolder}/src/FsOpenAI.Server/bin/Debug/net7.0/FsOpenAI.Server.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/src/FsOpenAI.Server",
+            "stopAtEntry": false,
+            "serverReadyAction": {
+                "action": "openExternally",
+                "pattern": "\\bNow listening on:\\s+(https?://\\S+)",
+                "uriFormat": "%s?server=true"
+            },
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            },
+            "sourceFileMap": {
+                "/Views": "${workspaceFolder}/Views"
+            }
         },
         {
-            "type": "msedge",
+            "name": "Fast Client - Debug Server",
+            "type": "coreclr",
             "request": "launch",
-            "name": "FsOpenAI Server",
-            "url": "https://localhost:52035?server=true",
-            "webRoot": "${workspaceFolder}"
+            "preLaunchTask": "Build: solution",
+            "launchSettingsFilePath": "${workspaceFolder}/src/FsOpenAI.Server/Properties/launchSettings.json",
+            "launchSettingsProfile": "FsOpenAI.Server",
+            "program": "${workspaceFolder}/src/FsOpenAI.Server/bin/Debug/net7.0/FsOpenAI.Server.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/src/FsOpenAI.Server",
+            "stopAtEntry": false,
+            "serverReadyAction": {
+                "action": "openExternally",
+                "pattern": "\\bNow listening on:\\s+(https?://\\S+)",                
+            },
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            },
+            "sourceFileMap": {
+                "/Views": "${workspaceFolder}/Views"
+            }
         }
     ]
 }
