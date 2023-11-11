@@ -85,18 +85,15 @@ module GenUtils =
         match ch.Parameters.Backend with 
         | AzureOpenAI ->
             let uri,key = getAzureEndpoint parms
+            let client = new OpenAIClient(Uri uri, Azure.AzureKeyCredential(key))
             KernelBuilder()                                        
                 .WithLoggerFactory(loggerFactory)               
-                .WithAzureChatCompletionService(chatModel,uri,apiKey=key)
-                .WithAzureTextEmbeddingGenerationService(embModel,uri,apiKey=key)
-                //.WithAzureTextCompletionService(compModel,uri,apiKey=key)                                        
+                .WithAzureOpenAIChatCompletionService(chatModel,client, alsoAsTextCompletion=true)                                
         | OpenAI ->
-            let key = match parms.OPENAI_KEY with Some k -> k | None -> raise (NoOpenAIKey "No OpenAI Key found")
+            let key = match parms.OPENAI_KEY with Some k -> k | None -> raise (NoOpenAIKey "No OpenAI Key found")            
             KernelBuilder()
                 .WithLoggerFactory(loggerFactory)
-                .WithOpenAIChatCompletionService(chatModel,key)
-                .WithOpenAITextEmbeddingGenerationService(embModel,key)
-                //.WithOpenAITextCompletionService(compModel,key)
+                .WithOpenAIChatCompletionService(chatModel,key, alsoAsTextCompletion=true)
 
     let toRequestSettings (p:InteractionParameters) =
         OpenAIRequestSettings(

@@ -51,11 +51,11 @@
     <PackageReference Include="Bolero.HotReload" Version="0.*" />
     <PackageReference Include="FSharp.Control.AsyncSeq" Version="3.2.1" />
     <PackageReference Include="Microsoft.DeepDev.TokenizerLib" Version="1.3.2" />
-    <PackageReference Include="Microsoft.SemanticKernel" Version="1.0.0-beta2" />
-    <PackageReference Include="Microsoft.SemanticKernel.Connectors.Memory.AzureCognitiveSearch" Version="1.0.0-beta2" />
+    <PackageReference Include="Microsoft.SemanticKernel" Version="1.0.0-beta6" />
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.Memory.AzureCognitiveSearch" Version="1.0.0-beta6" />
     <PackageReference Include="MudBlazor" Version="6.11.0" />
     <PackageReference Include="FSharp.SystemTextJson" Version="1.2.42" />
-    <PackageReference Include="PdfPig" Version="0.1.9-alpha-20230930-06ac8" />
+    <PackageReference Include="PdfPig" Version="0.1.9-alpha-20231029-17d50" />
     <PackageReference Include="System.Threading.Channels" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="7.0.*" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="7.0.*" />
