@@ -5,7 +5,7 @@ open FsOpenAI.Client
 
 module Interaction = 
     let newUserMessage cntnt = {Role=MessageRole.User Open; Message=cntnt}
-    let newAsstantMessage cntnt =  {Role=MessageRole.Assistant; Message=cntnt}
+    let newAsstantMessage cntnt =  {Role=MessageRole.Assistant QueriedDocuments.Empty; Message=cntnt}
 
     let genName name msg = if Utils.isEmpty msg then name else msg.Substring(0,min 14 (msg.Length-1)) + "…"
 
@@ -33,11 +33,11 @@ module Interaction =
         let models = getModels sp ch (fun x->x.CHAT)
         models |> List.map(fun m -> m, (ch.Parameters.ChatModel=m))
 
-    let getDocuments (ch:Interaction) =
-        match ch.InteractionType with
-        | QA bag -> bag.Documents
-        | DocQA dbag -> dbag.QABag.Documents
-        | Chat cbag -> cbag.Documents
+    //let getDocuments (ch:Interaction) =
+    //    match ch.InteractionType with
+    //    | QA bag -> bag.Documents
+    //    | DocQA dbag -> dbag.QABag.Documents
+    //    | Chat cbag -> cbag.Documents
 
     let completionsModels (sp:ServiceSettings option) (ch:Interaction) =
         let models = getModels sp ch (fun x->x.COMPLETION)
@@ -53,11 +53,10 @@ module Interaction =
         | DocQA dbag -> dbag.QABag.MaxDocs
         | _ -> defaultVal
 
-    let searchQuery (ch:Interaction) = 
-        match ch.InteractionType with 
-        | QA bag -> bag.SearchQuery
-        | DocQA dbag -> dbag.QABag.SearchQuery
-        | _ -> failwith "unexpected chat type"
+    let lastSearchQuery (ch:Interaction) = 
+        List.rev ch.Messages 
+        |> List.map (_.Role) 
+        |> List.tryPick (function Assistant x -> x.SearchQuery | _ -> None)
 
     let lastNonEmptyUserMessageText (ch:Interaction) =
         let msg = ch.Messages |> List.rev |> List.tryFind(fun x->x.IsUser && Utils.notEmpty x.Message) 
@@ -104,18 +103,33 @@ module Interaction =
         | DocQA _ -> {c with InteractionType = DocQA dbag}
         | _    -> failwith "unexpected chat type"
 
-    let clearDocuments c =
-        match c.InteractionType with
-        | QA bag -> {c with InteractionType = QA {bag with Documents=[]}}
-        | DocQA dbag -> {c with InteractionType = DocQA {dbag with QABag = {dbag.QABag with Documents = []}}}
-        | Chat cbag -> {c with InteractionType = Chat {cbag with Documents=[]}}
+    let clearDocuments c = 
+        {c with 
+            Messages = 
+                c.Messages 
+                |> List.map(fun m -> 
+                    match m.Role with 
+                    | Assistant r -> {m with Role = Assistant QueriedDocuments.Empty} 
+                    | _           -> m)
+        }
 
-    let setDocuments docs c = 
-        match c.InteractionType with
-        | QA bag -> {c with InteractionType = QA {bag with Documents=docs}}
-        | DocQA dbag -> {c with InteractionType = DocQA {dbag with QABag = {dbag.QABag with Documents = docs}}}
-        | Chat cbag -> {c with InteractionType = Chat {cbag with Documents=docs}}
-
+    let addDocuments docs c = 
+        let h,tail = match List.rev c.Messages with h::t -> h,t | _ -> failwith "no messages in chat"
+        let h = 
+            match h.Role with 
+            | Assistant d -> {h with Role = Assistant {d with Docs=docs}}
+            | _ -> failwith "Expected and Assistant message"
+        let msgs = h::tail
+        let _,msgs = 
+            ((0,[]),msgs) 
+            ||> List.fold (fun (count,acc) m -> 
+                let count',m' = 
+                    match m.Role with 
+                    | Assistant _ when count > C.MAX_DOCLISTS_PER_CHAT -> count+1,{m with Role = Assistant QueriedDocuments.Empty}
+                    | Assistant _ -> count+1,m
+                    | _ -> count,m
+                count',m'::acc)
+        {c with Messages = msgs}
 
     let addDelta delta c = 
         let h,tail = match List.rev c.Messages with h::t -> h,t | _ -> failwith "no messages in chat"
@@ -127,6 +141,12 @@ module Interaction =
         | Chat cbag -> {c with InteractionType = Chat {cbag with SystemMessage=msg }}
         | QA bag -> {c with InteractionType = QA {bag with SystemMessage = msg }}
         | DocQA dbag -> {c with InteractionType = DocQA {dbag with QABag = {dbag.QABag with SystemMessage = msg}}}
+
+    let setMaxDocs maxDocs c = 
+        match c.InteractionType with
+        | QA bag -> {c with InteractionType = QA {bag with MaxDocs = maxDocs }}
+        | DocQA dbag -> {c with InteractionType = DocQA {dbag with QABag = {dbag.QABag with MaxDocs = maxDocs}}}
+        | _          -> c
 
     let endBuffering errOccured c  = 
         let msgs = List.rev c.Messages  
@@ -307,4 +327,6 @@ module Interactions =
 
     let setUseWeb id useWeb cs = updateWith (Interaction.setUseWeb useWeb) id cs
 
-    let setDocuments id docs cs = updateWith (Interaction.setDocuments docs) id cs 
+    let addDocuments id docs cs = updateWith (Interaction.addDocuments docs) id cs 
+
+    let setMaxDocs id maxDocs cs = updateWith (Interaction.setMaxDocs maxDocs) id cs

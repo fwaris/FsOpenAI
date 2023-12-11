@@ -54,9 +54,10 @@ type MainLayout() =
                                         "BadgeDot" => true
                                         "ShowCloseIcon" => true
                                         match c.InteractionType with 
-                                        | Chat _ -> ecomp<ChatView,_,_> (c,model) dispatch {attr.empty()}
-                                        | QA bag -> ecomp<QAView,_,_> (bag,c,model) dispatch {attr.empty()}
-                                        | DocQA dbag -> ecomp<DocQAView,_,_> (dbag,c,model) dispatch {attr.empty()}
+                                        | Chat _ when model.appConfig.EnableVanillaChat  -> ecomp<ChatView,_,_> (c,model) dispatch {attr.empty()}
+                                        | QA bag                                         -> ecomp<QAView,_,_> (bag,c,model) dispatch {attr.empty()}
+                                        | DocQA dbag when model.appConfig.EnableDocQuery -> ecomp<DocQAView,_,_> (dbag,c,model) dispatch {attr.empty()}
+                                        | _                                              -> ()
                                     }
                             }                            
                         }                        

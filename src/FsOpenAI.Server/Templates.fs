@@ -1,34 +1,31 @@
 namespace FsOpenAI.Server.Templates
-open System.Collections.Generic
 open System.IO
 open FSharp.Control
 open FsOpenAI.Client
 open FsOpenAI.Server
 open Microsoft.SemanticKernel
-open Microsoft.SemanticKernel.Plugins
 
 module Templates = 
 
-    let toTemplates p (skill:IDictionary<string,ISKFunction>) = 
-        skill
-        |> Seq.map (fun kv -> 
-            let fv = kv.Value.Describe()            
-            let fnq = Path.Combine(p,kv.Value.PluginName,kv.Key,"question.txt")
+    let toTemplates p (plugin:IKernelPlugin) = 
+        plugin
+        |> Seq.map (fun fn -> 
+            let fnq = Path.Combine(p,fn.Name,fn.Metadata.PluginName,"question.txt")
             let question = if File.Exists fnq then File.ReadAllText fnq |> Some else None
             {
-                Name = kv.Key
-                Description = kv.Value.Description
-                Template = File.ReadAllText(Path.Combine(p,kv.Value.PluginName,kv.Key,"skprompt.txt"))
+                Name = fn.Name
+                Description = fn.Description
+                Template = File.ReadAllText(Path.Combine(p,fn.Metadata.PluginName,fn.Metadata.Name,"skprompt.txt"))
                 Question = question
             }
         )
         |> Seq.toList
 
     let loadSkills p =
-        let k = Kernel.Builder.Build()
-        let dqSkill = k.ImportSemanticFunctionsFromDirectory(p,[|C.TMPLTS_DOCQUERY|])
+        let k = KernelBuilder().Build()
+        let dqSkill = k.ImportPluginFromPromptDirectory(p,C.TMPLTS_DOCQUERY)
         let dqTemplates = toTemplates p dqSkill
-        let extSkill = k.ImportSemanticFunctionsFromDirectory(p,[|C.TMPLTS_EXTRACTION|])
+        let extSkill = k.ImportPluginFromPromptDirectory(p,C.TMPLTS_EXTRACTION)
         let extTemplates = toTemplates p extSkill
         let label= Path.GetFileName p
         {

@@ -178,40 +178,26 @@ let collectString (rs:AsyncSeq<Nullable<int>*ChatMessage>) =
 module Index = 
     let WAIT_MULTIPLIER = 2
 
-    let newField name = SemanticField(FieldName=name)
+    let newField name = SemanticField(fieldName=name)
 
     type Doc = {File:string; Page:int; Chunk:string; Link:string}
     type DocEmb = {Time:DateTime; Doc:Doc; Embeddings:float32[]}
 
         //define the index format
     let indexDefinition(name) =     
-        let vsconfigName = "my-vector-config"
+        let vectorSearchProfileName = "my-vector-profile"
+        let vectorSearchHsnwConfig = "my-hsnw-vector-config"
         let idx = SearchIndex(name)
         idx.VectorSearch <- new VectorSearch()
-        idx.VectorSearch.Algorithms.Add (new HnswVectorSearchAlgorithmConfiguration(vsconfigName))
-        idx.SemanticSettings <- new SemanticSettings()
-        idx.SemanticSettings.Configurations.Add(
-            let p1 = PrioritizedFields(TitleField  = newField "title")
-            p1.ContentFields.Add(newField "content")
-            p1.KeywordFields.Add(newField "category")
- 
-            let ssM = new SemanticConfiguration(
-                        vsconfigName,
-                        prioritizedFields = p1)
-            ssM)
+        idx.VectorSearch.Algorithms.Add (new HnswAlgorithmConfiguration(vectorSearchHsnwConfig))
+        idx.VectorSearch.Profiles.Add(new VectorSearchProfile(vectorSearchProfileName,vectorSearchHsnwConfig))
         let flds : SearchField list = 
             [
                 !> SimpleField("id", SearchFieldDataType.String, IsKey = true, IsFilterable = true, IsSortable = true, IsFacetable = true) 
                 !> SearchableField("title", IsFilterable = true, IsSortable = true )
                 !> SearchableField("sourcefile", IsFilterable = true, IsSortable = true )
                 !> SearchableField("content", IsFilterable = true)
-
-                SearchField("contentVector", 
-                    ``type`` = SearchFieldDataType.Collection(SearchFieldDataType.Single),
-                    IsSearchable = true,
-                    VectorSearchDimensions = modelDimensions,
-                    VectorSearchProfile = vsconfigName
-                    ) 
+                !> VectorSearchField("contentVector", modelDimensions, vectorSearchProfileName)
                 !> SearchableField("category", IsFilterable = true, IsSortable = true, IsFacetable = true)
             ]
         flds |> List.iter idx.Fields.Add
@@ -255,6 +241,7 @@ module Index =
         }
 
     let loadIndexAsync
+        (recreate:bool)
         (idx:SearchIndex) 
         (docs:AsyncSeq<SearchDocument>)
         =
@@ -268,14 +255,15 @@ module Index =
                         let t = searchClient.IndexDocumentsAsync(batch) |> Async.AwaitTask                    
                         let! dbatch =  submitLoop "index upload" 0 t
                         printfn $"Added: {dbatch.Value.Results.Count}" 
-                        with ex -> 
-                            printfn "%A" ex.Message
-                    ()
+                    with ex -> 
+                        printfn "%A" ex.Message
                 })
         async {
             let indexClient = indexClient()
             let searchClient = indexClient.GetSearchClient(idx.Name)
-            let! resp = indexClient.DeleteIndexAsync(idx) |> Async.AwaitTask       //delete index
+            if recreate then 
+                let! resp = indexClient.DeleteIndexAsync(idx) |> Async.AwaitTask       //delete index
+                ()
             let! resp = indexClient.CreateOrUpdateIndexAsync(idx) |> Async.AwaitTask
             do! indexDocs searchClient
             printfn "done loading index"
@@ -291,6 +279,12 @@ module Index =
                 let! emb = submitLoop "embedding" 0 t
                 return {Time = t1; Doc=doc; Embeddings = emb.Value.Data.[0].Embedding |> Seq.toArray }
             })
+
+    let docTextPdf (r:Readers.IDocReader) =
+        let pages = [for i in 0 .. r.GetPageCount()-1 -> i, r.GetPageReader(i).GetText()]
+        pages 
+        |> Seq.collect(fun (i,t) -> TextChunker.SplitPlainTextParagraphs(ResizeArray [t],1500,100) |> Seq.map(fun c -> i,c))   
+        |> Seq.toList
 
     let shredPdfsAsync (folder:string) =
         if Directory.Exists folder |> not then failwith $"folder {folder} does not exist"
@@ -309,16 +303,11 @@ module Index =
             |> Seq.map(fun r -> r.[1],r.[0])              //hyperlink url, document file name (without path)
             |> Map.ofSeq
 
-        let docText (r:Readers.IDocReader) =
-            let pages = [for i in 0 .. r.GetPageCount()-1 -> i, r.GetPageReader(i).GetText()]
-            pages 
-            |> Seq.collect(fun (i,t) -> TextChunker.SplitPlainTextParagraphs(ResizeArray [t],1500,100) |> Seq.map(fun c -> i,c))   
-            |> Seq.toList
 
         let readDocs() = 
             docsFiles 
             |> Seq.map(fun x -> docName x,x)
-            |> Seq.map(fun (d,fn) -> d, docText (DocLib.Instance.GetDocReader(fn,Models.PageDimensions(1.0))))
+            |> Seq.map(fun (d,fn) -> d, docTextPdf (DocLib.Instance.GetDocReader(fn,Models.PageDimensions(1.0))))
             |> Seq.collect(fun (d,txs) -> txs |> Seq.map(fun (i,c) -> 
                 let baseLink = citationsMap.[d]
                 let link = $"{baseLink}#page={i}"

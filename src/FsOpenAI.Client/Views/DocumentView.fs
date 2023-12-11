@@ -99,7 +99,7 @@ type DocumentView() =
                             "Placeholder" => "search query to be extracted from document"
                             "Variant" => Variant.Outlined
                             "Label" => "Search Terms"
-                            "Text" => match dbag.QABag.SearchQuery with Some q -> q | None -> null
+                            "Text" => match dbag.SearchTerms with Some q -> q | None -> null
                         }
                     }
                 }

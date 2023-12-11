@@ -15,7 +15,7 @@ type ChatView() =
         let cbag = Interaction.cBag chat
         let panelId = C.CHAT_DOCS chat.Id
         let isPanelOpen = model.settingsOpen |> Map.tryFind panelId |> Option.defaultValue false
-        let docs = Interaction.getDocuments chat
+        let docs = [] //TODO Interaction.getDocuments chat
         comp<MudPaper> {
             comp<MudPaper> {
                 "class" => "d-flex flex-grow-1 gap-1 ml-2 mr-2"

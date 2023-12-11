@@ -1,0 +1,34 @@
+[
+  {
+    "SampleChatType": {
+      "Case": "QA_Chat",
+      "Fields": [
+        "ericsson-install, ericsson-gc-academy"
+      ]
+    },
+    "SystemMessage": "You are a helpful telecom cell site construction assistant.\n\nThoroughly explore all implications when generating a response. Consider all aspects.\n\nBe factual in your responses and cite the sources. Ask if you are not sure.\n ",
+    "SampleQuestion": "What is the T-Mobile Standard for AC power cable size (e.g. 2/0, 3/0, etc.) between the PPC and the E6160 regardless of the breaker being used?",
+    "PreferredModels": [
+      "gpt-4",
+      "gpt-3.5-turbo"
+    ],
+    "Temperature": 0,
+    "MaxDocs": 5
+  },
+  {
+    "SampleChatType": {
+      "Case": "QA_Chat",
+      "Fields": [
+        "ericsson-install, ericsson-gc-academy"
+      ]
+    },
+    "SystemMessage": "You are a helpful telecom cell site construction assistant.\n\nThoroughly explore all implications when generating a response. Consider all aspects.\n\nBe factual in your responses and cite the sources. Ask if you are not sure.\n ",
+    "SampleQuestion": "On which interface module do External PPC Alarms terminate?",
+    "PreferredModels": [
+      "gpt-4-32k",
+      "gpt-3.5-turbo-16k"
+    ],
+    "Temperature": 0,
+    "MaxDocs": 15
+  }
+]

@@ -11,5 +11,5 @@ let shredded = Env.Index.shredPdfsAsync @"C:\s\genai\gaap"
 let embedded = Env.Index.getEmbeddingsAsync 7.0 shredded
 let searchDocs = embedded |> AsyncSeq.map Env.Index.toSearchDoc
 let indexDef = Env.Index.indexDefinition "gaap"
-Env.Index.loadIndexAsync indexDef searchDocs |> Async.Start
+Env.Index.loadIndexAsync true indexDef searchDocs |> Async.Start
 

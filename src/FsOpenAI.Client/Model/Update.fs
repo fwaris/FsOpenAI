@@ -36,7 +36,7 @@ module Update =
             busy = false
             settingsOpen = Map.empty 
             serviceParameters = None   
-            darkTheme = true
+            darkTheme = false
             theme = new MudBlazor.MudTheme()
             user = Unauthenticated
             page = Home
@@ -139,7 +139,12 @@ module Update =
                 |> addDefaultModel (fun d -> d.CHAT)       (fun p m -> {p with ChatModel = m})        sParms
                 |> addDefaultModel (fun d -> d.COMPLETION) (fun p m -> {p with CompletionsModel = m}) sParms
                 |> addDefaultModel (fun d -> d.EMBEDDING)  (fun p m -> {p with EmbeddingsModel = m})  sParms
-            let cs = Interactions.setParms (id,cParms) cs
+            let cs = 
+                cs
+                |> Interactions.setParms (id,cParms)
+                |> Interactions.setSystemMessage (id,model.appConfig.DefaultSystemMessage)
+                |> Interactions.setMaxDocs id model.appConfig.DefaultMaxDocs
+            
             {model with interactions = cs; selected=Some id},Cmd.none
         else
             model,Cmd.ofMsg (ShowInfo "Max number of tabs reached")
@@ -168,13 +173,13 @@ module Update =
         | _ -> model,Cmd.none
 
     let updateDocs (id,docs) model = 
-        {model with interactions = Interactions.setDocuments id docs model.interactions}
+        {model with interactions = Interactions.addDocuments id docs model.interactions}
 
     let updateSearchTerms (id,srchQ) model =
         model.interactions
         |> List.tryFind(fun c -> c.Id = id)
-        |> Option.bind Interaction.qaBag 
-        |> Option.map(fun bag -> Interactions.setQABag id {bag with SearchQuery = Some srchQ;} model.interactions)
+        |> Option.map Interaction.docBag 
+        |> Option.map(fun bag -> Interactions.setDocBag id {bag with SearchTerms = Some srchQ;} model.interactions)
         |> Option.map(fun cs -> Interactions.setDocumentStatus id Ready cs)
         |> Option.map(fun cs -> {model with interactions = cs})
         |> Option.defaultValue model

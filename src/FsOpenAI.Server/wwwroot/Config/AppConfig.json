@@ -1,10 +1,31 @@
 {
-  "EnableOpenAI": true,
+  "EnableOpenAI": false,
   "EnableVanillaChat": true,
+  "EnableDocQuery": false,
+  "DefaultSystemMessage": "You are a helpful telecom cell site construction assistant.\n\nThoroughly explore all implications when generating a response. Consider all aspects.\n\nBe factual in your responses and cite the sources. Ask if you are not sure.\n ",
+  "DefaultMaxDocs": 15,
   "Roles": [],
   "RequireLogin": false,
-  "PaletteDark": null,
-  "PaletteLight": null,
-  "LogoUrl": "https://github.com/fwaris/FsOpenAI",
-  "IndexGroups": []
+  "PaletteDark": {
+    "Primary": "#FF1E92",
+    "Secondary": null,
+    "Tertiary": null,
+    "Info": null,
+    "Success": null,
+    "Warning": null,
+    "Error": null
+  },
+  "PaletteLight": {
+    "Primary": "#e20074",
+    "Secondary": null,
+    "Tertiary": null,
+    "Info": null,
+    "Success": null,
+    "Warning": null,
+    "Error": null
+  },
+  "LogoUrl": "https://mle.t-mobile.com/",
+  "IndexGroups": [
+    "gc"
+  ]
 }

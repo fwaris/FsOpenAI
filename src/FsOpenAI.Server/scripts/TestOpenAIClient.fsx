@@ -10,14 +10,16 @@ let clint = new OpenAIClient(Environment.GetEnvironmentVariable("OPENAI_API_KEY"
 
 let m1 = new ChatMessage(role=ChatRole.User, content= "What is the meaning of life?")
 
-let resp = clint.GetChatCompletionsStreamingAsync("gpt-3.5-turbo",ChatCompletionsOptions([m1])) |> Async.AwaitTask |> Async.RunSynchronously
-let rs = resp.Value.GetChoicesStreaming()
+let opts = ChatCompletionsOptions(deploymentName="gpt-3.5-turbo", messages=[m1])
+
+let resp = clint.GetChatCompletionsStreamingAsync(opts) |> Async.AwaitTask |> Async.RunSynchronously
+let rs = resp.EnumerateValues()
 let gs =
     let mutable ls = []
     rs
     //|> asAsyncSeq
     |> AsyncSeq.ofAsyncEnum
-    |> AsyncSeq.collect(fun cs ->  AsyncSeq.ofAsyncEnum (cs.GetMessageStreaming()) |> AsyncSeq.map(fun m -> cs.Index,m) )
+    |> AsyncSeq.map(fun cs ->cs.ChoiceIndex,cs.ContentUpdate)
     |> AsyncSeq.map(fun(i,x) -> x)
     |> AsyncSeq.iter(fun x-> printfn "%A" x.Content; ls<-x::ls)
     |> Async.RunSynchronously

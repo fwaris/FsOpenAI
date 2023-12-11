@@ -1,6 +1,8 @@
 ﻿namespace FsOpenAI.Client
 
 module C =
+    let MAX_DOCLISTS_PER_CHAT = 3 //number of document lists that a chat can maintain (others are dropped as new doc lists are added to chat)
+
     let LS_OPENAI_KEY = "LS_OPENAI_KEY"
     let MAIN_SETTINGS = "MAIN_SETTINGS"
     let CHATS = "CHATS"
@@ -19,7 +21,7 @@ module C =
     let SAMPLES_JSON = "Samples.json"
     let APP_CONFIG_PATH = "Config/AppConfig.json"
 
-    let META_INDEX = "fsopenai-meta" //meta index name. allowed: lower case letters; digits; and dashes
+    let META_INDEX = "fsopenai-meta-gc" //meta index name. allowed: lower case letters; digits; and dashes
 
     let SETTINGS_FILE = "Parms:Settings"                            //1st: look for a reference to settings json file in appSettings
     let FSOPENAI_AZURE_KEYVAULT = "FSOPENAI_AZURE_KEYVAULT"         //2nd: look for it in Azure key vault with name configured as this,

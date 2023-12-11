@@ -19,14 +19,14 @@ let indexName = FsOpenAI.Client.C.META_INDEX
 let metaIndex(name) =     
     let newField = Index.newField
     let idx = SearchIndex(name)
-    idx.SemanticSettings <- new SemanticSettings()
-    idx.SemanticSettings.Configurations.Add(
-        let p1 = PrioritizedFields(TitleField  = newField "title")
-        p1.KeywordFields.Add(newField "user")
-        p1.KeywordFields.Add(newField "description")
-        p1.KeywordFields.Add(newField "userIndexCreateTime")
-        p1.KeywordFields.Add(newField "userIndexFriendlyName") 
-        p1.KeywordFields.Add(newField "groups")
+    idx.SemanticSearch <- new SemanticSearch()
+    idx.SemanticSearch.Configurations.Add(
+        let p1 = SemanticPrioritizedFields(TitleField  = newField "title")
+        p1.KeywordsFields.Add(newField "user")
+        p1.KeywordsFields.Add(newField "description")
+        p1.KeywordsFields.Add(newField "userIndexCreateTime")
+        p1.KeywordsFields.Add(newField "userIndexFriendlyName") 
+        p1.KeywordsFields.Add(newField "groups")
         let ssM = new SemanticConfiguration(
                     "meta-config",
                     prioritizedFields = p1)
@@ -48,19 +48,19 @@ let loadMeta docs =
     docs
     |> AsyncSeq.ofSeq
     |> AsyncSeq.map(Indexes.toDoc)
-    |> (Index.loadIndexAsync (metaIndex indexName))
+    |> (Index.loadIndexAsync true (metaIndex indexName))
     |> Async.map(fun  x -> printfn "done"; x)
     |> Async.Start
 
-module AccountingIndexesDev =
+module AccountingIndexesProd =
     let docDesc = 
         [
-            "att-sec", "SEC: AT&T filings"
-            "tmobile-sec","SEC: T-Mobile filings"
-            "verizon-sec","SEC: Verizon filings"
-            "accounting-policy","Accouting: All policy docs"
+            //"att-sec", "SEC: AT&T filings"
+            //"tmobile-sec","SEC: T-Mobile filings"
+            //"verizon-sec","SEC: Verizon filings"
+            "accounting-policy","Accounting: All policy docs"
             "big-4-guides","Accounting: Big 4 guides"
-            "dt-policies","Accouting: DT Policies"
+            "dt-policies","Accounting: DT Policies"
             "tmus-memos","TMUS: Memos"
             "tmus-policies","TMUS: Policies"
         ]
@@ -74,17 +74,31 @@ module AccountingIndexesPoc =
             "att-sec", "SEC: AT&T filings"
             "tmobile-sec","SEC: T-Mobile filings"
             "verizon-sec","SEC: Verizon filings"
-            "accounting-policy","Accouting: All policy docs"
+            "accounting-policy","Accounting: All policy docs"
             "gaap","FASAB guidelines for US goverment bodies"
         ]
     let docs = docDesc |> List.map(fun (n,d) -> {MetaIndexEntry.Default with title=n; description=d; groups=["accounting"]})
     
     let load() = loadMeta docs 
 
+module GcIndexesProd =
+    let docDesc = 
+        [
+            "ericsson-gc-academy", "GC Academy: Ericsson Construction and Integration"
+            "nokia-gc-academy","GC Academy: Nokia Construction and Integration"
+            "ixr-e-gc-academy","GC Academy: IXR-e"
+            "t-mobile-standards", "Construction: T-Mobile Standards"
+            "ericsson-install", "Installation: Ericsson Guides"
+            "nokia-install", "Installation: Nokia Guides"
+        ]
+    let docs = docDesc |> List.map(fun (n,d) -> {MetaIndexEntry.Default with title=n; description=d; groups=["gc"]})
+    
+    let load() = loadMeta docs 
+
 (*
 
-Env.installSettings ("%USERPROFILE%/.fsopenai/dev/ServiceSettings.json")
-AccountingIndexesDev.load()
+Env.installSettings ("%USERPROFILE%/.fsopenai/prod/ServiceSettings.json")
+AccountingIndexesProd.load()
 
 Env.installSettings ("%USERPROFILE%/.fsopenai/poc/ServiceSettings.json")
 AccountingIndexesPoc.load()
@@ -92,6 +106,10 @@ AccountingIndexesPoc.load()
 
 //test
 let ys = Indexes.metaIndexEntries (indexClient()) ["accounting"] |> Async.RunSynchronously
-*)
 
+
+//gc
+Env.installSettings "%USERPROFILE%/.fsopenai/gc/ServiceSettings.json"
+GcIndexesProd.load()
+*)
 

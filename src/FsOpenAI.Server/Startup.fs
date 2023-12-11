@@ -45,8 +45,7 @@ module Startup =
             //    .AddCookie()
             //    .Services
             ////.AddBoleroRemoting<Services.KeyService>()
-
-            .AddBoleroHost(prerendered=false)
+            .AddBoleroHost(prerendered=true)
 #if DEBUG
             .AddHotReload(templateDir = __SOURCE_DIRECTORY__ + "/../FsOpenAI.Client")
 #endif

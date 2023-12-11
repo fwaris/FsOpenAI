@@ -19,7 +19,7 @@ type IndexSelectionView() =
         let bag,chat,model = mdl
         let panelId = C.CHAT_DOCS chat.Id
         let isPanelOpen = model.settingsOpen |> Map.tryFind panelId |> Option.defaultValue false
-        let docs = Interaction.getDocuments chat
+        let docs = [] //TODO Interaction.getDocuments chat
         comp<MudPaper> {
             "Class" => "d-flex flex-1"
             comp<MudSelect<IndexRef>> {

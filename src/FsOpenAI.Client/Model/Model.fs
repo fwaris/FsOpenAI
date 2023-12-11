@@ -34,8 +34,10 @@ type ServiceSettings =
         OPENAI_MODELS : ModelDeployments option
     }
 
+type Document = {Text:string; Embedding:float32[]; Ref:string; Title:string}
+type QueriedDocuments = {SearchQuery:string option; Docs: Document list } with static member Empty = {SearchQuery=None; Docs=[]}
 type UserRoleStatus = Open | Closed
-type MessageRole = User of UserRoleStatus | Assistant
+type MessageRole = User of UserRoleStatus | Assistant of QueriedDocuments
 
 type InteractionMessage = {Role:MessageRole; Message: string} 
     with 
@@ -66,7 +68,7 @@ type InteractionParameters =
     static member Default = 
         {
             Backend = AzureOpenAI
-            Temperature = 1.0      // 0.0 to 2.0
+            Temperature = 0.1      // 0.0 to 2.0
             PresencePenalty = 0.0  // -2.0 to +2.0
             FrequencyPenalty = 0.0 // -2.0 to +2.0
             MaxTokens = 1000            
@@ -80,23 +82,18 @@ type IndexRef =
     | Azure of VectorIndex
     //other indexes e.g. pinecone can be added
 
-type Document = {Text:string; Embedding:float32[]; Ref:string; Title:string}
     
 type QABag =
     {
-        SearchQuery     : string option
         SystemMessage   : string
         Indexes         : IndexRef list
         MaxDocs         : int                                        
-        Documents       : Document list
     }
     with static member Default =
             {
-                SearchQuery = None
                 SystemMessage = C.defaultSystemMessage
                 Indexes = []
                 MaxDocs = 10
-                Documents = []
             }
 
 type DocumentStatus = No_Document | Uploading | Extracting | GenSearch | Ready
@@ -114,6 +111,7 @@ type DocBag =
         QABag : QABag
         Label : string
         Document : DocumentContent
+        SearchTerms : string option
         ExtractTermsTemplate: string option
         SearchWithOrigText: bool            //use raw document text instead of extracted search terms for index search
         QueryTemplate : string option
@@ -123,6 +121,7 @@ type DocBag =
                 Label = "Default"
                 QABag = QABag.Default
                 Document = DocumentContent.Default
+                SearchTerms = None
                 ExtractTermsTemplate = None
                 SearchWithOrigText = false  
                 QueryTemplate = None
@@ -132,10 +131,8 @@ type ChatBag =
     {
         SystemMessage: string
         UseWeb : bool
-        Documents  : Document list
-
     }
-    with static member Default = {SystemMessage=C.defaultSystemMessage; UseWeb=false; Documents=[]}
+    with static member Default = {SystemMessage=C.defaultSystemMessage; UseWeb=false;}
 
 type InteractionType =
     | Chat of ChatBag
@@ -188,7 +185,6 @@ type SamplePrompt =
         Temperature      : float
         MaxDocs          : int
     }
-
 
 type Page =
     | [<EndPoint "/">] Home

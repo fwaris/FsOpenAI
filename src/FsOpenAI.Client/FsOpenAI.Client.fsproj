@@ -1,9 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <LangVersion>preview</LangVersion>
     <WasmEnableThreads>false</WasmEnableThreads>
+    <AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="SimpleCrypt.fs" />
@@ -31,14 +32,6 @@
     <Compile Include="Views\AuthenticationViews.fs" />
     <Compile Include="Views\AppBar.fs" />
     <Compile Include="Views\MainLayout.fs" />
-    <Compile Include="Gen\GenUtils.fs" />
-    <Compile Include="Gen\Prompts.fs" />
-    <Compile Include="Gen\Indexes.fs" />
-    <Compile Include="Gen\SemanticVectorSearch.fs" />
-    <Compile Include="Gen\Completions.fs" />
-    <Compile Include="Gen\WebCompletion.fs" />
-    <Compile Include="Gen\QnA.fs" />
-    <Compile Include="Gen\DocQnA.fs" />
     <Compile Include="App\Subscription.fs" />
     <Compile Include="App\ClientHub.fs" />
     <Compile Include="App\App.fs" />
@@ -46,23 +39,22 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Blazored.LocalStorage" Version="4.4.0" />
-    <PackageReference Include="Bolero" Version="0.23.44" />
-    <PackageReference Include="Bolero.Build" Version="0.23.44" />
+    <PackageReference Include="Bolero" Version="0.*" />
+    <PackageReference Include="Bolero.Build" Version="0.*" />
     <PackageReference Include="Bolero.HotReload" Version="0.*" />
-    <PackageReference Include="FSharp.Control.AsyncSeq" Version="3.2.1" />
-    <PackageReference Include="Microsoft.DeepDev.TokenizerLib" Version="1.3.2" />
-    <PackageReference Include="Microsoft.SemanticKernel" Version="1.0.0-beta6" />
-    <PackageReference Include="Microsoft.SemanticKernel.Connectors.Memory.AzureCognitiveSearch" Version="1.0.0-beta6" />
-    <PackageReference Include="MudBlazor" Version="6.11.0" />
+    <PackageReference Include="MudBlazor" Version="6.11.1" />
     <PackageReference Include="FSharp.SystemTextJson" Version="1.2.42" />
-    <PackageReference Include="PdfPig" Version="0.1.9-alpha-20231029-17d50" />
-    <PackageReference Include="System.Threading.Channels" Version="7.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="7.0.*" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="7.0.*" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="7.0.*" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.Authentication.WebAssembly.Msal" Version="7.0.*" />
+    <PackageReference Include="System.Threading.Channels" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Authentication.WebAssembly.Msal" Version="8.0.0" />
+	<PackageReference Include="FSharp.Control.AsyncSeq" Version="3.2.1" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Update="FSharp.Core" Version="7.0.401" />
+    <PackageReference Update="FSharp.Core" Version="8.0.100" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
   </ItemGroup>
 </Project>

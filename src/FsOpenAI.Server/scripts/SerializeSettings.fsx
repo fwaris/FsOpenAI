@@ -36,13 +36,17 @@ let getCreds keyVault keyName =
     sttngs    
 
 
-let setCredsDev() = setCreds KeyVault "fsopenaiacct" "%USERPROFILE%/.fsopenai/dev/ServiceSettings.json"
+let setCredsProd() = setCreds KeyVault "fsopenaiacct" "%USERPROFILE%/.fsopenai/prod/ServiceSettings.json"
 
 let setCredsPoc() = setCreds KeyVault "fsopenai1" "%USERPROFILE%/.fsopenai/poc/ServiceSettings.json"
+
+let setCredsGC() = setCreds KeyVault "fsopenaigc" "%USERPROFILE%/.fsopenai/gc/ServiceSettings.json"
 
 let pocSttngs() = getCreds KeyVault "fsopenai1"
 
 let devSttngs() = getCreds KeyVault "fsopenaiacct"
+
+let gcSttngs() = getCreds KeyVault "fsopenaigc"
 
 
 

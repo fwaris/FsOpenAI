@@ -31,6 +31,15 @@ type AppConfig =
         ///Enable/disable plain chat mode
         EnableVanillaChat : bool
 
+        ///Enable disable 'doc query' mode
+        EnableDocQuery : bool
+
+        ///Default system message for new chats
+        DefaultSystemMessage : string
+
+        ///Default number of docs for new chats
+        DefaultMaxDocs : int
+
         ///List of app roles. If the user's identity provider provides any of the roles, the authenticated user 
         ///is authorized. If the list is empty then any authenticted user is authorized to use this app
         Roles : string list  
@@ -56,7 +65,10 @@ type AppConfig =
         static member Default = 
             {
                 EnableOpenAI = true
+                EnableDocQuery = true
                 EnableVanillaChat = true
+                DefaultSystemMessage = "You are a helpful AI assistant"
+                DefaultMaxDocs = 10
                 Roles = []
                 RequireLogin = false
                 PaletteDark = None

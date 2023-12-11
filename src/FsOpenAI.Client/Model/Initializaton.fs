@@ -12,7 +12,7 @@ module Init =
 
     let private (===) (a:string) (b:string) = a.Equals(b,StringComparison.InvariantCultureIgnoreCase)
     let private updateBag bag ch = match bag with Some b -> Interaction.setQABag b ch | None -> ch
-    let private updateIndx idx ch = match idx with Some i -> Interaction.addIndex i ch | None -> ch
+    let private updateIndx idxs ch = (ch,idxs) ||> List.fold (fun ch i -> Interaction.addIndex i ch) 
     let private setUseWeb useWeb ch = match ch.InteractionType with Chat cbag -> Interaction.setUseWeb useWeb ch | _ -> ch
 
     let newInteractionTypes = 
@@ -35,16 +35,18 @@ module Init =
         |> Async.StartImmediate
 
     let isAllowedSample appConfig ch =
-        match appConfig.EnableOpenAI, appConfig.EnableVanillaChat, ch.InteractionType, ch.Parameters.Backend with
-        | _, false ,Chat _, _   -> None
-        | false,_,_,OpenAI      -> None
-        | _                     -> Some ch
+        match appConfig.EnableOpenAI, ch.InteractionType, ch.Parameters.Backend with
+        | _,Chat _, _  when not appConfig.EnableVanillaChat -> None
+        | _,DocQA _, _ when not appConfig.EnableDocQuery    -> None
+        | false,_,OpenAI                                    -> None
+        | _                                                 -> Some ch
 
     let isAllowedCreate appConfig create =
-        match appConfig.EnableOpenAI, appConfig.EnableVanillaChat, create, backend create with
-        | _, false ,(_,_,CreateChat _),_   -> None
-        | false,_,_,OpenAI                 -> None
-        | _                               -> Some create
+        match appConfig.EnableOpenAI, create, backend create with
+        | _,(_,_,CreateChat _),_ when not appConfig.EnableVanillaChat   -> None
+        | _,(_,_,CreateDocQA _),_ when not appConfig.EnableDocQuery     -> None
+        | false,_,OpenAI                                                -> None
+        | _                                                             -> Some create
 
     let postServerInit model =
         let createTypes = model.interactionCreateTypes |> List.choose (isAllowedCreate model.appConfig)
@@ -72,15 +74,15 @@ module Init =
             | QA_Chat _ -> CreateQA backend,false
             | DocQA_Chat _ -> (CreateDocQA (backend,label)),false
 
-        let idxRef =            
+        let idxRefs =                        
             match sample.SampleChatType with
-            | QA_Chat idx       -> Azure {Name=idx; Description=""}  |> Some
-            | DocQA_Chat idx    -> Azure {Name=idx; Description=""}  |> Some
-            | _                 -> None     
+            | QA_Chat idx       -> let idxs = idx.Split([|',';' '|],StringSplitOptions.RemoveEmptyEntries) in idxs |> Seq.map(fun idx ->  Azure {Name=idx; Description=""}) |> Seq.toList
+            | DocQA_Chat idx    -> let idxs = idx.Split([|',';' '|],StringSplitOptions.RemoveEmptyEntries) in idxs |> Seq.map(fun idx ->  Azure {Name=idx; Description=""}) |> Seq.toList
+            | _                 -> []
             
-        let idxRef = 
-            idxRef 
-            |> Option.bind(
+        let idxRefs = 
+            idxRefs
+            |> List.choose(            
                 function Azure x -> 
                             indexes 
                             |> List.tryFind(function Azure  n -> n.Name=x.Name))
@@ -89,10 +91,10 @@ module Init =
 
         ch 
         |> setUseWeb useWeb
-        |> Interaction.setSystemMessage sample.SystemMessage
         |> Interaction.setParameters {ch.Parameters with Temperature=sample.Temperature; ChatModel=chatModel}                        
         |> updateBag (ch |> Interaction.qaBag |> Option.map(fun b -> {b with MaxDocs=sample.MaxDocs}))
-        |> updateIndx idxRef
+        |> updateIndx idxRefs
+        |> Interaction.setSystemMessage sample.SystemMessage
 
 
     let addSamples label (samples:SamplePrompt list) model =

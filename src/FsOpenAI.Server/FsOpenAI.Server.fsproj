@@ -1,11 +1,16 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
+	<AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
   </PropertyGroup>
   <ItemGroup>
     <None Include="scripts\packages.fsx" />
     <None Include="scripts\Env.fsx" />
+    <None Include="scripts\PromptEng.fsx" />
+    <None Include="scripts\GC_LoadIndex.fsx" />
+    <None Include="scripts\GCQuestions.fsx" />
+    <None Include="scripts\GenCitations.fsx" />
     <None Include="scripts\CreateSettings.fsx" />
     <None Include="scripts\CreateSamples.fsx" />
     <None Include="scripts\CreateConfig.fsx" />
@@ -15,6 +20,16 @@
     <None Include="scripts\SerializeSettings.fsx" />
     <None Include="scripts\TemplateParsingSandbox.fsx" />
     <None Include="scripts\TestOpenAIClient.fsx" />
+    <Content Include="scripts\TestChats.txt" />
+    <None Include="scripts\Gpt4Comparison.fsx" />
+    <Compile Include="Gen\SemanticVectorSearch.fs" />
+    <Compile Include="Gen\GenUtils.fs" />
+    <Compile Include="Gen\Indexes.fs" />
+    <Compile Include="Gen\Prompts.fs" />
+    <Compile Include="Gen\Completions.fs" />
+    <Compile Include="Gen\WebCompletion.fs" />
+    <Compile Include="Gen\QnA.fs" />
+    <Compile Include="Gen\DocQnA.fs" />
     <Compile Include="Env.fs" />
     <Compile Include="Samples.fs" />
     <Compile Include="Templates.fs" />
@@ -23,24 +38,29 @@
     <Compile Include="Startup.fs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Azure.Identity" Version="1.10.3" />
+    <PackageReference Include="Azure.Identity" Version="1.10.4" />
     <PackageReference Include="Azure.Security.KeyVault.Secrets" Version="4.5.0" />
-    <PackageReference Include="Bolero.Server" Version="0.23.44" />
+    <PackageReference Include="Bolero.Server" Version="0.*" />
     <PackageReference Include="Bolero.HotReload.Server" Version="0.*" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Logging.AzureAppServices" Version="7.0.*" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="7.0.*" />
-	<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="7.0.*" NoWarn="NU1605" />
-	<PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="7.0.*" NoWarn="NU1605" />
-	<PackageReference Include="Microsoft.Identity.Web" Version="2.15.3" />
-	<PackageReference Include="Microsoft.Identity.Web.UI" Version="2.15.3" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.AzureAppServices" Version="8.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.0" />
+	<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" NoWarn="NU1605" />
+	<PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="8.0.0" NoWarn="NU1605" />
+	<PackageReference Include="Microsoft.Identity.Web" Version="2.16.0" />
+	<PackageReference Include="Microsoft.Identity.Web.UI" Version="2.16.0" />
+	<PackageReference Include="Microsoft.DeepDev.TokenizerLib" Version="1.3.2" />
+	<PackageReference Include="Microsoft.SemanticKernel" Version="1.0.0-rc3" />
+	<PackageReference Include="Microsoft.SemanticKernel.Connectors.Memory.AzureCognitiveSearch" Version="1.0.0-rc2" />
+	<PackageReference Include="PdfPig" Version="0.1.9-alpha-20231119-4537e" />
+	<PackageReference Include="Azure.Search.Documents" Version="11.5.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\FsOpenAI.Client\FsOpenAI.Client.fsproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Update="FSharp.Core" Version="7.0.401" />
+    <PackageReference Update="FSharp.Core" Version="8.0.100" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="wwwroot\Config\" />
