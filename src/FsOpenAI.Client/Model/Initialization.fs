@@ -69,6 +69,10 @@ module Init =
     let postServerInit model =
         {model with busy=false}, Cmd.batch [Cmd.ofMsg GetOpenAIKey; Cmd.ofMsg Ia_LoadChats]
 
+    let candidateIndexes (idxs:string) =
+       let idxs = idxs.Split([|',';' '|],StringSplitOptions.RemoveEmptyEntries) 
+       idxs |> Seq.collect(fun n ->  [Azure n; Virtual n]) |> Seq.toList 
+
     let createFromSample searchAvailable backend indexes label sample =
 
         let cr,useWeb = 
@@ -81,9 +85,9 @@ module Init =
 
         let idxRefs =                        
             match sample.SampleChatType with
-            | QA_Chat idx       -> let idxs = idx.Split([|',';' '|],StringSplitOptions.RemoveEmptyEntries) in idxs |> Seq.map(fun idx ->  Azure idx) |> Seq.toList
-            | DocQA_Chat idx    -> let idxs = idx.Split([|',';' '|],StringSplitOptions.RemoveEmptyEntries) in idxs |> Seq.map(fun idx ->  Azure idx) |> Seq.toList
-            | _                 -> []
+            | QA_Chat idxs     -> candidateIndexes idxs 
+            | DocQA_Chat idxs  -> candidateIndexes idxs
+            | _                -> []
             
         let idxRefs = 
             idxRefs
@@ -161,8 +165,8 @@ module Init =
 
     let badgeColorCreate createType = 
         match createType with
-        | CreateQA _ -> Color.Info
-        | CreateChat _ -> Color.Warning
+        | CreateQA -> Color.Info
+        | CreateChat -> Color.Warning
         | CreateDocQA _ -> Color.Tertiary
             
     let createMenuGroup group dispatch =

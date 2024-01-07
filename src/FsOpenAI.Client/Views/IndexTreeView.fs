@@ -8,22 +8,28 @@ open FsOpenAI.Client
 open FsOpenAI.Client.Interactions
 open System.Collections.Generic
 
+
 type IndexTreePopup() =
     inherit ElmishComponent<QABag*Interaction*Model,Message>()
 
     let tree = Ref<MudTreeView<IndexTree>>()
     let mutable sels = HashSet<IndexTree>()
 
-    let setIndexes id dispatch =         
-        let sels = sels |> Seq.map (fun x -> x.Idx) |> Seq.toList |> List.distinct        
-        dispatch (Ia_SetIndex (id,sels))
+    let setIndexes id treeMap dispatch =         
+        let isels = sels |> Seq.map (fun x -> x.Idx) |> set
+        let psels = 
+            (isels,isels) 
+            ||> Set.fold(fun acc idx -> 
+                let subT = treeMap |> Map.find idx |> Update.IO.subTree Set.empty |> Set.map (fun x->x.Idx)
+                let childNodes = Set.remove idx subT
+                (acc,childNodes) ||> Set.fold (fun acc x -> acc |> Set.remove x))
+        dispatch (Ia_SetIndex (id,Set.toList psels))
 
     override this.View m dispatch =
         let bag,chat,model = m        
-        let treeMap = Init.flatten model.indexTrees |> List.map(fun x -> x.Idx,x) |> Map.ofList        
-        bag.Indexes
-        |> Seq.choose (fun idx -> treeMap |> Map.tryFind idx)
-        |> Seq.iter (fun idx -> sels.Add idx |> ignore)
+        let treeMap = Init.flatten model.indexTrees |> List.map(fun x -> x.Idx,x) |> Map.ofList                
+        let isels = (Set.empty,bag.Indexes |> List.map (fun x->treeMap.[x])) ||> List.fold Update.IO.subTree
+        isels |> Seq.iter(fun x -> sels.Add x |> ignore)
 
         comp<MudPopover> {
             "Open" => Update.TmpState.isIndexOpen chat.Id model
@@ -61,7 +67,7 @@ type IndexTreePopup() =
             comp<MudIconButton> {
                 "Class" => "align-self-start ma-2"
                 "Icon" => Icons.Material.Outlined.ExpandLess
-                on.click(fun _ -> setIndexes chat.Id dispatch)
+                on.click(fun _ -> setIndexes chat.Id treeMap dispatch)
             }
         }
 

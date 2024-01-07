@@ -197,6 +197,23 @@ module Update =
             |> Option.defaultValue false
 
     module IO = 
+
+        //flat set of all nodes rooted at the given node
+        let rec subTree acc (t:IndexTree) =        
+            let acc = Set.add t acc
+            (acc,t.Children) ||> List.fold subTree
+
+        let expandIdxRefs model (idxs:IndexRef list) =
+            let treeMap = Init.flatten model.indexTrees |> List.map(fun x -> x.Idx,x) |> Map.ofList                
+            let rec loop acc (idx: IndexRef) =
+                if idx.isVirtual then               //if index is virtual then loop over its children to add non-virtual parents to the set
+                    let subT = subTree Set.empty treeMap.[idx] |> Set.map(_.Idx)
+                    let children = Set.remove idx subT
+                    (acc,children) ||> Set.fold loop
+                else
+                    acc |> Set.add idx              //if index is not virtual then don't include children. assume index contains the contents of all children also
+            (Set.empty,idxs) ||> List.fold loop
+
         let refreshIndexes serverDispath initial model  =    
             let metaIndex = model.appConfig.MetaIndex|>Option.defaultValue C.DEFAULT_META_INDEX
             let msgf sp = Clnt_RefreshIndexes (sp,initial,model.appConfig.IndexGroups,metaIndex)
@@ -308,10 +325,17 @@ module Update =
                     |> Interactions.clearNotifications id 
                     |> Interactions.startBuffering id
                 let model = {model with interactions = chats; error=None}
+                //chat changes below are for submission only - the state of chat in UI is not affected
                 let ch = 
                     model.interactions 
                     |> List.find(fun x->x.Id=id) 
                     |> Interaction.preSerialize
+                let idxs = Interaction.getIndexs ch
+                let ch = 
+                    if List.isEmpty idxs then 
+                        ch 
+                    else 
+                        ch |> Interaction.setIndexes (IO.expandIdxRefs model idxs |> Set.toList) //expand index list to include child indexes, if needed
                 let mcfg = model.appConfig.ModelsConfig
                 match ch.InteractionType with
                 | QA _   -> serverDispatch (Clnt_ProcessQA(sp,mcfg,ch))

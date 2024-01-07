@@ -100,7 +100,13 @@ module Indexes =
             let r = nMap.[p] 
             let chs = pMap |> Map.tryFind p |> Option.defaultValue []
             let idx = if r.isVirtual then Virtual p else Azure p
-            {Idx=idx; Description=r.description; Children=chs |> List.map (fun x -> x.title) |> List.map buildNode}
+            {
+                Idx=idx
+                Description=r.description
+                Children=chs 
+                    |> List.map (fun x -> x.title) 
+                    |> List.map buildNode 
+                    |> List.sortBy (fun x -> x.Idx)}
         let roots = idxs |> List.filter(fun x -> x.parents.IsEmpty)
         roots |> List.map(fun x -> buildNode x.title)
    
@@ -125,6 +131,18 @@ module Indexes =
                 printfn "meta index not found"
                 return None
         }
+
+    ///detect possible cycles 
+    let validateMeta (metaIndexEntries:MetaIndexEntry list) =
+        let rels = metaIndexEntries |> List.map(fun x -> x.title, set x.parents) |> Map.ofList
+        let rec detectCycle parent x =
+            let parents = rels |> Map.tryFind x |> Option.defaultValue Set.empty
+            if parents.Contains parent then
+                true
+            else 
+                parents |> Set.exists (detectCycle parent)
+        metaIndexEntries |> List.map _.title |> List.exists(fun x -> detectCycle x x)
+
 
     //looks for indexes that contain the expected fields
     let filterIndex (idx:SearchIndex) =

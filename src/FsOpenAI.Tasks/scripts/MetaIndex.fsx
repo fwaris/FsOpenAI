@@ -47,6 +47,8 @@ let metaIndex(name) =
     idx
 
 let loadMeta indexName docs =
+    let hasCycle = Indexes.validateMeta docs
+    if hasCycle then failwith "cycle detected"
     docs
     |> AsyncSeq.ofSeq
     |> AsyncSeq.map(Indexes.toDoc)

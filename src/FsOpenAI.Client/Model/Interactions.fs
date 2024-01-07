@@ -88,6 +88,12 @@ module Interaction =
         | DocQA dbag -> Some dbag.QABag 
         | _          -> None
 
+    let getIndexs c =        
+        match c.InteractionType with 
+        | QA bag -> bag.Indexes
+        | DocQA dbag -> dbag.QABag.Indexes 
+        | _ -> []
+
     let setQABag bag c = 
         match c.InteractionType with 
         | QA _ -> {c with InteractionType = QA bag}
