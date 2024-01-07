@@ -1,0 +1,74 @@
+[
+  {
+    "SampleChatType": {
+      "Case": "Simple_Chat",
+      "Fields": [
+        true
+      ]
+    },
+    "SampleSysMsg": "You are a helpful AI assistant",
+    "SampleQuestion": "Analyze the latest trend in T-Mobile stock price",
+    "PreferredModels": [
+      "gpt-4",
+      "gpt-3.5-turbo"
+    ],
+    "SampleMode": {
+      "Case": "Factual"
+    },
+    "MaxDocs": 5
+  },
+  {
+    "SampleChatType": {
+      "Case": "Simple_Chat",
+      "Fields": [
+        false
+      ]
+    },
+    "SampleSysMsg": "You are a qualified accountant",
+    "SampleQuestion": "Does the amount in a PO exist on the GL prior to the actual invoices coming in when working on an accrual basis? What I\u0027m trying to decipher is what the benefit would be, if any, to close out a PO that didn\u0027t exhaust the full amount entitled to it. Is there any effect on the BS or the P\u0026L?",
+    "PreferredModels": [
+      "gpt-4",
+      "gpt-3.5-turbo"
+    ],
+    "SampleMode": {
+      "Case": "Factual"
+    },
+    "MaxDocs": 5
+  },
+  {
+    "SampleChatType": {
+      "Case": "QA_Chat",
+      "Fields": [
+        "verizon-sec"
+      ]
+    },
+    "SampleSysMsg": "You are a helpful AI Assistant",
+    "SampleQuestion": "List the \u0027non-GAAP\u0027 related policy decisions that are disclosed in the Verizon SEC filings",
+    "PreferredModels": [
+      "gpt-4-32k",
+      "gpt-3.5-turbo-16k"
+    ],
+    "SampleMode": {
+      "Case": "Factual"
+    },
+    "MaxDocs": 30
+  },
+  {
+    "SampleChatType": {
+      "Case": "DocQA_Chat",
+      "Fields": [
+        "accounting-policy"
+      ]
+    },
+    "SampleSysMsg": "You are a helpful AI Assistant",
+    "SampleQuestion": "How does the content in the DOCUMENT affect the policies in SEARCH RESULTS?",
+    "PreferredModels": [
+      "gpt-4-32k",
+      "gpt-3.5-turbo-16k"
+    ],
+    "SampleMode": {
+      "Case": "Factual"
+    },
+    "MaxDocs": 30
+  }
+]

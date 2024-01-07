@@ -1,0 +1,12 @@
+{
+    "FSharp.inlayHints.typeAnnotations": false,
+    "FSharp.inlayHints.parameterNames": false,
+    "FSharp.codeLenses.signature.enabled": false,
+    "FSharp.codeLenses.references.enabled": false,
+    "FSharp.enableMSBuildProjectGraph": true,
+    "FSharp.fsac.parallelReferenceResolution": true,
+    "FSharp.inlayHints.enabled": false,
+    "FSharp.inlineValues.enabled": false,
+    "FSharp.enableAdaptiveLspServer": true,
+    "FSharp.fsac.gc.conserveMemory": 1
+}

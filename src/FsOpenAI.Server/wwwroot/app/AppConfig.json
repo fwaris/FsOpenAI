@@ -1,0 +1,79 @@
+{
+  "EnabledBackends": [
+    {
+      "Case": "OpenAI"
+    }
+  ],
+  "EnableVanillaChat": true,
+  "EnableDocQuery": true,
+  "DefaultSystemMessage": "You are a helpful AI assistant.",
+  "DefaultMaxDocs": 10,
+  "Roles": [],
+  "RequireLogin": false,
+  "PaletteDark": null,
+  "PaletteLight": null,
+  "LogoUrl": null,
+  "AppName": null,
+  "PersonaText": null,
+  "MetaIndex": null,
+  "IndexGroups": [],
+  "ModelsConfig": {
+    "EmbeddingsModels": [
+      {
+        "Backend": {
+          "Case": "AzureOpenAI"
+        },
+        "Model": "text-embedding-ada-002",
+        "TokenLimit": 8192
+      }
+    ],
+    "ShortChatModels": [
+      {
+        "Backend": {
+          "Case": "AzureOpenAI"
+        },
+        "Model": "gpt-4",
+        "TokenLimit": 8000
+      },
+      {
+        "Backend": {
+          "Case": "OpenAI"
+        },
+        "Model": "gpt-4-1106-preview",
+        "TokenLimit": 127000
+      }
+    ],
+    "LongChatModels": [
+      {
+        "Backend": {
+          "Case": "AzureOpenAI"
+        },
+        "Model": "gpt-4-32k",
+        "TokenLimit": 30000
+      },
+      {
+        "Backend": {
+          "Case": "OpenAI"
+        },
+        "Model": "gpt-4-1106-preview",
+        "TokenLimit": 127000
+      }
+    ],
+    "CompletionModels": [
+      {
+        "Backend": {
+          "Case": "AzureOpenAI"
+        },
+        "Model": "text-davinci-003",
+        "TokenLimit": 4000
+      },
+      {
+        "Backend": {
+          "Case": "OpenAI"
+        },
+        "Model": "text-davinci-003",
+        "TokenLimit": 4000
+      }
+    ]
+  }
+}
