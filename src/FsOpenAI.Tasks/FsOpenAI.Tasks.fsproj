@@ -16,10 +16,7 @@
     <None Include="scripts\ListOpenAIModels.fsx" />
     <None Include="scripts\LoadIndex.fsx" />
     <None Include="scripts\TestOpenAIClient.fsx" />
-    <None Include="scripts\GCQuestions.fsx" />
     <None Include="scripts\TemplateParsingSandbox.fsx" />
-    <Content Include="scripts\TestChats.txt" />
-    <None Include="scripts\Gpt4Comparison.fsx" />
     <Compile Include="Library.fs" />
   </ItemGroup>
 

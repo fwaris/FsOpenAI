@@ -13,7 +13,7 @@ type ChatParametersView() =
     
     override this.View mdl (dispatch:Message -> unit) =
         let settingsOpen,chat,model = mdl
-        let backends = Interaction.configuredChatBackends model.appConfig
+        let backends = model.appConfig.EnabledBackends
         
         concat {
             comp<MudPopover> {                    
