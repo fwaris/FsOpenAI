@@ -41,14 +41,11 @@ module Startup =
         services
             .AddAuthorization()            
             .AddLogging(fun logging -> logging.AddConsole().AddDebug().AddAzureWebAppDiagnostics() |> ignore)
-            //.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-            //    .AddCookie()
-            //    .Services
-            ////.AddBoleroRemoting<Services.KeyService>()
-            .AddBoleroHost(prerendered=true)
 #if DEBUG
+            .AddBoleroHost(prerendered=true) 
             .AddHotReload(templateDir = __SOURCE_DIRECTORY__ + "/../FsOpenAI.Client")
 #endif
+            .AddBoleroHost(prerendered=false) //prerendered=false for deployment to azure otherwise authentication does not work
         |> ignore
 
     let configureApp (app:WebApplication) =        
