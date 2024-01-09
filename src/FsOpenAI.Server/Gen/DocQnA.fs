@@ -184,7 +184,7 @@ module DocQnA =
             let query = query + " " + rephrasedQuestion
 
             let docs = GenUtils.searchResults parms ch maxDocs query cogMems
-            let docs = docs |> List.sortBy (fun x->x.Relevance) |> List.truncate maxDocs
+            let docs = docs |> List.sortByDescending (fun x->x.Relevance) |> List.truncate maxDocs
             dispatch (Srv_Ia_Notification(ch.Id,$"{docs.Length} query results found. Generating answer..."))
             dispatch (Srv_Ia_SetDocs (ch.Id,docs |> List.map(fun d -> 
                 {
