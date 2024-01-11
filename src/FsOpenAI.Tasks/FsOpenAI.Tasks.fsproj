@@ -22,6 +22,8 @@
 
   <ItemGroup />
 
-  <ItemGroup />
+  <ItemGroup>
+    <PackageReference Update="FSharp.Core" Version="8.0.101" />
+  </ItemGroup>
 
 </Project>
