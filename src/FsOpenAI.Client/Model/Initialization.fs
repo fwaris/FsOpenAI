@@ -134,6 +134,7 @@ module Init =
             let availableModels =
                 match backend with 
                 | AzureOpenAI ->  chatModels |> List.filter (fun m -> m.Backend = AzureOpenAI)                   
+                | AzureOpenAI_Basic ->  chatModels |> List.filter (fun m -> m.Backend = AzureOpenAI_Basic)                   
                 | OpenAI -> chatModels |> List.filter (fun m -> m.Backend = OpenAI)
                 |> List.map(fun x->x.Model)
 

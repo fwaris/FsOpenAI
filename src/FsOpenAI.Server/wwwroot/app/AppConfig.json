@@ -2,6 +2,12 @@
   "EnabledBackends": [
     {
       "Case": "OpenAI"
+    },
+    {
+      "Case": "AzureOpenAI"
+    },
+    {
+      "Case": "AzureOpenAI_Basic"
     }
   ],
   "EnableVanillaChat": true,
@@ -25,6 +31,13 @@
         },
         "Model": "text-embedding-ada-002",
         "TokenLimit": 8192
+      },
+      {
+        "Backend": {
+          "Case": "AzureOpenAI_Basic"
+        },
+        "Model": "text-embedding-ada-002",
+        "TokenLimit": 8192
       }
     ],
     "ShortChatModels": [
@@ -34,6 +47,13 @@
         },
         "Model": "gpt-4",
         "TokenLimit": 8000
+      },
+      {
+        "Backend": {
+          "Case": "AzureOpenAI_Basic"
+        },
+        "Model": "gpt-35-turbo",
+        "TokenLimit": 4000
       },
       {
         "Backend": {
@@ -50,6 +70,13 @@
         },
         "Model": "gpt-4-32k",
         "TokenLimit": 30000
+      },
+      {
+        "Backend": {
+          "Case": "AzureOpenAI_Basic"
+        },
+        "Model": "gpt-35-turbo-16k",
+        "TokenLimit": 15000
       },
       {
         "Backend": {

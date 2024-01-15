@@ -81,7 +81,7 @@ module GenUtils =
 
     let getClientFor (parms:ServiceSettings) backend =
             match backend with 
-            | AzureOpenAI -> 
+            | AzureOpenAI | AzureOpenAI_Basic -> 
                 let rg,url,key = getAzureEndpoint parms
                 let clr = Azure.AI.OpenAI.OpenAIClient(Uri url,Azure.AzureKeyCredential(key))                        
                 clr
@@ -113,7 +113,7 @@ module GenUtils =
         let builder = Kernel.CreateBuilder()
         builder.Services.AddLogging(fun c -> c.AddConsole().SetMinimumLevel(LogLevel.Information) |>ignore) |> ignore
         match ch.Parameters.Backend with 
-        | AzureOpenAI ->
+        | AzureOpenAI | AzureOpenAI_Basic ->
             let rg,uri,key = getAzureEndpoint parms
             builder.AddAzureOpenAIChatCompletion(deploymentName = chatModel,endpoint = uri, apiKey = key)                
         | OpenAI ->

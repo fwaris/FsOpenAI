@@ -22,7 +22,7 @@ type AppPalette =
                             Warning     = None
                             Error       = None            
                         }
-type Backend = OpenAI | AzureOpenAI
+type Backend = OpenAI | AzureOpenAI | AzureOpenAI_Basic
 
 type ModelRef = 
     {
