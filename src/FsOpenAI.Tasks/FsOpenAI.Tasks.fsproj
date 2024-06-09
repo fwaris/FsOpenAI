@@ -10,9 +10,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="deployments\default\client\" />
+    <None Include="deployments\default\client" />
     <None Include="deployments\default\client\appSettings.json" />
-    <None Include="deployments\default\templates\" />
+    <None Include="deployments\default\templates" />
     <None Include="deployments\default\config_default.fsx" />
 	<None Include="scripts\packages.fsx" />
     <None Include="scripts\ScriptEnv.fsx" />

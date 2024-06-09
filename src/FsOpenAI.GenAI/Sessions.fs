@@ -35,7 +35,7 @@ module Sessions =
     let BUFFER_SIZE = 1000
     let BUFFER_WAIT = 10000
     let MAX_SESSIONS = 15
-    let COSMOSDB = "tmgenai"
+    let COSMOSDB = "fsopenai"
 
     let mutable private _connParms = lazy None
 

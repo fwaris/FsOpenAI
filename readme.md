@@ -28,6 +28,8 @@ GPT models, optionaly augmented with Bing search results.
 
 The document collections have to be pre-loaded into Azure Search Service indexes. The document collection indexes should support a specific format to enable vector-based searches. The required format is described elsewhere in this document.
 
+Note *chat mode* is an extensibility point for this application. New chat modes may be added with associated views; samples; custom backend logic; etc. to extend the application for custom requirements. Three built-in chat modes are noted above but new modes may be added in the future.
+
 ## Infrastructure Requirements
 To support all interaction types, the following are typically required:
 
@@ -39,9 +41,7 @@ To support all interaction types, the following are typically required:
 
 - FsOpenAI (or a derived version) deployed to Azure Web App. The app should be given a [managed identity](https://learn.microsoft.com/en-us/azure/app-service/overview-managed-identity?tabs=portal%2Chttp) so that it can securely access the key vault. Also see app configuration later in this document.
 - Azure key vault with the appropriate secrets loaded and [access from web app configured.](https://learn.microsoft.com/en-us/azure/key-vault/general/tutorial-net-create-vault-azure-web-app)
-- One or more chat models deployed to Azure OpenAI service, e.g. *gpt-3.5-turbo*, *gpt-4*, *gpt-4-32K*, etc. Note that for Q&A, larger context length models e.g. *gpt-4-32K* provide better fidelity as they can handle a larger number of search results returned.
-
-- One or more embedding models deployed to Azure OpenAI service, e.g. *text-embedding-ada-002*.
+- One or more chat models deployed to Azure OpenAI service, e.g. *gpt-3.5-turbo*, *gpt-4*, *gpt-4-32K*, etc. Note that for Q&A, larger context length models e.g. *gpt-4-32K* provide better fidelity as they can handle a larger
 
 - One or more search indexes containing document collections in the required format. The embeddings vector contained in each record should be created with the same embedding model which will be used to query the document collection.
 
@@ -79,12 +79,15 @@ The [settings json](/ExampleSettings.json) allows for multiple endpoints (and AP
 Note each chat or search API call is independent and stateless (from a server perspective) so 'stickiness' is not required.
 ### 2. Application Configuration
 
-This *AppConfig.json* file is deployed to (server) wwwroot/app/ folder. It contains settings for customizing the appearance of the app and enabling/disabling certain features, e.g. allow plain chat interactions. The AppConfig.json should be created using the script [CreateConfig.fsx](/src/FsOpenAI.Tasks/scripts/CreateConfig.fsx). This will ensure type safety. The AppConfig record structure fields are well documented with code comments. Hover mouse cursor over the AppConfig record fields to view the comments and documentation for each setting.
+This *AppConfig.json* file is deployed to (server) wwwroot/app/ folder. It contains settings for customizing the appearance of the app and enabling/disabling certain features, e.g. allow plain chat interactions. The AppConfig.json should be created using a script like [config_default.fsx](/src/FsOpenAI.Tasks/deployments/default/config_default.fsx). This will ensure type safety. The AppConfig record structure fields are well documented with code comments. Hover mouse cursor over the AppConfig record fields to view the comments and documentation for each setting.
 
 Logos and 'persona' images can be loaded into (client) *wwwroot/app/images* folder.
 
 #### ---- The **'app'** Folders: ----
 Deployment specific application configuration is largely kept in two folders both named *app* under **(client)/wwwroot** and **(server)/wwwroot**. This should make for easier customzation for different deployments as only the *app* folders need be replaced (in most cases) before deployment.
+
+#### Session Persistence and Logging
+CosmosDB connection string can be specified in [settings json](/ExampleSettings.json). If connection is specified then chat sessions will be persisted in CosmosDB under the database name 'fsopenai'. Additionally chat submissions will be logged in the same database. See [Sessions.fs](src/FsOpenAI.GenAI/Sessions.fs) and [Monitoring.fs](src/FsOpenAI.GenAI/Monitoring.fs) for additional details.
 
 ### 3. Prompt Templates by Domain
 
@@ -120,7 +123,7 @@ When a chat interaction is created using such a menu pick, it will be associated
 Currently, the plugins and templates are associated with the *document query* interaction mode but may be associated with other chat modes in future.
 
 ### 4. Samples
-For each domain under *wwwroot/app/Templates* a single *Samples.json" file may be added. If such a file exits, the application will show each of the samples in that file when the application first launches **and there are no existing saved chats**. For example, the Finance and Legal samples will be shown if the folder structure is as follows:
+For each domain under *wwwroot/app/Templates/<domain> a single *Samples.json" file may be added. If such a file exits, the application will show each of the samples in that file when the application first launches **and there are no existing saved chats**. For example, the Finance and Legal samples will be shown if the folder structure is as follows:
 
 ```
 wwwroot/app
@@ -132,7 +135,7 @@ wwwroot/app
 ------Samples.json
 ------<Legal plugins>
 ```
-The [CreateSamples.fsx](/src/FsOpenAI.Tasks/scripts/CreateSamples.fsx) script contains an example of how to create a samples file in a type-safe way.
+The [config_default.fsx](/src/FsOpenAI.Tasks/deployments/default/config_default.fsx) script contains an example of how to create a samples file in a type-safe way.
 
 ### 5. Authentication Configuration
 
@@ -175,7 +178,7 @@ If the Meta index is missing (or the one named in the AppConfig.json is not foun
 
 If a Meta index is found, then only the actual indexes listed in the Meta index are shown to the app (respective of the groups).
 
-The sample code to create a Meta index is in [Metaindex.fsx](/src/FsOpenAI.Tasks/scripts/Metaindex.fsx)
+The sample code to create a Meta index is in [config_default.fsx](/src/FsOpenAI.Tasks/deployments/default/config_default.fsx)
 
 
 # Local Testing And Development
@@ -184,5 +187,4 @@ For local testing, the settings json file can be specified in (server) *appSetti
 -  %USERPROFILE%/.fsopenai/ServiceSettings.json
 
 Also, if Azure is not available, FsOpenAI allows one to use an OpenAI API Key, instead.
-
 

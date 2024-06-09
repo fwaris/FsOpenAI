@@ -44,7 +44,7 @@ type DiagEntry = {
 module Monitoring = 
     let BUFFER_SIZE = 1000
     let BUFFER_WAIT = 10000
-    let COSMOSDB = "tmgenai"
+    let COSMOSDB = "fsopenai"
     let mutable private _tableClient = lazy None
 
     let private installTable() =
