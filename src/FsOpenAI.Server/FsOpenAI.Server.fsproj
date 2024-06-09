@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <AccelerateBuildsInVisualStudio>false</AccelerateBuildsInVisualStudio>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Samples.fs" />
+    <Compile Include="Templates.fs" />
+    <Compile Include="ServerHub.fs" />
+    <Compile Include="Index.fs" />
+    <Compile Include="Startup.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="13.0.1" />
+    <PackageReference Include="Azure.Identity" Version="1.11.3" />
+    <PackageReference Include="Azure.Security.KeyVault.Secrets" Version="4.6.0" />
+    <PackageReference Include="Bolero.Server" Version="0.*" />
+    <PackageReference Include="Bolero.HotReload.Server" Version="0.*" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.AzureAppServices" Version="8.0.6" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.6" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.6" NoWarn="NU1605" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="8.0.6" NoWarn="NU1605" />
+    <PackageReference Include="Microsoft.Identity.Web.UI" Version="2.19.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Update="FSharp.Core" Version="8.0.300" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="wwwroot\app\Templates\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\FsOpenAI.Client\FsOpenAI.Client.fsproj" />
+    <ProjectReference Include="..\FsOpenAI.CodeEvaluator\FsOpenAI.CodeEvaluator.fsproj" />
+    <ProjectReference Include="..\FsOpenAI.GenAI\FsOpenAI.GenAI.fsproj" />
+  </ItemGroup>
+</Project>

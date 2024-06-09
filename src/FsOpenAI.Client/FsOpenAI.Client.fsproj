@@ -1,0 +1,69 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <WasmEnableThreads>false</WasmEnableThreads>
+    <AccelerateBuildsInVisualStudio>false</AccelerateBuildsInVisualStudio>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Model\Graph.fs" />
+    <Compile Include="Model\Model.fs" />
+    <Compile Include="Model\Initialization.fs" />
+    <Compile Include="Model\Auth.fs" />
+    <Compile Include="Model\IO.fs" />
+    <Compile Include="Model\TmpState.fs" />
+    <Compile Include="Model\Submission.fs" />
+    <Compile Include="Model\Update.fs" />
+    <Compile Include="Views\ChatParametersView.fs" />
+    <Compile Include="Views\MainSettingsView.fs" />
+    <Compile Include="Views\SearchResultsView.fs" />
+    <Compile Include="Views\SystemMessageView.fs" />
+    <Compile Include="Views\MessageView.fs" />
+    <Compile Include="Views\ChatHistoryView.fs" />
+    <Compile Include="Views\IndexTreeView.fs" />
+    <Compile Include="Views\PromptSelectorView.fs" />
+    <Compile Include="Views\DocSelectorView.fs" />
+    <Compile Include="Views\DocBagView.fs" />
+    <Compile Include="Views\AuthenticationViews.fs" />
+    <Compile Include="Views\QuestionView.fs" />
+    <Compile Include="Views\PlainView.fs" />
+    <Compile Include="Views\IndexQnAView.fs" />
+    <Compile Include="Views\IndexQnADocView.fs" />
+    <Compile Include="Views\CodeEvalView.fs" />
+    <Compile Include="Views\QnADocView.fs" />
+    <Compile Include="Views\AppBar.fs" />
+    <Compile Include="Views\GCAppBar.fs" />
+    <Compile Include="Views\FooterBar.fs" />
+    <Compile Include="Views\MainContent.fs" />
+    <Compile Include="Views\MainLayout.fs" />
+    <Compile Include="App\Subscription.fs" />
+    <Compile Include="App\ClientHub.fs" />
+    <Compile Include="App\App.fs" />
+    <Compile Include="Startup.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Blazored.LocalStorage" Version="4.5.0" />
+    <PackageReference Include="Bolero" Version="0.*" />
+    <PackageReference Include="Bolero.Build" Version="0.*" />
+    <PackageReference Include="Bolero.HotReload" Version="0.*" />
+    <PackageReference Include="MudBlazor" Version="6.19.1" />
+    <PackageReference Include="System.Threading.Channels" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.6" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.6" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Authentication.WebAssembly.Msal" Version="8.0.6" />
+    <PackageReference Include="FSharp.Control.AsyncSeq" Version="3.2.1" />
+    <PackageReference Include="Plotly.Blazor" Version="4.3.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Update="FSharp.Core" Version="8.0.300" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\FsOpenAI.Shared\FsOpenAI.Shared.fsproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Update="wwwroot\app\clientConfig.json" />
+  </ItemGroup>
+</Project>

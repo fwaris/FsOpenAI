@@ -1,0 +1,53 @@
+html, body {
+  height: 100%;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+#main {
+  flex: 1;
+}
+
+#main > .columns {
+  min-height: 100%;
+}
+
+.sidebar {
+  width: 250px;
+  background: whitesmoke;
+  min-height: 100%;
+}
+
+.Class {
+    background: #e20074
+}
+
+.magenta-background-2 {
+    background: #ac0059
+}
+
+.white-background-1 {
+    background:#faf9f8 
+}
+
+#counter {
+  width: 80px;
+}
+
+#notification-area {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+#notification-area > div {
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 5px;
+}
+

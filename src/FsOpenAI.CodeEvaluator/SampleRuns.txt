@@ -1,0 +1,145 @@
+[System]
+Not used
+[User]
+What are the voice and data international rates Japan for customer 'Prepaid Wireless'
+[Assistant]
+Could you please clarify if you are interested in the rates for both voice and data usage for international roaming in Japan, or if you are looking for something specific within these categories?
+[User]
+both
+[Assistant]
+Voice Rates:
+Airtime - Intl Roaming - Japan: 4.00 per MOU
+Airtime - Intl Roaming - Japan: 4.00 per MOU
+---
+plan:
+1. Retrieve the latest customer invoice for 'Prepaid Wireless'.
+2. Extract the service usage line items related to voice and data international rates for Japan.
+3. Identify the relevant service usage types for voice and data international rates in Japan:
+   - Voice: AIL Japan, AIU Japan, ARY Japan, AOY Japan
+   - Data: GIL Japan
+4. Filter the service usage line items for the identified types.
+5. Present the extracted rates for both voice and data international usage in Japan.
+
+Steps:
+1. Use `Helpers.getLatestCustomerInvoice('Prepaid Wireless')` to get the latest invoice.
+2. Use `Helpers.getServiceUsagesForTypes(['AIL Japan', 'AIU Japan', 'ARY Japan', 'AOY Japan', 'GIL Japan'], latest_invoice)` to extract the relevant service usage items.
+3. Present the extracted rates.
+---
+open System
+
+let main (customerName: string) : (string list * string) =
+    // Constants
+    let voiceUsageTypes = [Usage_Type.AIL; Usage_Type.AIU; Usage_Type.ARY; Usage_Type.AOY]
+    let dataUsageTypes = [Usage_Type.GIL]
+    let country = "Japan"
+
+    // Retrieve the latest invoice for the customer
+    let latestInvoiceOpt = Helpers.getLatestCustomerInvoice customerName Data.invoices
+
+    match latestInvoiceOpt with
+    | None -> ([], "No invoice found for the customer.")
+    | Some latestInvoice ->
+        // Extract relevant service usage items
+        let voiceUsages = Helpers.getServiceUsagesForTypes latestInvoice voiceUsageTypes (Some [country])
+        let dataUsages = Helpers.getServiceUsagesForTypes latestInvoice dataUsageTypes (Some [country])
+
+        // Format the results
+        let formatUsage (usage: Service_Usage_Charges_LineItem) =
+            $"{usage.Description}: {Helpers.formatNumber usage.UnitPrice} per {usage.Unit}"
+
+        let voiceRates = voiceUsages |> List.map formatUsage |> String.concat "\n"
+        let dataRates = dataUsages |> List.map formatUsage |> String.concat "\n"
+
+        let result =
+            if voiceRates = "" && dataRates = "" then
+                "No voice or data international rates found for Japan."
+            else
+                let voiceSection = if voiceRates <> "" then $"Voice Rates:\n{voiceRates}" else ""
+                let dataSection = if dataRates <> "" then $"Data Rates:\n{dataRates}" else ""
+                [voiceSection; dataSection] |> List.filter ((<>) "") |> String.concat "\n\n"
+
+        ([latestInvoice.InvoiceDetails.InvoiceNo], result)
+
+// Invoke the main function
+main "Prepaid Wireless"
+++++
+open System
+
+let calculatePercentageChange (previous: float) (latest: float) : float =
+    if previous = 0.0 then
+        if latest = 0.0 then 0.0 else 100.0
+    else
+        ((latest - previous) / previous) * 100.0
+
+let analyzeRoamingMOU (customerName: string) (invoices: CustomerInvoice list) : (string list * string) =
+    let usageTypesVoice = [AIL; ARY; AIU; ARL]
+    let usageTypesData = [GIL; GRL]
+    let categories = ["Access Fee"; "Plan Charge"; "Dormancy Charge"; "Misc Charge"; "Feature Charge"]
+
+    match Helpers.getLatestCustomerInvoicesPair customerName invoices with
+    | None -> ([], "No invoices found for the customer.")
+    | Some invoicePair ->
+        let previousInvoice = invoicePair.Previous
+        let latestInvoice = invoicePair.Latest
+
+        let previousVoiceUsages = Helpers.getServiceUsagesForTypes previousInvoice usageTypesVoice None
+        let latestVoiceUsages = Helpers.getServiceUsagesForTypes latestInvoice usageTypesVoice None
+        let previousDataUsages = Helpers.getServiceUsagesForTypes previousInvoice usageTypesData None
+        let latestDataUsages = Helpers.getServiceUsagesForTypes latestInvoice usageTypesData None
+
+        let calculateChanges (previousUsages: Service_Usage_Charges_LineItem list) (latestUsages: Service_Usage_Charges_LineItem list) =
+            let previousMap = previousUsages |> List.map (fun item -> item.Type, item.MinutesOfUseOrNoOfEvents) |> Map.ofList
+            let latestMap = latestUsages |> List.map (fun item -> item.Type, item.MinutesOfUseOrNoOfEvents) |> Map.ofList
+
+            let allTypes = Set.union (Set.ofList (Map.keys previousMap)) (Set.ofList (Map.keys latestMap))
+
+            allTypes
+            |> Set.toList
+            |> List.map (fun usageType ->
+                let previousValue = Map.tryFind usageType previousMap |> Option.defaultValue 0.0
+                let latestValue = Map.tryFind usageType latestMap |> Option.defaultValue 0.0
+                let change = calculatePercentageChange previousValue latestValue
+                (usageType, change)
+            )
+
+        let voiceChanges = calculateChanges previousVoiceUsages latestVoiceUsages
+        let dataChanges = calculateChanges previousDataUsages latestDataUsages
+
+        let formatChanges (changes: (Usage_Type * float) list) =
+            changes
+            |> List.map (fun (usageType, change) ->
+                let description =
+                    match usageType with
+                    | AIL -> "Airtime - Intl Roaming"
+                    | ARY -> "Airtime - Roaming ILD"
+                    | AIU -> "Airtime - Intl Roaming"
+                    | ARL -> "Airtime - Roaming"
+                    | GIL -> "GPRS - Intl Roaming"
+                    | GRL -> "GPRS - Roaming"
+                    | _ -> "Unknown"
+                sprintf "%s: %s%%" description (Helpers.formatNumberPercent change)
+            )
+            |> String.concat "\n"
+
+        let voiceChangesFormatted = formatChanges voiceChanges
+        let dataChangesFormatted = formatChanges dataChanges
+
+        let result = sprintf "Voice Roaming MOU Changes:\n%s\n\nData Roaming MOU Changes:\n%s" voiceChangesFormatted dataChangesFormatted
+        ([latestInvoice.InvoiceDetails.InvoiceNo; previousInvoice.InvoiceDetails.InvoiceNo], result)
+
+let main =
+    let customerName = "Prepaid Wireless"
+    let invoices = Data.invoices
+    analyzeRoamingMOU customerName invoices
+
+Wholesale Billing Q&A
+Why is Roaming MOU higher or lower this month for customer 'Prepaid Wireless'? Explain in detail by category. Provide all change values in percentages. Analyze for both voice and data.
+
+Could you please specify the categories you are interested in for the analysis? The available categories are:
+
+1. Access Fee
+2. Plan Charge
+3. Dormancy Charge
+4. Misc Charge
+5. Feature Charge
+

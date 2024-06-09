@@ -1,0 +1,113 @@
+{
+  "EnabledBackends": [
+    {
+      "Case": "OpenAI"
+    }
+  ],
+  "EnabledChatModes": [
+    [
+      {
+        "Case": "CM_Plain"
+      },
+      "You are a helpful AI assistant\u0022\n"
+    ]
+  ],
+  "DefaultMaxDocs": 10,
+  "Roles": [],
+  "AppBarType": {
+    "Case": "AppB_Base",
+    "Fields": [
+      "FsOpenAI Chat"
+    ]
+  },
+  "RequireLogin": false,
+  "PaletteDark": null,
+  "PaletteLight": null,
+  "LogoUrl": "https:/github.com/fwaris/FsOpenAI",
+  "AppName": "FsOpenAI Chat",
+  "AppId": "default",
+  "PersonaText": null,
+  "PersonaSubText": null,
+  "Disclaimer": null,
+  "MetaIndex": null,
+  "IndexGroups": [
+    "default"
+  ],
+  "ModelsConfig": {
+    "EmbeddingsModels": [
+      {
+        "Backend": {
+          "Case": "AzureOpenAI"
+        },
+        "Model": "text-embedding-ada-002",
+        "TokenLimit": 8192
+      }
+    ],
+    "ShortChatModels": [
+      {
+        "Backend": {
+          "Case": "AzureOpenAI"
+        },
+        "Model": "gpt-4o",
+        "TokenLimit": 8000
+      },
+      {
+        "Backend": {
+          "Case": "OpenAI"
+        },
+        "Model": "gpt-4o",
+        "TokenLimit": 127000
+      }
+    ],
+    "LongChatModels": [
+      {
+        "Backend": {
+          "Case": "AzureOpenAI"
+        },
+        "Model": "gpt-4o",
+        "TokenLimit": 30000
+      },
+      {
+        "Backend": {
+          "Case": "OpenAI"
+        },
+        "Model": "gpt-4o",
+        "TokenLimit": 127000
+      }
+    ],
+    "CompletionModels": [
+      {
+        "Backend": {
+          "Case": "AzureOpenAI"
+        },
+        "Model": "text-davinci-003",
+        "TokenLimit": 4000
+      },
+      {
+        "Backend": {
+          "Case": "OpenAI"
+        },
+        "Model": "gpt-4o",
+        "TokenLimit": 4000
+      }
+    ],
+    "LowCostModels": [
+      {
+        "Backend": {
+          "Case": "AzureOpenAI"
+        },
+        "Model": "gpt-35-turbo",
+        "TokenLimit": 8000
+      },
+      {
+        "Backend": {
+          "Case": "OpenAI"
+        },
+        "Model": "gpt-4o",
+        "TokenLimit": 8000
+      }
+    ]
+  },
+  "DiagTableName": null,
+  "SessionTableName": null
+}

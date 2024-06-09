@@ -1,0 +1,20 @@
+DOCUMENT: '''
+{{$document}}
+'''
+
+SEARCH RESULTS: '''
+{{$searchResults}}
+'''
+
+Analyze the DOCUMENT  in relation to SEARCH RESULTS for ANSWERING QUESTIONS.
+BE CONTEXTUAL.
+If you don't know, ask.
+If you are not sure, ask.
+Based on calculates from TODAY
+TODAY is {{$date}}
+
+QUESTION: '''
+{{$question}}
+'''
+
+ANSWER:

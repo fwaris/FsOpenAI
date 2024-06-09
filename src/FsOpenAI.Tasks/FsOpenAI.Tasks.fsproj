@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Remove="deployments\gc\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="deployments\default\client\" />
+    <None Include="deployments\default\client\appSettings.json" />
+    <None Include="deployments\default\templates\" />
+    <None Include="deployments\default\config_default.fsx" />
+	<None Include="scripts\packages.fsx" />
+    <None Include="scripts\ScriptEnv.fsx" />
+    <None Include="scripts\CreateSettings.fsx" />
+    <None Include="scripts\ListOpenAIModels.fsx" />
+    <None Include="scripts\LoadIndex.fsx" />
+    <None Include="scripts\TestOpenAIClient.fsx" />
+    <None Include="scripts\TemplateParsingSandbox.fsx" />
+    <None Include="scripts\CosmoDB.fsx" />
+
+    <Compile Include="Library.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="FSharp.Core" Version="8.0.300" />
+  </ItemGroup>
+
+</Project>

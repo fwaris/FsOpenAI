@@ -1,0 +1,63 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Fast Client - Debug Server",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "Build: solution",
+            "launchSettingsFilePath": "${workspaceFolder}/src/FsOpenAI.Server/Properties/launchSettings.json",
+            "launchSettingsProfile": "FsOpenAI.Server",
+            "program": "${workspaceFolder}/src/FsOpenAI.Server/bin/Debug/net8.0/FsOpenAI.Server.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/src/FsOpenAI.Server",
+            "stopAtEntry": false,
+            "serverReadyAction": {
+                "action": "openExternally",
+                "pattern": "\\bNow listening on:\\s+(https?://\\S+)",                
+            },
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            },
+            "sourceFileMap": {
+                "/Views": "${workspaceFolder}/Views"
+            }
+        },
+        {
+            "name": "WASM Debug",
+            "type": "blazorwasm",
+            "hosted": true,
+            "request": "launch",
+            "preLaunchTask": "Build: solution",
+            "launchSettingsFilePath": "${workspaceFolder}/src/FsOpenAI.Server/Properties/launchSettings.json",
+            "launchSettingsProfile": "https",
+            "program": "${workspaceFolder}/src/FsOpenAI.Server/bin/Debug/net8.0/FsOpenAI.Server.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/src/FsOpenAI.Server",
+            "stopAtEntry": false,
+            "serverReadyAction": {
+                "action": "openExternally",
+                "pattern": "\\bNow listening on:\\s+(https?://\\S+)",                
+            },
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            },
+            "sourceFileMap": {
+                "/Views": "${workspaceFolder}/Views"
+            }
+        },
+        {
+            "name": "UISandbox",
+            "dotNetConfig": {
+                //need to build first otherwise the app hangs
+                "preLaunchTask": "Build: UISandbox.Client",
+            },
+            "type": "blazorwasm",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/UISandbox/src/UISandbox.Client",
+        }
+    ]
+}
