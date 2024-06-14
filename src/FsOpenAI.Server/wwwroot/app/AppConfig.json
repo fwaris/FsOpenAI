@@ -10,6 +10,12 @@
         "Case": "CM_Plain"
       },
       "You are a helpful AI assistant\u0022\n"
+    ],
+    [
+      {
+        "Case": "CM_QnADoc"
+      },
+      "C:\\Users\\Faisa/.fsopenai/ServiceSettings.json"
     ]
   ],
   "DefaultMaxDocs": 10,

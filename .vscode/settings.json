@@ -5,7 +5,7 @@
     "FSharp.codeLenses.references.enabled": false,
     "FSharp.enableMSBuildProjectGraph": true,
     "FSharp.fsac.parallelReferenceResolution": true,
-    "FSharp.inlayHints.enabled": false,
+    "editor.inlayHints.enabled": "off",
     "FSharp.inlineValues.enabled": false,
-    "FSharp.fsac.gc.conserveMemory": 1
+    "FSharp.fsac.gc.conserveMemory": 0
 }

@@ -74,7 +74,7 @@ let docs =
 let acctAppCfg =
     {
         EnabledBackends = [OpenAI] // [AzureOpenAI; OpenAI] //list of 'backends' that the user may select from (can be expanded in the future)
-        EnabledChatModes = [CM_Plain,defaultSysMessage] //list of chat modes that may be enabled in the app
+        EnabledChatModes = [CM_Plain,defaultSysMessage; CM_QnADoc, defaultSettingsFile] //list of chat modes that may be enabled in the app
         DiagTableName = None // CosmosDB container name where to store chat submission logs
         SessionTableName = None // Some "sessions" persist sessions to CosmosDB
         AppBarType = Some (AppB_Base "FsOpenAI Chat") //Header bar style and title text
