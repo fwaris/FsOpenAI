@@ -41,8 +41,7 @@ To support all interaction types, the following are typically required:
 
 - FsOpenAI (or a derived version) deployed to Azure Web App. The app should be given a [managed identity](https://learn.microsoft.com/en-us/azure/app-service/overview-managed-identity?tabs=portal%2Chttp) so that it can securely access the key vault. Also see app configuration later in this document.
 - Azure key vault with the appropriate secrets loaded and [access from web app configured.](https://learn.microsoft.com/en-us/azure/key-vault/general/tutorial-net-create-vault-azure-web-app)
-- One or more chat models deployed to Azure OpenAI service, e.g. *gpt-3.5-turbo*, *gpt-4*, *gpt-4-32K*, etc. Note that for Q&A, larger context length models e.g. *gpt-4-32K* provide better fidelity as they can handle a larger
-
+- One or more chat models deployed to Azure OpenAI service, e.g. *gpt-3.5-turbo*, *gpt-4o*, etc.
 - One or more search indexes containing document collections in the required format. The embeddings vector contained in each record should be created with the same embedding model which will be used to query the document collection.
 
 - Bing search API Azure service (optional)
