@@ -4,6 +4,7 @@ open System.IO
 open FSharp.Data
 open FSharp.Interop.Excel
 
+let ignoreCase = StringComparison.OrdinalIgnoreCase
 module Seq =
     let groupAdjacent f input = 
         let prev = Seq.head input
@@ -26,11 +27,6 @@ module Seq =
                 | [] -> [n]::rest
                 | ys -> (n::ys)::rest
         sgs |> List.map List.rev |> List.rev
-
-(*
-["a"; "a"; "a"; "b"; "c"; "c"] |> Seq.groupAdjacent (fun (a,b)->a=b)
-val it : seq<seq<string>> = seq [["a"; "a"; "a"]; ["b"]; ["c"; "c"]]
-*)
 
 let (@@) (a:string) (b:string) = Path.Combine(a,b)
 
@@ -81,7 +77,7 @@ let indexTypes<'t>() =
     |> Seq.map (fun (i,h) -> i,h)
     |> Map.ofSeq
 
-type CodeBook = {Name:string; Typ:string; Length:int; Label:string; Codes:string list; Frequency:float; Weighted:float}
+type Codebook = {Name:string; Typ:string; Length:int; Label:string; Codes:string list; CodeSet:Set<string>; Frequency:float; Weighted:float}
 
 let isEmpty (s:string) = String.IsNullOrWhiteSpace s
 
@@ -109,9 +105,120 @@ let inline codeBook (xs:^t seq) =
     |> Seq.toList
     |> Seq.groupAdjacent (fun (a,b) -> (isEmpty a.name && isEmpty b.name) || (not (isEmpty a.name)  && isEmpty b.name))
     |> List.map (fun vs -> 
-        let codes = vs |> List.map (fun x -> x.code)
+        let codes = vs |> List.map (fun x -> x.code) |> List.filter (isEmpty>>not) 
+        let codeSet = codes |> List.map (_.ToLower()) |> set
         let v = vs.Head
-        {Name=v.name; Label=v.label; Typ=v.typ; Length= int v.length; Codes=codes; Frequency=v.freq; Weighted=v.weighted})
+        {Name=v.name; Label=v.label; Typ=v.typ; Length= int v.length; Codes=codes; CodeSet=codeSet; Frequency=v.freq; Weighted=v.weighted})
+
+let baseResponseType() = 
+    let typeDef = """
+type Response = 
+    | R_NotAscertained
+    | R_Skipped
+    | Value of float
+"""
+    "Response", Some typeDef
+
+let baseYesNoType() = 
+    let typeDef = """
+type YesNo = 
+    | YN_NotAscertained
+    | YN_Skipped
+    | Yes
+    | No
+"""
+    "YesNo", Some typeDef
+
+let enumName (s:string) = 
+    s.Split("_").[0]
+
+let codes codebook = 
+    codebook.Codes 
+    |> List.map (fun x -> 
+        let ps =  x.Split('=')
+        let p0 = ps.[0].Trim()
+        let p0 = match Int32.TryParse p0 with | true,v -> Some v | _ -> None
+        (p0, if ps.Length > 1 then Some (ps.[1].Trim()) else None))
+
+let (|BaseReponse|_|) (codebook:Codebook) = 
+    let cs = codes codebook 
+    let markers = [-1;-9] |> List.map Some |> set
+    if markers |> Set.exists (fun x -> cs |> List.exists (fun (a,b) -> a = x)) then 
+        Some (baseResponseType())
+    else
+        None
+
+let (|YesNo|_|) (codebook:Codebook) = 
+    let cs = codes codebook |> List.choose snd
+    if 
+        cs |> List.exists(fun x -> x.Equals("Yes",ignoreCase)) 
+        && cs |> List.exists(fun x -> x.Equals("No",ignoreCase)) 
+        && cs.Length <= 4 then
+            baseYesNoType() |> Some
+        else
+            None
+
+let isIdentifier (s:string) = 
+    s.Length > 0
+    && not(Char.IsDigit s.[0])
+    && s |> Seq.forall (fun c -> Char.IsLetterOrDigit c || c = '_')
+
+let capitalizeFirst (s:string) =
+    let h,t = Seq.head s, Seq.tail s
+    seq {
+        yield (Char.ToUpper(h))
+        yield! t
+    }
+    |> String.Concat
+
+let (|OtherEum|_|) (codebook:Codebook) = 
+    let cs = codes codebook
+    let unionCases = cs |> List.choose snd |> List.map(fun x -> if isIdentifier x  then  $"| {capitalizeFirst x}" else $"| `{x}`")
+    let enumName = enumName codebook.Name
+    let typeDef =
+        seq {
+            yield $"type {enumName} ="
+            yield! unionCases
+        }
+        |> String.concat "\n"
+    Some (enumName, Some typeDef)
+    
+let (|Numeric|_|) (codebook:Codebook) = 
+    let cs = codes codebook |> List.choose snd 
+    if codebook.Typ = "N" && cs.Length <= 1 then 
+        Some ("float", None)
+    else
+        None
+
+let (|Identifier|_|) (codebook:Codebook) = 
+    if codebook.Typ = "C" && codebook.Codes.Length <= 1 && codebook.Length = 10 then 
+        Some ("int64", None)
+    else
+        None
+let (|CharIdentifier|_|) (codebook:Codebook) = 
+    if codebook.Typ = "C" && codebook.Codes.Length <= 10 && codebook.Length <= 10 then 
+        Some ("string", None)
+    else
+        None
+
+let deriveType cache (codebook:Codebook) =
+    cache
+    |> Map.tryFind codebook.CodeSet
+    |> Option.map (fun x -> cache,x)
+    |> Option.orElseWith (fun _ -> 
+        printfn $"{codebook.Name}: {codebook.Codes}"
+        match codebook with
+        | CharIdentifier x  -> x
+        | Identifier x      -> x
+        | Numeric x         -> x
+        | BaseReponse x     -> x
+        | YesNo x           -> x
+        | OtherEum x        -> x
+        | _                 -> failwith "unexpected type"
+        |> fun typeDef -> 
+            let cache = cache |> Map.add codebook.CodeSet typeDef
+            Some(cache,typeDef))
+    |> Option.get
 
 //indexed names and types of the nhts files
 let hh = Thh.Load(HHFile).Headers  |> indexHeaders 
@@ -135,8 +242,18 @@ let ldtT = indexTypes<Tldt.Row>()
 let ldtCb = codeBook (CbLdt(CodebookFile).Data)
 
 
+let cb1 = perCb |> List.find(fun x->x.Name="PERSONID")
+let (i : (string*string option) option)= (|CharIdentifier|_|) cb1
+
+let typeDefs = 
+    (Map.empty,List.concat [hhCb;vehCb;perCb;tripCb;ldtCb]) 
+    ||> List.fold(fun cache d -> deriveType cache d |> fst)
+
+typeDefs |> Map.toSeq |> Seq.choose (snd>>snd) |> Seq.iter (printfn "%s")
+
+
 //generate a record type from the given headers, types and descriptions
-let genRec name (headers:Map<string,int>) (types:Map<int,string>) (descs:Map<string,string>)= 
+let genRec name (headers:Map<string,int>) (types:Map<int,string>) (descs:Map<string,string>) (codebook:Codebook) = 
     seq {
         yield $"type {name} = {{"
         yield!
@@ -170,110 +287,3 @@ genRec "Person" per perT  descs
 genRec "Trip" trip tripT   descs
 genRec "Tldt" ldt ldtT  descs
 
-(*
-[System]
-You are a helpful AI Assistant
-[User]
-find the list of all categorial variable and list them with their categories and associated code values
-[Assistant]
-Based on the provided document, here is a list of all categorical variables along with their categories and associated code values:
-
-### Trip Purpose Variables (2022 and 2017 NHTS)
-#### 2022 Trip Purpose Codes:
-- **-9**: Not ascertained
-- **-8**: Don’t know
-- **-7**: Refused
-- **1**: Regular activities at home
-- **2**: Work from home
-- **3**: Work at a non-home location
-- **4**: Work activity to drop-off/pickup someone/something
-- **5**: Other work-related activities
-- **6**: Attend school as a student
-- **7**: Attend child or adult care
-- **8**: Volunteer activities
-- **9**: Change transportation type
-- **10**: Drop off/pick up someone
-- **11**: Health care visit
-- **12**: Buy meals
-- **13**: Shop/buy/pick-up or return goods
-- **14**: Other family/personal errands
-- **15**: Recreational activities
-- **16**: Exercise
-- **17**: Visit friends or relatives
-- **18**: Religious or other community activities
-- **19**: Rest or relaxation/vacation
-- **97**: Something else
-
-#### 2017 Trip Purpose Codes:
-- **-9**: Not ascertained
-- **-8**: Don’t know
-- **-7**: Refused
-- **1**: Reg. home activities
-- **2**: Work from home
-- **3**: Work
-- **4**: Work related/Trip
-- **5**: Volunteer activities
-- **6**: Drop off/pickup someone
-- **7**: Change type of transportation
-- **8**: Attend school as a student
-- **9**: Attend child care
-- **10**: Attend adult care
-- **11**: Buy goods
-- **12**: Buy services
-- **13**: Buy meals
-- **14**: Other general errands
-- **15**: Recreational activities
-- **16**: Exercise
-- **17**: Visit friends and relatives
-- **18**: Health care visit
-- **19**: Religious or other community activities
-- **97**: Something else
-
-### Means of Transportation Codes (2022 and 2017 NHTS)
-#### 2022 Means of Transportation Codes:
-- **01**: Car
-- **02**: Van
-- **03**: SUV/Crossover
-- **04**: Pick Up Truck
-- **05**: Van (Minivan)
-- **06**: Recreational Vehicle
-- **07**: Motorcycle
-- **08**: Motorcycle/Moped
-- **09**: RV (Motorhome, ATV, Snowmobile)
-- **10**: Streetcar or trolley car
-- **11**: Subway or Elevated Rail
-- **12**: Commuter Rail
-- **13**: Private/Charter/Tour/Shuttle Bus
-- **14**: Airplane
-- **15**: Taxicab or limo service
-- **16**: Other ride-sharing services
-- **17**: Paratransit/Dial-a-Ride
-- **18**: Bicycle (including bikeshare, ebike, etc.)
-- **19**: E-scooter
-- **20**: Walk
-- **21**: Other
-- **22**: Ferryboat
-
-#### 2017 Means of Transportation Codes:
-- **01**: Walk
-- **02**: Bicycle
-- **03**: Car
-- **04**: SUV
-- **05**: Van (Minivan)
-- **06**: Pick Up Truck
-- **07**: Golf cart/Segway
-- **08**: Motorcycle/Moped
-- **09**: School bus
-- **10**: Streetcar or trolley car
-- **11**: Public or Commuter Bus
-- **12**: Paratransit/Dial-a-Ride
-- **13**: Amtrak
-- **14**: City-to-City Bus (Greyhound, Megabus)
-- **15**: Amtrak/Commuter Rail
-- **16**: Subway/Elevated/Light Rail/Streetcar
-- **17**: Taxi/Limo (including Uber/Lyft)
-- **18**: Rental Car (Inc. Zipcar and Car2Go)
-- **19**: Airplane
-- **20**: Boat/Ferry/Water Taxi
-- **97**: Something else
-*)
