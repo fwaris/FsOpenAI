@@ -5,6 +5,7 @@ open FSharp.Data
 open FSharp.Interop.Excel
 
 let ignoreCase = StringComparison.OrdinalIgnoreCase
+
 module Seq =
     let groupAdjacent f input = 
         let prev = Seq.head input
@@ -56,10 +57,16 @@ type TPer = CsvProvider<PERFile, InferRows=3000>
 type Ttrip = CsvProvider<TRIPFile, InferRows=3000>
 type Tldt = CsvProvider<LDTFile, InferRows=3000>
 
+type Codebook = {Name:string; Typ:string; Length:int; Label:string; Codes:string list; CodeSet:Set<string>; Frequency:float; Weighted:float}
+type TypeDef = {TypeName:string; TypeDef:string option; Converter:string} 
+
+let isEmpty (s:string) = String.IsNullOrWhiteSpace s
+let removeLines (s:string) = if isEmpty s then "" else  s.Replace("\n"," ").Replace("  "," ")
+
 //map of field name to field description
 let descs = 
     TData(TypesFile).Data
-    |> Seq.map (fun x -> x.NAME, x.LABEL)
+    |> Seq.map (fun x -> x.NAME, removeLines x.LABEL)
     |> Map.ofSeq
 
 //return the give file headers as a map of header name to index
@@ -77,10 +84,6 @@ let indexTypes<'t>() =
     |> Seq.map (fun (i,h) -> i,h)
     |> Map.ofSeq
 
-type Codebook = {Name:string; Typ:string; Length:int; Label:string; Codes:string list; CodeSet:Set<string>; Frequency:float; Weighted:float}
-
-let isEmpty (s:string) = String.IsNullOrWhiteSpace s
-
 let toInt (s:string) = 
     match Int32.TryParse s with
     | true, i -> i
@@ -94,9 +97,9 @@ let toFloat (s:string) =
 let inline codeBook (xs:^t seq) =
     xs
     |> Seq.map (fun x -> 
-        let name = ((^t) : (member Name : string) (x))
-        let label = ((^t) : (member Label : string) (x))
-        let typ = ((^t) : (member Type : string) (x))
+        let name = ((^t) : (member Name : string) (x))                 //note: complier will enforce that when
+        let label = ((^t) : (member Label : string) (x))               //type of ^t implements these members
+        let typ = ((^t) : (member Type : string) (x))                  //(i.e. at the point where this function is called)
         let length = ((^t) : (member Length : string) (x))
         let code = ((^t) : (member ``Code / Range`` : string) (x))
         let freq = ((^t) : (member Frequency : string) (x))
@@ -111,26 +114,21 @@ let inline codeBook (xs:^t seq) =
         {Name=v.name; Label=v.label; Typ=v.typ; Length= int v.length; Codes=codes; CodeSet=codeSet; Frequency=v.freq; Weighted=v.weighted})
 
 let baseResponseType() = 
-    let typeDef = """
-type Response = 
+    let typeDef = """type Response = 
     | R_NotAscertained
     | R_Skipped
-    | Value of float
-"""
-    "Response", Some typeDef
+    | Value of float"""
+    {TypeName = "Response"; TypeDef=  Some typeDef; Converter="toBaseResponse"}
 
 let baseYesNoType() = 
-    let typeDef = """
-type YesNo = 
+    let typeDef = """type YesNo = 
     | YN_NotAscertained
     | YN_Skipped
     | Yes
-    | No
-"""
-    "YesNo", Some typeDef
+    | No"""
+    {TypeName = "YesNo"; TypeDef=  Some typeDef; Converter="toYesNo"}
 
-let enumName (s:string) = 
-    s.Split("_").[0]
+let normalizedTypeName (s:string) = if s.StartsWith("ONTP_P") then "ONTP_P" else s
 
 let codes codebook = 
     codebook.Codes 
@@ -171,33 +169,68 @@ let capitalizeFirst (s:string) =
     }
     |> String.Concat
 
+let cleanLiteral (s:string) = 
+    s.Replace("\\","")
+        .Replace("+"," ")
+        .Replace("&","")
+        .Replace("$","")
+        .Replace("/","")
+        .Replace(",","")
+        .Replace(".","")
+        .Trim()
+
+let unionCase n (s:string) =
+    if isIdentifier s then 
+        $"{n}_{capitalizeFirst s}"
+    else 
+        let l = s |> cleanLiteral 
+        $"``{n}_{l}``"
+
 let (|OtherEum|_|) (codebook:Codebook) = 
+    let enumName = normalizedTypeName codebook.Name
     let cs = codes codebook
-    let unionCases = cs |> List.choose snd |> List.map(fun x -> if isIdentifier x  then  $"| {capitalizeFirst x}" else $"| `{x}`")
-    let enumName = enumName codebook.Name
+    let unionCases = cs |> List.choose snd |> List.map (fun s -> $"| {unionCase enumName  s}")
     let typeDef =
         seq {
+            yield $"/// {codebook.Label}"
             yield $"type {enumName} ="
             yield! unionCases
         }
         |> String.concat "\n"
-    Some (enumName, Some typeDef)
+    Some {TypeName = enumName; TypeDef= Some typeDef; Converter= "to" + enumName}
     
 let (|Numeric|_|) (codebook:Codebook) = 
     let cs = codes codebook |> List.choose snd 
     if codebook.Typ = "N" && cs.Length <= 1 then 
-        Some ("float", None)
+        Some {TypeName = "float"; TypeDef= None; Converter="toFloat"}
+    else
+        None
+
+let hasKeyWrdResponses (codebook:Codebook) = 
+    codebook.Codes |> List.exists(fun x -> x.Contains("Responses=", ignoreCase))
+
+let (|CharNumeric|_|) (codebook:Codebook) = 
+    let cs = codes codebook |> List.choose snd 
+    if codebook.Typ = "C" && cs.Length = 1 && hasKeyWrdResponses codebook  then 
+        Some {TypeName = "float"; TypeDef= None; Converter="toFloat"}
     else
         None
 
 let (|Identifier|_|) (codebook:Codebook) = 
-    if codebook.Typ = "C" && codebook.Codes.Length <= 1 && codebook.Length = 10 then 
-        Some ("int64", None)
+    if codebook.Typ = "C" && codebook.Codes.Length <= 1 && codebook.Length >= 10 then 
+        Some {TypeName = "string"; TypeDef= None; Converter="string"}        
     else
         None
+
 let (|CharIdentifier|_|) (codebook:Codebook) = 
-    if codebook.Typ = "C" && codebook.Codes.Length <= 10 && codebook.Length <= 10 then 
-        Some ("string", None)
+    if codebook.Typ = "C" && codebook.Codes.Length <= 50 && codebook.Length <= 10 && codebook.Name.EndsWith("ID") then 
+        Some {TypeName = "string"; TypeDef= None; Converter="string"}
+    else
+        None
+
+let (|Date|_|) (codebook:Codebook) = 
+    if codebook.Typ = "C" && codebook.Length <= 6 && codebook.Name.EndsWith("DATE") then 
+        Some {TypeName = "DateTime"; TypeDef= None; Converter="toDateTime"}        
     else
         None
 
@@ -208,9 +241,11 @@ let deriveType cache (codebook:Codebook) =
     |> Option.orElseWith (fun _ -> 
         printfn $"{codebook.Name}: {codebook.Codes}"
         match codebook with
+        | Date x            -> x 
         | CharIdentifier x  -> x
         | Identifier x      -> x
         | Numeric x         -> x
+        | CharNumeric x     -> x
         | BaseReponse x     -> x
         | YesNo x           -> x
         | OtherEum x        -> x
@@ -241,19 +276,22 @@ let ldt = Tldt.Load(LDTFile).Headers |> indexHeaders
 let ldtT = indexTypes<Tldt.Row>()
 let ldtCb = codeBook (CbLdt(CodebookFile).Data)
 
+let allCodebooks = List.concat [hhCb;vehCb;perCb;tripCb;ldtCb]
 
-let cb1 = perCb |> List.find(fun x->x.Name="PERSONID")
-let (i : (string*string option) option)= (|CharIdentifier|_|) cb1
+let codeMap = allCodebooks |> List.map (fun x -> x.Name,x) |> Map.ofList
 
 let typeDefs = 
-    (Map.empty,List.concat [hhCb;vehCb;perCb;tripCb;ldtCb]) 
+    (Map.empty,allCodebooks) 
     ||> List.fold(fun cache d -> deriveType cache d |> fst)
 
-typeDefs |> Map.toSeq |> Seq.choose (snd>>snd) |> Seq.iter (printfn "%s")
-
+(*
+let cb1 = tripCb |> List.find(fun x->x.Name="TDAYDATE")
+let (i : TypeDef option) = (|CharNumeric|_|) cb1
+typeDefs |> Map.toSeq |> Seq.choose (fun (_,x) -> x.TypeDef) |> Seq.iter (printfn "%s")
+*)
 
 //generate a record type from the given headers, types and descriptions
-let genRec name (headers:Map<string,int>) (types:Map<int,string>) (descs:Map<string,string>) (codebook:Codebook) = 
+let genRec (typeDefs:Map<Set<string>,TypeDef>) (codeMap:Map<string,Codebook>) name (headers:Map<string,int>) (descs:Map<string,string>) = 
     seq {
         yield $"type {name} = {{"
         yield!
@@ -262,28 +300,136 @@ let genRec name (headers:Map<string,int>) (types:Map<int,string>) (descs:Map<str
             |> Seq.sortBy snd
             |> Seq.map(fun (h,i) -> 
                 let t = 
-                    match types.TryFind i with
-                    | Some t -> t
-                    | None -> "obj"
+                    match codeMap |> Map.tryFind h with
+                    | Some t -> typeDefs.[t.CodeSet]
+                    | None -> failwith $"missing codebook for {h}"
                 let d = 
                     match descs.TryFind h with
                     | Some d -> d
                     | None -> ""
-                $"    {h} : {t} // {d}")
+                $"    {h} : {t.TypeName} // {d}")
         yield "}"
     }
     |> String.concat "\n"
 
-let recType = function 
-    | "Int32" -> "int"
-    | "String" -> "string"
-    | "Decimal" -> "float"
-    | "Int64" -> "int64"
+let genReader (typeDefs:Map<Set<string>,TypeDef>) (codeMap:Map<string,Codebook>) name (headers:Map<string,int>) = 
+    seq {
+        yield $"let to_{name} (vals:string[]) ="
+        yield " {"
+        yield!
+            headers 
+            |> Map.toSeq
+            |> Seq.sortBy snd
+            |> Seq.map(fun (h,i) -> 
+                let t = 
+                    match codeMap |> Map.tryFind h with
+                    | Some t -> typeDefs.[t.CodeSet]
+                    | None -> failwith $"missing codebook for {h}"
+                $"        {h} = {t.Converter} vals.[{i}]")
+        yield "}"
+    }
+    |> String.concat "\n"
 
-//record types for the nhts files
-genRec "Household" hh hhT descs
-genRec "Vehicle" veh vehT descs
-genRec "Person" per perT  descs
-genRec "Trip" trip tripT   descs
-genRec "Tldt" ldt ldtT  descs
+let genConverter (typeDef:TypeDef) (codebook:Codebook) =     
+    let cs = codes codebook |> List.filter (fun (x,y) -> x.IsSome && y.IsSome) |> List.map (fun (x,y) -> x.Value,y.Value)
+    seq {
+        yield $"let to{typeDef.TypeName} (v:string) : {typeDef.TypeName} ="
+        yield "    match int v with"
+        yield! 
+            cs
+            |> List.map (fun (x,y) -> 
+                $"    | {x} -> {unionCase typeDef.TypeName y}")
+    }
+    |> String.concat "\n"
 
+let convertibles = allCodebooks |> List.choose (fun x -> 
+    match typeDefs.TryFind x.CodeSet with
+    | Some t -> Some (t,x)
+    | None -> None)
+
+let baseConverter = """
+let toBaseResponse (v:string) : Response = 
+    match int v with
+    | -1 -> R_NotAscertained
+    | -9 -> R_Skipped
+    | x -> Value(float x)"""
+
+let yesNoConverter = """
+let toYesNo (v:string) : YesNo = 
+    match int v with
+    | -1 -> YN_NotAscertained
+    | -9 -> YN_Skipped
+    | 1 -> Yes
+    | 2 -> No"""
+
+let floatConverter = """
+let toFloat (v:string) : float = 
+    match Double.TryParse v with
+    | true, f -> f
+    | _ -> 0.0"""
+
+let dateTimeConverter = """
+let toDateTime (v:string) : DateTime = 
+    match DateTime.TryParseExact(v, "yyyyMM", null, System.Globalization.DateTimeStyles.None) with
+    | true, d -> d
+    | _ -> DateTime.MinValue"""
+
+let dataSetType = """
+type DataSets = {
+    Household   : Household list
+    Vehicle     : Vehicle list
+    Person      : Person list
+    Trip        : Trip list
+    LongTrip    : LongTrip list
+}"""
+
+let converters = 
+    let exSet = set ["Response";"YesNo";"float";"string";"DateTime"; "int64"]
+    (convertibles 
+    |> List.filter (fun (t,x) -> t.TypeDef.IsSome && not (exSet.Contains t.TypeName))
+    |> List.distinctBy (fun (t,x) -> t.TypeName)
+    |> List.map (fun (t,x) -> genConverter t x))
+    @ [baseConverter; yesNoConverter; floatConverter; dateTimeConverter]
+
+let allCodeTypes = 
+    typeDefs
+    |> Map.toSeq
+    |> Seq.map snd
+    |> Seq.distinctBy _.TypeName
+    |> Seq.choose _.TypeDef
+    |> String.concat "\n\n"
+
+let  allRecTypes = 
+    seq {
+        """namespace FsOpenAI.TravelSurvey.Types
+open System"""
+        allCodeTypes
+        genRec typeDefs codeMap "Household" hh descs
+        genRec typeDefs codeMap "Vehicle" veh descs
+        genRec typeDefs codeMap "Person" per descs
+        genRec typeDefs codeMap "Trip" trip descs
+        genRec typeDefs codeMap "LongTrip" ldt descs
+        dataSetType
+    }
+    |> String.concat "\n\n"
+
+let allReaders = 
+    seq {
+        """module FsOpenAI.TravelSurvey.Loader
+open System
+open FsOpenAI.TravelSurvey.Types"""        
+        yield! converters
+        genReader typeDefs codeMap "Household" hh 
+        genReader typeDefs codeMap "Vehicle" veh
+        genReader typeDefs codeMap "Person" per
+        genReader typeDefs codeMap "Trip" trip
+        genReader typeDefs codeMap "LongTrip" ldt
+    }
+    |> String.concat "\n\n"
+
+let dir = Path.GetDirectoryName( __SOURCE_DIRECTORY__ )
+let typesFile = dir @@ "Types.fs"
+File.WriteAllText(typesFile, allRecTypes)
+
+let loaderFile = dir @@ "Loader.fs"
+File.WriteAllText(loaderFile, allReaders)
