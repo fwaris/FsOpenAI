@@ -26,3 +26,19 @@ let loadFromPath (path: string) : DataSets =
         Trip = tripData |> Seq.toList
         LongTrip = ldtData |> Seq.toList
     }
+
+
+(* to debug as exe
+
+let path = @"E:\s\nhts\csv"
+
+let data = loadFromPath path
+//lengths
+printfn "Household: %d" data.Household.Length
+printfn "Vehicle: %d" data.Vehicle.Length
+printfn "Person: %d" data.Person.Length
+printfn "Trip: %d" data.Trip.Length
+printfn "LongTrip: %d" data.LongTrip.Length
+let i = 0
+
+*)

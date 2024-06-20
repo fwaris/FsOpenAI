@@ -409,7 +409,7 @@ type Vehicle = {
     HHVEHUSETIME_OTH : Response // Over past 30 days, how many days was vehicle used for other business?
     VEHOWNED : Response // Vehicle owned for 1 year or more
     WHOMAIN : Response // Main driver of vehicle
-    VEHCASEID : Response // Unique vehicle identifier
+    VEHCASEID : string // Unique vehicle identifier
     ANNMILES : Response // Self-reported annualized mile estimate
     HYBRID : YesNo // Hybrid vehicle
     VEHAGE : float // Age of vehicle, based on model year
@@ -578,7 +578,7 @@ type Trip = {
     PERSONID : string // Person ID within household
     TRIPID : string // Trip ID for each trip a person took
     SEQ_TRIPID : string // Renumbered sequential tripid
-    VEHCASEID : Response // Unique vehicle identifier
+    VEHCASEID : string // Unique vehicle identifier
     FRSTHM : YesNo // Started travel day at home
     PARK : Response // Paid for parking at any time during travel day
     HHMEMDRV : Response // Household member drove on trip

@@ -343,13 +343,20 @@ let toWHYTRP90 (v:string) : WHYTRP90 =
     | 11 -> WHYTRP90_Other
     | 99 -> ``WHYTRP90_Refused  Don't Know``
 
-
 let toBaseResponse (v:string) : Response = 
-    match int v with
-    | -1 -> R_NotAscertained
-    | -9 -> R_Skipped
-    | x -> Value(float x)
-
+    try 
+        match Int32.TryParse v with 
+        | true, v -> 
+            match v with
+            | -1 -> R_NotAscertained
+            | -9 -> R_Skipped
+            | x -> Value(float x)
+        | _ ->
+            match Double.TryParse v with 
+            | true, v -> Value v
+            | _ -> failwith $"Unable to convert value to float: {v}"
+    with ex -> 
+        failwith $"Value:{v}; Error: {ex.Message}" 
 
 let toYesNo (v:string) : YesNo = 
     match int v with
@@ -428,7 +435,7 @@ let to_Vehicle (vals:string[]) =
         HHVEHUSETIME_OTH = toBaseResponse vals.[14]
         VEHOWNED = toBaseResponse vals.[15]
         WHOMAIN = toBaseResponse vals.[16]
-        VEHCASEID = toBaseResponse vals.[17]
+        VEHCASEID = string vals.[17]
         ANNMILES = toBaseResponse vals.[18]
         HYBRID = toYesNo vals.[19]
         VEHAGE = toFloat vals.[20]
@@ -599,7 +606,7 @@ let to_Trip (vals:string[]) =
         PERSONID = string vals.[1]
         TRIPID = string vals.[2]
         SEQ_TRIPID = string vals.[3]
-        VEHCASEID = toBaseResponse vals.[4]
+        VEHCASEID = string vals.[4]
         FRSTHM = toYesNo vals.[5]
         PARK = toBaseResponse vals.[6]
         HHMEMDRV = toBaseResponse vals.[7]

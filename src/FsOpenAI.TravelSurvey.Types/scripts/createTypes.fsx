@@ -223,7 +223,7 @@ let (|Identifier|_|) (codebook:Codebook) =
         None
 
 let (|CharIdentifier|_|) (codebook:Codebook) = 
-    if codebook.Typ = "C" && codebook.Codes.Length <= 50 && codebook.Length <= 10 && codebook.Name.EndsWith("ID") then 
+    if codebook.Typ = "C" && codebook.Codes.Length <= 50 && codebook.Length <= 12 && codebook.Name.EndsWith("ID") then 
         Some {TypeName = "string"; TypeDef= None; Converter="string"}
     else
         None
@@ -285,8 +285,8 @@ let typeDefs =
     ||> List.fold(fun cache d -> deriveType cache d |> fst)
 
 (*
-let cb1 = tripCb |> List.find(fun x->x.Name="TDAYDATE")
-let (i : TypeDef option) = (|CharNumeric|_|) cb1
+let cb1 = vehCb |> List.find(fun x->x.Name="VEHCASEID")
+let (i : TypeDef option) = (|CharIdentifier|_|) cb1
 typeDefs |> Map.toSeq |> Seq.choose (fun (_,x) -> x.TypeDef) |> Seq.iter (printfn "%s")
 *)
 
@@ -347,15 +347,22 @@ let convertibles = allCodebooks |> List.choose (fun x ->
     | Some t -> Some (t,x)
     | None -> None)
 
-let baseConverter = """
-let toBaseResponse (v:string) : Response = 
-    match int v with
-    | -1 -> R_NotAscertained
-    | -9 -> R_Skipped
-    | x -> Value(float x)"""
+let baseConverter = """let toBaseResponse (v:string) : Response = 
+    try 
+        match Int32.TryParse v with 
+        | true, v -> 
+            match v with
+            | -1 -> R_NotAscertained
+            | -9 -> R_Skipped
+            | x -> Value(float x)
+        | _ ->
+            match Double.TryParse v with 
+            | true, v -> Value v
+            | _ -> failwith $"Unable to convert value to float: {v}"
+    with ex -> 
+        failwith $"Value:{v}; Error: {ex.Message}" """
 
-let yesNoConverter = """
-let toYesNo (v:string) : YesNo = 
+let yesNoConverter = """let toYesNo (v:string) : YesNo = 
     match int v with
     | -1 -> YN_NotAscertained
     | -9 -> YN_Skipped
