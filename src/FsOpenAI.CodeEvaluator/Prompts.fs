@@ -33,7 +33,10 @@ module Prompts =
 - JUST RETURN THE FINAL RESULT. DO NOT PRINT THE RESULT. DO NOT ASSIGN THE RESULT TO A VARIABLE.
 """
 
-    let fixCodePrompt fsTypes errorMessage code = $"""
+    ///Creates a SK prompt template to fix generated code.
+    /// The fsTypes parameter is a string representation of F# types; the context under which
+    /// the generated code is expected to be compilable
+    let fixCodePrompt fsTypes = $"""
 While compiling the given [F# CODE TO FIX] a compilation ERROR was encountered. Regenerate the code after fixing the error.
 Only fix the error. Do not change the code structure. The line number of the error may not be accurate. Refer to
 F# Types to fix code namely to properly type annotate the lambda function parameters.
@@ -43,11 +46,11 @@ F# Types```
 ```
 ````
 ERROR```
-{errorMessage}
+{{{{$errorMessage}}}}
 ```
 
 [F# CODE TO FIX]```
-{code}
+{{{{$code}}}}
 ```
 
 # Other Instructions

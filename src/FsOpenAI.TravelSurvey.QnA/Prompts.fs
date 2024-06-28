@@ -1,158 +1,88 @@
 namespace FsOpenAI.TravelSurvey
 
 module Prompts = 
-    let fsiTypes = """
-namespace FsOpenAI.TravelSurvey.Types
 
-// Define a record type for Household data
-type Household = {
-    /// Unique identifier for the household
-    HOUSEID: string
+    let planSysMessage nhtsTypes = $"""
+You are an AI assistant that understands a modified NHTS dataset. The dataset is described by:
+{nhtsTypes}
 
-    /// Number of people in the household
-    HHSIZE: int
+# Goal:
+Your goal is to analyze a user query and either create a step-by-step plan of action that can be executed to answer the query or ask a clarifying question if the query is unclear.
+If you decide to generate plan then respond with 'plan:' as the first word otherwise respond with 'query:'.
 
-    /// Number of vehicles in the household
-    VEHCOUNT: int
+# Other Instructions:
+Be sure about your analysis. Don't make things up. And think step-by-step before generating. Don't include any Python code in the response
+"""
 
-    /// Household income level
-    INCOME: string
+    let planPrompt
+        question
+        = $"""
+Query```
+{question}
+```
+"""
 
-    /// Type of residence (e.g., single-family home, apartment)
-    RESIDENCE_TYPE: string
+    let codeSysMessage = """
+You are an AI assistant that can generate F# code to answer a user QUERY on a modified NHTS dataset and a step-by-step plan to guide the code generation.
+# Main function:
+- The main function return signature should be of type: string that answers the user query.
+"""
 
-    /// Urban or rural status of the household
-    URBAN_RURAL: string
+    let helperFunctions = """
+- Helpers.formatNumber: Format a number to a string with two decimal places
+- Helpers.formatNumberPercent: Format a number to a string as a percentage with two decimal places
+- Data.load() : Lazy<FsOpenAI.TravelSurvey.Types.DataSets> : Load the NHTS dataset
+ """
 
-    /// State where the household is located
-    STATE: string
+    let codeGenInstructions = """
+# String Formatting:
+- Use F# string interpolation in generated code, instead of the sprintf function.
+- ALWAYS USE THE FUNCTIONS Helpers.formatNumber and Helpers.formatNumberPercentage to format numbers.
+- Only format number as percentage if number is a percentage value.
+- Remember in F# interpolated strings are prefixed with $.
+- Do not use $ in the string interpolation.
+- Remember to escape %% in the string interpolation for percentage formatting with %%%%.
 
-    /// Census division where the household is located
-    CENSUS_DIVISION: string
+# Code generation:
+- In addition to user QUERY follow the PLAN and F# Type descriptions to generate the code.
+- Only generate new code. Do not output any existing code
+- Do not create F# modules - use existing types and functions.
+- Always generate functions with curried arguments.
+- To create a set consider the 'set' operator instead of Set.ofXXX functions.
+- Ensure that code formatting (whitespace, etc.) is correct according to F# conventions.
+- Declare all constants at the top before the main function and then reference them in the code later
+- Do not use F# reserved keywords as variable names (e.g. 'end', 'as', etc.).
+- Put type annotations where needed so types are clear in the generated code.
+- Prefer using |> when working with lists (e.g. data_list |> List.map ...) so the types are better inferred.
+- When creating lists always use put the '[' on a new line, properly indented.
+- ALWAYS TYPE ANNOTATE THE LAMBDA FUNCTION PARAMETERS.
+- BE SURE TO ACTUALLY INVOKE THE GENERATED FUNCTION WITH THE APPROPRIATE ARGUMENTS TO RETURN THE FINAL RESULT.
+- JUST RETURN THE FINAL RESULT. DO NOT PRINT THE RESULT. DO NOT ASSIGN THE RESULT TO A VARIABLE.
+"""
 
-    /// Whether the household has internet access
-    INTERNET_ACCESS: bool
+    let codePrompt
+        question
+        plan
+        fsTypes
+        = $"""
+QUERY```
+{question}
+```
 
-    /// Number of workers in the household
-    WORKER_COUNT: int
+PLAN```
+{plan}
+```
 
-    /// Number of children in the household
-    CHILD_COUNT: int
+F# Types```
+{fsTypes}
+```
 
-    /// Number of elderly members in the household
-    ELDERLY_COUNT: int
+Helper Functions```
+{helperFunctions}
+```
 
-    /// Whether the household owns or rents their residence
-    OWN_RENT: string
+{codeGenInstructions}
 
-    /// Whether the household has any members with disabilities
-    DISABILITY: bool
-
-    /// Whether the household has any members who are students
-    STUDENT: bool
-
-    /// Whether the household has any members who are retired
-    RETIRED: bool
-
-    /// Whether the household has any members who are unemployed
-    UNEMPLOYED: bool
-
-    /// Whether the household has any members who work from home
-    WORK_FROM_HOME: bool
-
-    /// Whether the household has any members who use public transportation
-    PUBLIC_TRANSPORTATION: bool
-
-    /// Whether the household has any members who bike or walk to work
-    BIKE_WALK: bool
-
-    /// Whether the household has any members who use ride-sharing services
-    RIDE_SHARING: bool
-
-    /// Whether the household has any members who use e-scooters
-    E_SCOOTER: bool
-}
-
-/// Represents a vehicle associated with a household
-type Vehicle = {
-    /// Unique identifier for the household
-    HOUSEID: string
-    /// Unique identifier for the vehicle within the household
-    VEHID: string
-    /// Make of the vehicle (e.g., Toyota, Ford)
-    Make: string
-    /// Model of the vehicle (e.g., Camry, F-150)
-    Model: string
-    /// Year the vehicle was manufactured
-    Year: int
-    /// Type of fuel the vehicle uses (e.g., Gasoline, Diesel, Electric)
-    FuelType: string
-    /// Indicates if the vehicle is used for commercial purposes
-    IsCommercial: bool
-    /// Indicates if the vehicle is a rental
-    IsRental: bool
-    /// Additional comments or notes about the vehicle
-    Comments: string option
-}
-
-type Person = {
-    /// Unique identifier for the household
-    HOUSEID: string
-    /// Unique identifier for the person within the household
-    PERSONID: string
-    /// Age of the person
-    Age: int
-    /// Gender of the person
-    Gender: string
-    /// Employment status of the person
-    EmploymentStatus: string
-    /// Whether the person has a driver's license
-    HasDriversLicense: bool
-    /// Number of trips made by the person on the travel day
-    NumberOfTrips: int
-    /// Total distance traveled by the person on the travel day (in miles)
-    TotalDistanceTraveled: float
-    /// Mode of transportation used by the person for the majority of their trips
-    PrimaryModeOfTransport: string
-    /// Whether the person worked from home on the travel day
-    WorkedFromHome: bool
-    /// Any other relevant demographic attributes
-    OtherDemographicAttributes: string
-}
-
-type Trip = {
-    /// Unique identifier for the household
-    HOUSEID: string
-    /// Unique identifier for the person within the household
-    PERSONID: string
-    /// Unique identifier for the trip
-    TRIPID: string
-    /// Start time of the trip
-    STARTTIME: string
-    /// End time of the trip
-    ENDTIME: string
-    /// Origin of the trip
-    ORIGIN: string
-    /// Destination of the trip
-    DESTINATION: string
-    /// Mode of transportation used for the trip
-    TRPTRANS: string
-    /// Purpose of the trip
-    WHYTO: string
-    /// Purpose of the trip from the previous location
-    WHYFROM: string
-    /// Distance of the trip in miles
-    TRPMILES: float
-    /// Duration of the trip in minutes
-    TRPDUR: float
-    /// Flag indicating if the trip is a long-distance trip
-    LONGDIST: bool
-    /// Number of people in the vehicle during the trip
-    VEHOC: int
-    /// Flag indicating if the respondent was the driver
-    DRVR_FLG: bool
-    /// Additional comments or notes about the trip
-    COMMENTS: string option
-}
+```fsharp
 
 """

@@ -78,10 +78,10 @@ module CodeEval =
             async {
                 let args = GenUtils.kernelArgsDefault ["code",code; "errorMessage",errorMessage]
                 let! regenPrompt = GenUtils.renderPrompt codeParms.RegenPrompt args |> Async.AwaitTask
-                let ch =
-                    ch
-                    |> Interaction.setUserMessage regenPrompt
-                    |> Interaction.setSystemMessage regenPrompt
+                let ch = Interaction.setUserMessage regenPrompt ch
+                let ch = codeParms.RegenSystemPrompt 
+                        |> Option.map(fun p -> ch |> Interaction.setSystemMessage p) 
+                        |> Option.defaultValue ch
                 let! resp = Completions.completeChat parms invCtx ch None
                 let reCode = GenUtils.extractCode resp.Content
                 return reCode
@@ -90,6 +90,27 @@ module CodeEval =
         let sendResults ch answer dispatch =
             dispatch (Srv_Ia_Delta(ch.Id,0,answer))
             dispatch (Srv_Ia_Done (ch.Id, None))
+
+        let genAndEvalTest parms invCtx ch codeParms =
+            async {
+                let! resp = Completions.completeChat parms invCtx ch None
+                let code = GenUtils.extractCode resp.Content
+                printfn "******** code ********"
+                printfn "%s" code
+                match evalCode codeParms.Preamble code with
+                | Success answer -> return answer
+                | Failure msg ->
+                    let! newCode = regenCode parms invCtx ch codeParms code msg
+                    printfn "%s" newCode
+                    match evalCode codeParms.Preamble newCode with
+                    | Success answer -> return answer
+                    | Failure msg ->
+                        let! newCode = regenCode parms invCtx ch codeParms code msg
+                        printfn "%s" newCode
+                        match evalCode codeParms.Preamble newCode with
+                        | Success answer -> return answer
+                        | Failure msg -> return $"Error {msg}"
+            }
 
         let genAndEval parms invCtx ch codeParms dispatch =
             async {

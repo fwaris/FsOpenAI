@@ -31,6 +31,13 @@ type ModelRef =
         Model           : string
         TokenLimit      : int
     }
+    with 
+        static member Default = 
+            {
+                Backend = OpenAI
+                Model = "gpt-4o"
+                TokenLimit = 2000
+            }
 
 type ModelsConfig = 
     {
@@ -53,7 +60,7 @@ type ModelsConfig =
                 {
                     EmbeddingsModels = []
                     ShortChatModels  = []
-                    LongChatModels   = []
+                    LongChatModels   = [ModelRef.Default]
                     CompletionModels = []
                     LowCostModels    = []
                 }
@@ -64,6 +71,13 @@ type InvocationContext =
         AppId        : string option
         User         : string option
     }
+    with 
+        static member Default = 
+            {
+                ModelsConfig = ModelsConfig.Default
+                AppId = None
+                User = None
+            }
 
 type ChatMode = 
     | CM_Plain 

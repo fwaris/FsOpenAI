@@ -406,7 +406,14 @@ let allCodeTypes =
     |> Seq.choose _.TypeDef
     |> String.concat "\n\n"
 
-let  allRecTypes = 
+let helpers = """module Helpers =
+
+    let formatNumber (f:float) : string = sprintf "%0.2f" f
+
+    let formatNumberPercent (f:float) : string = sprintf "%0.2f%%" f
+"""
+
+let  typesAndModules = 
     seq {
         """namespace FsOpenAI.TravelSurvey.Types
 open System"""
@@ -417,6 +424,7 @@ open System"""
         genRec typeDefs codeMap "Trip" trip descs
         genRec typeDefs codeMap "LongTrip" ldt descs
         dataSetType
+        helpers
     }
     |> String.concat "\n\n"
 
@@ -436,7 +444,7 @@ open FsOpenAI.TravelSurvey.Types"""
 
 let dir = Path.GetDirectoryName( __SOURCE_DIRECTORY__ )
 let typesFile = dir @@ "Types.fs"
-File.WriteAllText(typesFile, allRecTypes)
+File.WriteAllText(typesFile, typesAndModules)
 
 let loaderFile = dir @@ "Loader.fs"
 File.WriteAllText(loaderFile, allReaders)

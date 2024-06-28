@@ -738,3 +738,9 @@ type DataSets = {
     Trip        : Trip list
     LongTrip    : LongTrip list
 }
+
+module Helpers =
+
+    let formatNumber (f:float) : string = sprintf "%0.2f" f
+
+    let formatNumberPercent (f:float) : string = sprintf "%0.2f%%" f
