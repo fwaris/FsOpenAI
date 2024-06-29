@@ -61,6 +61,9 @@ type Codebook = {Name:string; Typ:string; Length:int; Label:string; Codes:string
 type TypeDef = {TypeName:string; TypeDef:string option; Converter:string} 
 
 let isEmpty (s:string) = String.IsNullOrWhiteSpace s
+
+let hasKeyWrdResponses (codebook:Codebook) = 
+    codebook.Codes |> List.exists(fun x -> x.Contains("Responses=", ignoreCase))
 let removeLines (s:string) = if isEmpty s then "" else  s.Replace("\n"," ").Replace("  "," ")
 
 //map of field name to field description
@@ -97,9 +100,9 @@ let toFloat (s:string) =
 let inline codeBook (xs:^t seq) =
     xs
     |> Seq.map (fun x -> 
-        let name = ((^t) : (member Name : string) (x))                 //note: complier will enforce that when
-        let label = ((^t) : (member Label : string) (x))               //type of ^t implements these members
-        let typ = ((^t) : (member Type : string) (x))                  //(i.e. at the point where this function is called)
+        let name = ((^t) : (member Name : string) (x))                 //note: complier will enforce that
+        let label = ((^t) : (member Label : string) (x))               //type ^t implements these members,
+        let typ = ((^t) : (member Type : string) (x))                  //at the point where this function is called
         let length = ((^t) : (member Length : string) (x))
         let code = ((^t) : (member ``Code / Range`` : string) (x))
         let freq = ((^t) : (member Frequency : string) (x))
@@ -141,7 +144,8 @@ let codes codebook =
 let (|BaseReponse|_|) (codebook:Codebook) = 
     let cs = codes codebook 
     let markers = [-1;-9] |> List.map Some |> set
-    if markers |> Set.exists (fun x -> cs |> List.exists (fun (a,b) -> a = x)) then 
+    let codes = cs |> List.choose snd
+    if markers |> Set.exists (fun x -> cs |> List.exists (fun (a,b) -> a = x)) && hasKeyWrdResponses codebook then 
         Some (baseResponseType())
     else
         None
@@ -169,13 +173,13 @@ let capitalizeFirst (s:string) =
     }
     |> String.Concat
 
-let cleanLiteral (s:string) = 
-    s.Replace("\\","")
+let legalize (s:string) = 
+    s.Replace("\\","|")
         .Replace("+"," ")
         .Replace("&","")
         .Replace("$","")
-        .Replace("/","")
-        .Replace(",","")
+        .Replace("/","|")
+        // .Replace(",","")
         .Replace(".","")
         .Trim()
 
@@ -183,7 +187,7 @@ let unionCase n (s:string) =
     if isIdentifier s then 
         $"{n}_{capitalizeFirst s}"
     else 
-        let l = s |> cleanLiteral 
+        let l = s |> legalize 
         $"``{n}_{l}``"
 
 let (|OtherEum|_|) (codebook:Codebook) = 
@@ -205,9 +209,6 @@ let (|Numeric|_|) (codebook:Codebook) =
         Some {TypeName = "float"; TypeDef= None; Converter="toFloat"}
     else
         None
-
-let hasKeyWrdResponses (codebook:Codebook) = 
-    codebook.Codes |> List.exists(fun x -> x.Contains("Responses=", ignoreCase))
 
 let (|CharNumeric|_|) (codebook:Codebook) = 
     let cs = codes codebook |> List.choose snd 
@@ -246,8 +247,8 @@ let deriveType cache (codebook:Codebook) =
         | Identifier x      -> x
         | Numeric x         -> x
         | CharNumeric x     -> x
-        | BaseReponse x     -> x
         | YesNo x           -> x
+        | BaseReponse x     -> x
         | OtherEum x        -> x
         | _                 -> failwith "unexpected type"
         |> fun typeDef -> 
@@ -276,19 +277,15 @@ let ldt = Tldt.Load(LDTFile).Headers |> indexHeaders
 let ldtT = indexTypes<Tldt.Row>()
 let ldtCb = codeBook (CbLdt(CodebookFile).Data)
 
-let allCodebooks = List.concat [hhCb;vehCb;perCb;tripCb;ldtCb]
+let allCodebooks = 
+    List.concat [hhCb;vehCb;perCb;tripCb;ldtCb]
+    // |> List.filter (fun x -> x.Name<>"VEHTYPE") //manual override
 
 let codeMap = allCodebooks |> List.map (fun x -> x.Name,x) |> Map.ofList
 
 let typeDefs = 
     (Map.empty,allCodebooks) 
     ||> List.fold(fun cache d -> deriveType cache d |> fst)
-
-(*
-let cb1 = vehCb |> List.find(fun x->x.Name="VEHCASEID")
-let (i : TypeDef option) = (|CharIdentifier|_|) cb1
-typeDefs |> Map.toSeq |> Seq.choose (fun (_,x) -> x.TypeDef) |> Seq.iter (printfn "%s")
-*)
 
 //generate a record type from the given headers, types and descriptions
 let genRec (typeDefs:Map<Set<string>,TypeDef>) (codeMap:Map<string,Codebook>) name (headers:Map<string,int>) (descs:Map<string,string>) = 
@@ -381,6 +378,34 @@ let toDateTime (v:string) : DateTime =
     | true, d -> d
     | _ -> DateTime.MinValue"""
 
+//two slightly different versions of VEHTYPE exist in codebook
+//use unified version below
+let vehType = """
+/// Vehicle type
+type VEHTYPE =
+| ``VEHTYPE_Valid skip``
+| ``VEHTYPE_Automobile|Car|Stationwagon``
+| ``VEHTYPE_Van (Minivan|Cargo|Passenger)``
+| ``VEHTYPE_SUV (Santa Fe, Tahoe, Jeep, etc)``
+| ``VEHTYPE_Pickup Truck``
+| ``VEHTYPE_Other Truck``
+| ``VEHTYPE_Recreational vehicle (RV)|Motorhome``
+| VEHTYPE_MotorcycleMoped
+| ``VEHTYPE_Something else``"""
+
+let vehTypeConverter = """
+let toVEHTYPE (v:string) : VEHTYPE =
+    match int v with
+    | -1 -> ``VEHTYPE_Valid skip``
+    | 1 -> ``VEHTYPE_Automobile|Car|Stationwagon``
+    | 2 -> ``VEHTYPE_Van (Minivan|Cargo|Passenger)``
+    | 3 -> ``VEHTYPE_SUV (Santa Fe, Tahoe, Jeep, etc)``
+    | 4 -> ``VEHTYPE_Pickup Truck``
+    | 5 -> ``VEHTYPE_Other Truck``
+    | 6 -> ``VEHTYPE_Recreational vehicle (RV)|Motorhome``
+    | 7 -> VEHTYPE_MotorcycleMoped
+    | 97 -> ``VEHTYPE_Something else``"""
+
 let dataSetType = """
 type DataSets = {
     Household   : Household list
@@ -391,18 +416,30 @@ type DataSets = {
 }"""
 
 let converters = 
-    let exSet = set ["Response";"YesNo";"float";"string";"DateTime"; "int64"]
+    let exSet = set ["VEHTYPE";"Response";"YesNo";"float";"string";"DateTime"; "int64"]
     (convertibles 
     |> List.filter (fun (t,x) -> t.TypeDef.IsSome && not (exSet.Contains t.TypeName))
     |> List.distinctBy (fun (t,x) -> t.TypeName)
     |> List.map (fun (t,x) -> genConverter t x))
-    @ [baseConverter; yesNoConverter; floatConverter; dateTimeConverter]
+    @ [baseConverter; yesNoConverter; 
+       floatConverter; dateTimeConverter;
+       vehTypeConverter]
+
+(*
+let cb1 = vehCb |> List.find(fun x->x.Name="VEHTYPE")
+let (i : TypeDef option) = (|OtherEum|_|) cb1
+printfn "%A" i
+typeDefs.[cb1.CodeSet].TypeDef |> Option.iter (printfn "%s")
+typeDefs |> Map.toSeq |> Seq.choose (fun (n,x) ->x.TypeDef |> Option.map(fun y -> n,y)) |> Seq.iter (printfn "%A")
+*)
 
 let allCodeTypes = 
+    let exSet = set ["VEHTYPE"]
     typeDefs
     |> Map.toSeq
     |> Seq.map snd
     |> Seq.distinctBy _.TypeName
+    |> Seq.filter (fun x-> not (exSet.Contains x.TypeName))
     |> Seq.choose _.TypeDef
     |> String.concat "\n\n"
 
@@ -415,9 +452,12 @@ let helpers = """module Helpers =
 
 let  typesAndModules = 
     seq {
-        """namespace FsOpenAI.TravelSurvey.Types
+        """
+// This file was generated by the createTypes.fsx script. Do not edit this file directly.
+namespace FsOpenAI.TravelSurvey.Types
 open System"""
         allCodeTypes
+        vehType
         genRec typeDefs codeMap "Household" hh descs
         genRec typeDefs codeMap "Vehicle" veh descs
         genRec typeDefs codeMap "Person" per descs
@@ -430,7 +470,9 @@ open System"""
 
 let allReaders = 
     seq {
-        """module FsOpenAI.TravelSurvey.Loader
+        """
+// This file was generated by the createTypes.fsx script. Do not edit this file directly.
+module FsOpenAI.TravelSurvey.Loader
 open System
 open FsOpenAI.TravelSurvey.Types"""        
         yield! converters
