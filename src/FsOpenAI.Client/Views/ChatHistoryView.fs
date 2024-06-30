@@ -12,7 +12,7 @@ type ChatHistoryView() =
     inherit ElmishComponent<Model,Message>()
 
     let marker = HtmlRef()
-    let clist = Ref<MudList>()
+    let clist = Ref<MudList<InteractionMessage>>()
 
     member val IsBuffering = false with get, set
     member val markerId = "" with get, set
@@ -46,20 +46,20 @@ type ChatHistoryView() =
             comp<MudPaper> {
                 "Class" => "overflow-auto"
                 "Style" => $"height: 100vh; padding-bottom: {botPad}rem;"
-                comp<MudList> {
+                comp<MudList<InteractionMessage>> {
                     "Dense" => true
                     clist
                     concat {
                         for m in chat.Messages do
                             let model = (model.busy,chat,m,model)
                             yield
-                                comp<MudListItem> {
+                                comp<MudListItem<InteractionMessage>> {
                                     ecomp<MessageView,_,_> model dispatch {attr.empty()}
                                 }
                         if chat.IsBuffering then
                             if chat.Notifications.IsEmpty |> not then
                                 yield
-                                    comp<MudListItem> {
+                                    comp<MudListItem<string>> {
                                         "Class" => "d-flex ml-5"
                                         div {
                                             attr.id this.markerId
@@ -73,7 +73,7 @@ type ChatHistoryView() =
                                         }
                             else
                                 yield
-                                    comp<MudListItem> {
+                                    comp<MudListItem<string>> {
                                         "Class" => "d-flex ml-5"
                                         div {
                                             attr.id this.markerId

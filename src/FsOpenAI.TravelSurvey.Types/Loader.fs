@@ -232,11 +232,6 @@ let toVEHFUEL (v:string) : VEHFUEL =
     | 6 -> ``VEHFUEL_Hybrid, gas|electric, non plug-in``
     | 97 -> ``VEHFUEL_Uses other fuel``
 
-let toVEHOWNMO (v:string) : VEHOWNMO =
-    match int v with
-    | -1 -> ``VEHOWNMO_Appropriate skip``
-    | -9 -> ``VEHOWNMO_Not ascertained``
-
 let toWHOMAIN (v:string) : WHOMAIN =
     match int v with
     | -9 -> ``WHOMAIN_Not ascertained``
@@ -917,11 +912,6 @@ let toMAINMODE (v:string) : MAINMODE =
     | 23 -> ``MAINMODE_Charter|tour buses``
     | 24 -> ``MAINMODE_Inter-city bus service``
 
-let toNTSAWAY (v:string) : NTSAWAY =
-    match int v with
-    | -9 -> ``NTSAWAY_Not ascertained``
-    | -1 -> ``NTSAWAY_Appropriate skip``
-
 let toONTP_P (v:string) : ONTP_P =
     match int v with
     | -1 -> ``ONTP_P_Valid skip``
@@ -1046,7 +1036,7 @@ let to_Vehicle (vals:string[]) =
         ANNMILES = toBaseResponse vals.[18]
         HYBRID = toYesNo vals.[19]
         VEHAGE = toFloat vals.[20]
-        VEHOWNMO = toVEHOWNMO vals.[21]
+        VEHOWNMO = toBaseResponse vals.[21]
         NUMADLT = toFloat vals.[22]
         HOMEOWN = toHOMEOWN vals.[23]
         RAIL = toYesNo vals.[24]
@@ -1320,7 +1310,7 @@ let to_LongTrip (vals:string[]) =
         LDT_FLAG = toLDT_FLAG vals.[19]
         BEGTRIP = toBaseResponse vals.[20]
         ENDTRIP = toBaseResponse vals.[21]
-        NTSAWAY = toNTSAWAY vals.[22]
+        NTSAWAY = toBaseResponse vals.[22]
         WEEKEND = toWEEKEND vals.[23]
         MRT_DATE = toBaseResponse vals.[24]
         FARCDIV = toEXITCDIV vals.[25]

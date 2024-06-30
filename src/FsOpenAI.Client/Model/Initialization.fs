@@ -208,8 +208,7 @@ module Init =
             for (icon,name,createType) in group do
                 comp<MudMenuItem> {
                     "Icon" => icon
-                    on.click(fun _ -> dispatch (Ia_Add createType))
-                    attr.callback "OnTouch" (fun (e:TouchEventArgs) -> dispatch (Ia_Add createType)) //touch handlers needed for mobile
+                    on.click(fun _ -> dispatch (Ia_Add createType))                    
                     comp<MudPaper> {
                         "Class" => "d-flex align-center"
                         "Elevation" => 0
@@ -217,7 +216,6 @@ module Init =
                             "Class" => "d-flex flex-none mr-2"
                             "Color" => badgeColorCreate createType
                             "Dot" => true
-                            "Left" => true
                         }
                         text name
                     }
@@ -231,7 +229,7 @@ module Init =
 
     let flashBanner (uparms:UpdateParms) model msg =
         let txClr = Colors.Pink.Lighten3
-        let msgClr = Colors.Grey.Lighten3
+        let msgClr = Colors.Gray.Lighten3
         let n =
             div {
                 comp<MudPaper> {
@@ -286,6 +284,6 @@ module Init =
             appConfig.PaletteLight |> Option.iter(fun p -> setColors p pLight)
             let th = MudTheme()
             th.PaletteDark <- pDark
-            th.Palette <- pLight
+            th.PaletteLight <- pLight
             th
 

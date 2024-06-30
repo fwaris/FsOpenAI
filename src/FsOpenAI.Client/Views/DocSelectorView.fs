@@ -82,7 +82,7 @@ type DocSelectorView() =
                               }
                     dispatch (Ia_File_BeingLoad2 (chat.Id,doc)))
 
-                attr.fragmentWith "ButtonTemplate" (fun (t:FileUploadButtonTemplateContext<IBrowserFile>) -> 
+                attr.fragment "ActivatorContent" (
                     comp<MudButton> {
                         "Disabled" => (Auth.isAuthorized model |> not)
                         "Variant" => Variant.Filled

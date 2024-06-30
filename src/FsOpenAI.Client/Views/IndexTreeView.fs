@@ -54,7 +54,7 @@ type IndexTreePopup() =
                                 "Class" => "align-center"
                                 "Elevation" => 0
                                 text idxt.Description
-                                comp<MudChip> {
+                                comp<MudChip<string>> {
                                     text idxt.Idx.Name
                                 }
                             }
@@ -86,7 +86,7 @@ type IndexTreeView() =
                     "Style" => "height: 2.5rem; overflow-y: auto;"
                     "Elevation" => 0
                     for idx in bag.Indexes do                        
-                        comp<MudChip> {
+                        comp<MudChip<string>> {
                             text idx.Name
                         }
                 }

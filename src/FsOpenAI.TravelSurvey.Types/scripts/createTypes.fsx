@@ -145,7 +145,14 @@ let (|BaseReponse|_|) (codebook:Codebook) =
     let cs = codes codebook 
     let markers = [-1;-9] |> List.map Some |> set
     let codes = cs |> List.choose snd
-    if markers |> Set.exists (fun x -> cs |> List.exists (fun (a,b) -> a = x)) && hasKeyWrdResponses codebook then 
+    let hasMarkers = markers |> Set.exists (fun x -> cs |> List.exists (fun (a,b) -> a = x))
+    let hasKeyWrdResponses = hasKeyWrdResponses codebook
+    let hasNonMarkerEnums = 
+        cs
+        |> List.filter (fun (i,_) -> markers.Contains i |> not)
+        |> List.choose snd
+        |> List.length > 0
+    if hasMarkers && (hasKeyWrdResponses || not hasNonMarkerEnums) then 
         Some (baseResponseType())
     else
         None

@@ -60,7 +60,7 @@ type ChatParametersView() =
                                                 if model.darkTheme then 
                                                     model.theme.PaletteDark.Primary.Value 
                                                 else 
-                                                    model.theme.Palette.Primary.Value 
+                                                    model.theme.PaletteLight.Primary.Value 
                                             else ""
                                         comp<MudButton> {
                                             "Style" => $"color:{color}"                                            

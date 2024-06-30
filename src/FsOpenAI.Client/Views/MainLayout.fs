@@ -30,6 +30,7 @@ type MainLayout() =
             concat {
                 comp<PageTitle> { text (model.appConfig.AppName |> Option.defaultValue "") }
                 comp<MudThemeProvider> { "isDarkMode" => model.darkTheme; "Theme" => model.theme }
+                comp<MudPopoverProvider>
                 comp<MudScrollToTop> {comp<MudFab> { "Icon" => Icons.Material.Filled.ArrowUpward; "Color" => Color.Primary; "Size" => Size.Small }}
                 comp<MudDialogProvider> {attr.empty()}
                 comp<MudSnackbarProvider> {attr.empty()}                
@@ -37,7 +38,7 @@ type MainLayout() =
                     "Style" => "height:100vh; overflow: hidden; justify-content: space-around; display:flex"
                     match model.appConfig.AppBarType with
                     | Some (AppB_Base t) -> AppBar.appBar model t dispatch
-                    | Some (AppB_Alt t)  -> GCAppBar.appBar model t dispatch
+                    | Some (AppB_Alt t)  -> AltAppBar.appBar model t dispatch
                     | None               -> ()            
                     comp<MudMainContent> {
                         ecomp<MainContent,_,_> model dispatch {attr.empty()}

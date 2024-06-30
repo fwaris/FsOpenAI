@@ -27,7 +27,7 @@ type MessageView() =
     override this.View model dispatch =
         let isBusy,chat,msg,model = model
         let docs = match msg.Role with Assistant r -> r.Docs | _ -> []
-        let backColor = if model.darkTheme then Colors.Grey.Darken4 else Colors.Amber.Lighten4
+        let backColor = if model.darkTheme then Colors.Gray.Darken4 else Colors.Amber.Lighten4
 
         comp<MudPaper> {
             "Class" => $"d-flex border-solid border flex-column {border msg} rounded-lg pa-1"

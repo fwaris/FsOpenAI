@@ -13,7 +13,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="13.0.1" />
-    <PackageReference Include="Azure.Identity" Version="1.11.3" />
+    <PackageReference Include="Azure.Identity" Version="1.12.0" />
     <PackageReference Include="Azure.Security.KeyVault.Secrets" Version="4.6.0" />
     <PackageReference Include="Bolero.Server" Version="0.*" />
     <PackageReference Include="Bolero.HotReload.Server" Version="0.*" />
@@ -22,7 +22,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.6" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.6" NoWarn="NU1605" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="8.0.6" NoWarn="NU1605" />
-    <PackageReference Include="Microsoft.Identity.Web.UI" Version="2.19.0" />
+    <PackageReference Include="Microsoft.Identity.Web.UI" Version="2.20.0" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Update="FSharp.Core" Version="8.0.300" />

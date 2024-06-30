@@ -3,16 +3,6 @@
 namespace FsOpenAI.TravelSurvey.Types
 open System
 
-/// Nights away on long distance trip
-type NTSAWAY =
-| ``NTSAWAY_Not ascertained``
-| ``NTSAWAY_Appropriate skip``
-
-/// Vehicles owned less than 1 year - months owned
-type VEHOWNMO =
-| ``VEHOWNMO_Appropriate skip``
-| ``VEHOWNMO_Not ascertained``
-
 type Response = 
     | R_NotAscertained
     | R_Skipped
@@ -1020,7 +1010,7 @@ type Vehicle = {
     ANNMILES : Response // Self-reported annualized mile estimate
     HYBRID : YesNo // Hybrid vehicle
     VEHAGE : float // Age of vehicle, based on model year
-    VEHOWNMO : VEHOWNMO // Vehicles owned less than 1 year - months owned
+    VEHOWNMO : Response // Vehicles owned less than 1 year - months owned
     NUMADLT : float // Count of adult household members at least 18 years old
     HOMEOWN : HOMEOWN // Whether home owned or rented
     RAIL : YesNo // MSA heavy rail status for household
@@ -1291,7 +1281,7 @@ type LongTrip = {
     LDT_FLAG : LDT_FLAG // Source of long distance data
     BEGTRIP : Response // Beginning date of trip (YYYYMM)
     ENDTRIP : Response // Ending date of trip (YYYYMM)
-    NTSAWAY : NTSAWAY // Nights away on long distance trip
+    NTSAWAY : Response // Nights away on long distance trip
     WEEKEND : WEEKEND // Trip includes weekend
     MRT_DATE : Response // Date of most recent long distance trip (YYYYMM)
     FARCDIV : EXITCDIV // Farthest domestic destination Census division code (domestic trips only)

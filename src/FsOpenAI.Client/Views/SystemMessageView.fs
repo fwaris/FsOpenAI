@@ -14,8 +14,7 @@ type SystemMessageView() =
         let msg = chat.SystemMessage
         comp<MudExpansionPanels> {
             "Class" => "d-flex flex-1"
-            comp<MudExpansionPanel> {
-                "IsInitiallyExpanded" => false
+            comp<MudExpansionPanel> {                
                 "Text" => "System Message"
                 "Icon" => Icons.Material.Filled.Try
                 //"DisableGutters" => true

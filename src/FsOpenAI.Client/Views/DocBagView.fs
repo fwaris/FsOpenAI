@@ -98,7 +98,7 @@ type DocBagView() =
                     let dbag = {dbag with Document = doc; SearchTerms=None}
                     dispatch (Ia_File_BeingLoad (chat.Id,dbag)))
 
-                attr.fragmentWith "ButtonTemplate" (fun (t:FileUploadButtonTemplateContext<IBrowserFile>) -> 
+                attr.fragment "ActivatorContent" (
                     comp<MudButton> {
                         "Disabled" => (Auth.isAuthorized model |> not)
                         "Variant" => Variant.Filled

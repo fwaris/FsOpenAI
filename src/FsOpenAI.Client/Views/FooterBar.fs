@@ -16,7 +16,7 @@ module FooterBar =
 
     let footer jsr model dispatch = 
         let chId,docs = TmpState.isDocsOpen model
-        let bg = if model.darkTheme then model.theme.PaletteDark.Background else model.theme.Palette.Background
+        let bg = if model.darkTheme then model.theme.PaletteDark.Background else model.theme.PaletteLight.Background
         comp<MudAppBar> {
             "Style" => $"top: auto; bottom: 0; background:{bg.ToString(Utilities.MudColorOutputFormats.HexA)}" 
             "Dense" => true
