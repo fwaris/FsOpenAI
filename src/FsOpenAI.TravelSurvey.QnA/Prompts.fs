@@ -29,8 +29,8 @@ You are an AI assistant that can generate F# code to answer a user QUERY on a mo
 """
 
     let helperFunctions = """
-- Helpers.formatNumber: Format a number to a string with two decimal places
-- Helpers.formatNumberPercent: Format a number to a string as a percentage with two decimal places
+- FsOpenAI.TravelSurvey.Types.Helpers.formatNumber: Format a number to a string with two decimal places
+- FsOpenAI.TravelSurvey.Types.Helpers.formatNumberPercent: Format a number to a string as a percentage with two decimal places
 - Data.load() : Lazy<FsOpenAI.TravelSurvey.Types.DataSets> : Load the NHTS dataset
  """
 
@@ -54,7 +54,8 @@ You are an AI assistant that can generate F# code to answer a user QUERY on a mo
 - Do not use F# reserved keywords as variable names (e.g. 'end', 'as', etc.).
 - Put type annotations where needed so types are clear in the generated code.
 - Prefer using |> when working with lists (e.g. data_list |> List.map ...) so the types are better inferred.
-- When creating lists always use put the '[' on a new line, properly indented.
+- Refer to [F# Types] to ensure that Union Cases are geneated so the code is compilable.
+- Use fully qualifield Union Cases when pattern matching and in Boolean expressions, e.g. TRAVDAY.TRAVDAY_Saturday instead of just TRAVDAY_Saturday; MAKE.MAKE_Ford instead of Make_Ford, etc.
 - ALWAYS TYPE ANNOTATE THE LAMBDA FUNCTION PARAMETERS.
 - BE SURE TO ACTUALLY INVOKE THE GENERATED FUNCTION WITH THE APPROPRIATE ARGUMENTS TO RETURN THE FINAL RESULT.
 - JUST RETURN THE FINAL RESULT. DO NOT PRINT THE RESULT. DO NOT ASSIGN THE RESULT TO A VARIABLE.

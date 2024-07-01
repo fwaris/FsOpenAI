@@ -11,8 +11,6 @@ open MudBlazor
 open FsOpenAI.Shared
 open FsOpenAI.Shared.Interactions
 
-#nowarn "44"
-
 type UpdateParms =
     {
         localStore          : ILocalStorageService
@@ -63,7 +61,7 @@ module Init =
             | CM_IndexQnADoc, IndexQnADoc _
             | CM_QnADoc, QnADoc _
             | CM_TravelSurvey, CodeEval _ -> true
-            | _                         -> false)
+            | _                           -> false)
 
     let isAllowedSample appConfig ch =
         appConfig.EnabledBackends
@@ -161,8 +159,7 @@ module Init =
         let availableModels =
             match backend with
             | AzureOpenAI ->  chatModels |> List.filter (fun m -> m.Backend = AzureOpenAI)
-            | OpenAI -> chatModels |> List.filter (fun m -> m.Backend = OpenAI)
-            | Anthropic -> chatModels |> List.filter (fun m -> m.Backend = OpenAI)
+            | OpenAI -> chatModels |> List.filter (fun m -> m.Backend = OpenAI)            
             |> List.map(fun x->x.Model)
 
         if availableModels.IsEmpty then failwith "No chat models configured"

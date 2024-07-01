@@ -193,12 +193,10 @@ let legalize (s:string) =
 
 let unionCase n (s:string) =
     if isIdentifier s then 
-        // $"{n}_{capitalizeFirst s}"
-        $"{capitalizeFirst s}"
+        $"{n}_{capitalizeFirst s}"
     else 
         let l = s |> legalize 
-        // $"``{n}_{l}``"
-        $"``{l}``"
+        $"``{n}_{l}``"        
 
 let (|OtherEum|_|) (codebook:Codebook) = 
     let enumName = normalizedTypeName codebook.Name
@@ -420,11 +418,11 @@ let toVEHTYPE (v:string) : VEHTYPE =
 
 let dataSetType = """
 type DataSets = {
-    Household   : Household list // List of Household records
-    Vehicle     : Vehicle list //List of Vehicle records for each Household
-    Person      : Person list //List of Household members
-    Trip        : Trip list //One record per Household member's travel day trip (If at least one trip is made) 
-    LongTrip    : LongTrip list //Long trip taken by Household
+    Households   : Household list // List of Household records
+    Vehicles     : Vehicle list //List of Vehicle records for each Household
+    Persons      : Person list //List of Household members
+    Trips        : Trip list //One record per Household member's travel day trip (If at least one trip is made) 
+    LongTrips    : LongTrip list //Long trip taken by Household
 }"""
 
 let converters = 
@@ -455,7 +453,8 @@ let allCodeTypes =
     |> Seq.choose _.TypeDef
     |> String.concat "\n\n"
 
-let helpers = """module Helpers =
+let helpers = """
+module Helpers =
 
     let formatNumber (f:float) : string = sprintf "%0.2f" f
 

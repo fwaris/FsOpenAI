@@ -86,7 +86,7 @@ type ChatMode =
     | CM_IndexQnASite
     | CM_QnADoc
     | CM_CustCtx
-    | CM_Wholesale
+    | CM_TravelSurvey
 
 type AppBarType =
     | AppB_Base of string

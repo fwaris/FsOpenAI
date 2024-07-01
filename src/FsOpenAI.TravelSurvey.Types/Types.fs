@@ -1330,12 +1330,13 @@ type LongTrip = {
 
 
 type DataSets = {
-    Household   : Household list // List of Household records
-    Vehicle     : Vehicle list //List of Vehicle records for each Household
-    Person      : Person list //List of Household members
-    Trip        : Trip list //One record per Household member's travel day trip (If at least one trip is made) 
-    LongTrip    : LongTrip list //Long trip taken by Household
+    Households   : Household list // List of Household records
+    Vehicles     : Vehicle list //List of Vehicle records for each Household
+    Persons      : Person list //List of Household members
+    Trips        : Trip list //One record per Household member's travel day trip (If at least one trip is made) 
+    LongTrips    : LongTrip list //Long trip taken by Household
 }
+
 
 module Helpers =
 

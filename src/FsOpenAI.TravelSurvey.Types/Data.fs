@@ -20,11 +20,11 @@ let loadFromPath (path: string) : DataSets =
     let ldtData = CsvFile.Load(LDTFile).Rows |> Seq.map (fun x -> [|0 .. x.Columns.Length - 1|] |> Array.map (fun i -> x.[i]) ) |> Seq.map to_LongTrip
     
     { 
-        Household = hhData |> Seq.toList
-        Vehicle = vehData |> Seq.toList
-        Person = perData |> Seq.toList
-        Trip = tripData |> Seq.toList
-        LongTrip = ldtData |> Seq.toList
+        Households = hhData |> Seq.toList
+        Vehicles = vehData |> Seq.toList
+        Persons = perData |> Seq.toList
+        Trips = tripData |> Seq.toList
+        LongTrips = ldtData |> Seq.toList
     }
 
 
