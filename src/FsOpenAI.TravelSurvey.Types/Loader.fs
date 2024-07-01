@@ -946,8 +946,10 @@ let toYesNo (v:string) : YesNo =
     match int v with
     | -1 -> YN_NotAscertained
     | -9 -> YN_Skipped
+    | -8 -> ``YN_Don't Know``
     | 1 -> Yes
     | 2 -> No
+    | x -> failwith $"Unexpected value: {x} for yes/no" 
 
 
 let toFloat (v:string) : float = 

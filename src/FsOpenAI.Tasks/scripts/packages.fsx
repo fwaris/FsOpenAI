@@ -25,6 +25,7 @@
 #r "nuget: ExcelDataReader, 3.7.0-develop00385"
 #r "nuget: ExcelDataReader.DataSet, 3.7.0-develop00385"
 #r "nuget: FSharp.Compiler.Service"
+#r "nuget: Anthropic.SDK"
 
 #I "../../FsOpenAI.Shared"
 #load "Constants.fs"

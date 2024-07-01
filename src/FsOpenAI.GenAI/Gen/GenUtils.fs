@@ -1,5 +1,7 @@
 ﻿namespace FsOpenAI.GenAI
 open System
+open System.Runtime.InteropServices
+open System.Threading
 open System.Text.Json
 open Microsoft.SemanticKernel
 open Azure.AI.OpenAI
@@ -10,6 +12,66 @@ open Microsoft.Extensions.DependencyInjection
 open Microsoft.SemanticKernel.ChatCompletion
 open FSharp.Control
 open FsOpenAI.Shared
+
+module private Anthropic = 
+    open Anthropic.SDK
+    open System.Reflection
+    let toMessages (msgs:System.Collections.Generic.IList<ChatRequestMessage>) = 
+        msgs
+        |> Seq.choose(fun m -> 
+            match m with 
+            | :? Azure.AI.OpenAI.ChatRequestAssistantMessage as x -> Messaging.Message(Messaging.RoleType.Assistant,x.Content) |> Some
+            | :? Azure.AI.OpenAI.ChatRequestUserMessage as x -> Messaging.Message(Messaging.RoleType.User,x.Content) |> Some
+            | _ -> None)
+        |> ResizeArray
+
+    let toResp(content:string) =
+        let typeToInstantiate = typeof<ChatChoice>
+        let flags = BindingFlags.NonPublic ||| BindingFlags.Instance;
+        object[] parameters = null; // Add parameters if needed
+        CultureInfo culture = null; // Use InvariantCulture or other if preferred
+        object instantiatedType = Activator.CreateInstance(typeToInstantiate, flags, null, parameters, culture);
+
+type AnthropicClient(key) =
+    inherit OpenAIClient("key")
+    let anthropicClient() = new Anthropic.SDK.AnthropicClient(Anthropic.SDK.APIAuthentication(key))
+
+    
+
+
+    override this.GetChatCompletionsAsync(chatCompletionOptions:ChatCompletionsOptions,[<Optional; DefaultParameterValue(CancellationToken())>] cancellationToken) = 
+        task {
+            use client = anthropicClient()
+            let msgs = chatCompletionOptions.Messages |> Anthropic.toMessages
+            let parameters = new Anthropic.SDK.Messaging.MessageParameters(
+                Messages = msgs,
+                MaxTokens = chatCompletionOptions.MaxTokens.GetValueOrDefault(1024),
+                Model = chatCompletionOptions.DeploymentName,
+                Stream = false,
+                Temperature = (if chatCompletionOptions.Temperature.HasValue then Nullable(decimal chatCompletionOptions.Temperature.Value) else Nullable<decimal>())
+            )
+            let! apiResp = client.Messages.GetClaudeMessageAsync(parameters,ctx=cancellationToken) 
+            let resp = Azure.AI.OpenAI.ChatCompletions
+             apiResp.Content
+            let resp = Azure.Response.FromValue()
+            return resp
+        }
+
+    override this.GetChatCompletionsStreamingAsync(chatCompletionOptions:ChatCompletionsOptions,[<Optional; DefaultParameterValue(CancellationToken())>] cancellationToken) = 
+        task {
+            let! resp = this.GetChatCompletionsStreamingAsync(chatCompletionOptions,cancellationToken)
+            return resp
+        }
+
+    override this.GetEmbeddingsAsync(embeddingsOptions:EmbeddingsOptions,[<Optional; DefaultParameterValue(CancellationToken())>] cancellationToken) = 
+        task {
+            let! resp = this.GetEmbeddingsAsync(embeddingsOptions,cancellationToken)
+            return resp
+        }
+
+    interface IDisposable with
+        member this.Dispose() = 
+            anthropic.Dispose()
 
 module GenUtils =
     open Microsoft.SemanticKernel.Memory
@@ -141,6 +203,8 @@ module GenUtils =
         let rg = endpt.RESOURCE_GROUP
         let url = $"https://{rg}.openai.azure.com"
         rg,url,endpt.API_KEY
+
+    
 
     let getClientFor (parms:ServiceSettings) backend =
             match backend with 

@@ -127,6 +127,7 @@ let baseYesNoType() =
     let typeDef = """type YesNo = 
     | YN_NotAscertained
     | YN_Skipped
+    | ``YN_Don't Know``
     | Yes
     | No"""
     {TypeName = "YesNo"; TypeDef=  Some typeDef; Converter="toYesNo"}
@@ -192,10 +193,12 @@ let legalize (s:string) =
 
 let unionCase n (s:string) =
     if isIdentifier s then 
-        $"{n}_{capitalizeFirst s}"
+        // $"{n}_{capitalizeFirst s}"
+        $"{capitalizeFirst s}"
     else 
         let l = s |> legalize 
-        $"``{n}_{l}``"
+        // $"``{n}_{l}``"
+        $"``{l}``"
 
 let (|OtherEum|_|) (codebook:Codebook) = 
     let enumName = normalizedTypeName codebook.Name
@@ -370,8 +373,10 @@ let yesNoConverter = """let toYesNo (v:string) : YesNo =
     match int v with
     | -1 -> YN_NotAscertained
     | -9 -> YN_Skipped
+    | -8 -> ``YN_Don't Know``
     | 1 -> Yes
-    | 2 -> No"""
+    | 2 -> No
+    | x -> failwith $"Unexpected value: {x} for yes/no" """
 
 let floatConverter = """
 let toFloat (v:string) : float = 
@@ -415,11 +420,11 @@ let toVEHTYPE (v:string) : VEHTYPE =
 
 let dataSetType = """
 type DataSets = {
-    Household   : Household list
-    Vehicle     : Vehicle list
-    Person      : Person list
-    Trip        : Trip list
-    LongTrip    : LongTrip list
+    Household   : Household list // List of Household records
+    Vehicle     : Vehicle list //List of Vehicle records for each Household
+    Person      : Person list //List of Household members
+    Trip        : Trip list //One record per Household member's travel day trip (If at least one trip is made) 
+    LongTrip    : LongTrip list //Long trip taken by Household
 }"""
 
 let converters = 

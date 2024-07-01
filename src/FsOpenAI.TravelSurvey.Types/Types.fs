@@ -85,6 +85,7 @@ type COV2_SCH =
 type YesNo = 
     | YN_NotAscertained
     | YN_Skipped
+    | ``YN_Don't Know``
     | Yes
     | No
 
@@ -1329,11 +1330,11 @@ type LongTrip = {
 
 
 type DataSets = {
-    Household   : Household list
-    Vehicle     : Vehicle list
-    Person      : Person list
-    Trip        : Trip list
-    LongTrip    : LongTrip list
+    Household   : Household list // List of Household records
+    Vehicle     : Vehicle list //List of Vehicle records for each Household
+    Person      : Person list //List of Household members
+    Trip        : Trip list //One record per Household member's travel day trip (If at least one trip is made) 
+    LongTrip    : LongTrip list //Long trip taken by Household
 }
 
 module Helpers =

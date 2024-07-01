@@ -62,7 +62,7 @@ module Init =
             | CM_IndexQnA,IndexQnA _
             | CM_IndexQnADoc, IndexQnADoc _
             | CM_QnADoc, QnADoc _
-            | CM_Wholesale, CodeEval _ -> true
+            | CM_TravelSurvey, CodeEval _ -> true
             | _                         -> false)
 
     let isAllowedSample appConfig ch =
@@ -162,6 +162,7 @@ module Init =
             match backend with
             | AzureOpenAI ->  chatModels |> List.filter (fun m -> m.Backend = AzureOpenAI)
             | OpenAI -> chatModels |> List.filter (fun m -> m.Backend = OpenAI)
+            | Anthropic -> chatModels |> List.filter (fun m -> m.Backend = OpenAI)
             |> List.map(fun x->x.Model)
 
         if availableModels.IsEmpty then failwith "No chat models configured"

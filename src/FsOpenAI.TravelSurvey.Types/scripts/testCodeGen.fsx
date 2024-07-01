@@ -45,7 +45,7 @@ let questions =
     "What percentage of households have Ford vechicles?"
     ]
 
-let question = questions.[2]
+let question = questions.[3]
 
 let chPlan =
     Interaction.create InteractionCreateType.Crt_Plain OpenAI None

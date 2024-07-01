@@ -7,23 +7,27 @@ module Data =
 //*****
 open FsOpenAI.TravelSurvey.Types
 open Helpers
-let data = Data.load().Value                                                                                                  
 
-let averageCommuteTimeForWorkers (data: DataSets) : string =                                                                  
-    let commuteTimes =                                                                                                        
-        data.Trip                                                                                                             
-        |> List.filter (fun (trip: Trip) -> trip.WHYTRP1S = WHYTRP1S_Work)                                                    
-        |> List.choose (fun (trip: Trip) ->                                                                                   
-            match trip.TRVLCMIN with                                                                                          
-            | Value duration -> Some duration                                                                                 
-            | _ -> None)                                                                                                      
+let mostCommonReasonsForTravelDuringWeekends () : string =
+    let data = Data.load().Value
+    let weekendDays = set ["Saturday"; "Sunday"]
 
-    let totalCommuteTime = List.sum commuteTimes                                                                              
+    let weekendTrips =
+        data.Trip
+        |> List.filter (fun (trip: Trip) -> weekendDays.Contains(trip.TRAVDAY.ToString()))
 
-    let numberOfCommutes = List.length commuteTimes                                                                           
+    let reasonCounts =
+        weekendTrips
+        |> List.groupBy (fun (trip: Trip) -> trip.WHYTO)
+        |> List.map (fun (reason, trips) -> reason, List.length trips)
+        |> List.sortByDescending snd
 
-    let averageCommuteTime = float totalCommuteTime / float numberOfCommutes                                                  
+    let topReasons =
+        reasonCounts
+        |> List.take 5
+        |> List.map (fun (reason, count) -> $"{reason}: {Helpers.formatNumber (float count)}")
+        |> String.concat ", "
 
-    formatNumber averageCommuteTime
-averageCommuteTimeForWorkers data                                                                                             
-                                                                                                                               
+    $"The most common reasons for travel during weekends are: {topReasons}."
+
+mostCommonReasonsForTravelDuringWeekends ()
