@@ -46,11 +46,15 @@ let questions =
     "How often do people carpool for their daily commutes?"
     "What percentage of households own electric vehicles (EVs)?"
     "What are the most common reasons for travel during weekends?"
-    "What modes of transportation do college students use to get to campus?"
+    "What modes of transportation do college students use to get to campus?. Rank each by share"
     "What percentage of households have Ford vehicles?"
+    //
+    "What is the percentage of trips by vehicle type?"
+    "What percentage of persons used rideshare in the last 30 days. Present the data by Census region." 
+    ""
     ]
 
-let question = questions.[5]
+let question = questions.[8]
 
 let chPlan =
     Interaction.create InteractionCreateType.Crt_Plain OpenAI None
