@@ -133,6 +133,15 @@ type ServerHub() =
                 | Clnt_Ia_Session_Delete (invCtx,id) ->
                     do Sessions.queueOp (Delete (invCtx,id))
 
+                | Clnt_Ia_Feedback_Submit (invCtx,fb) ->
+                    let fbe = 
+                        {
+                            UserId = invCtx.User |> Option.defaultValue C.UNAUTHENTICATED
+                            LogId=fb.LogId
+                            Feedback = {ThumbsUpDn = fb.ThumbsUpDn; Comment = fb.Comment;}
+                        }
+                    Monitoring.write (Feedback fbe)
+
                 | Clnt_Ia_Session_LoadAll invCtx ->
                     do!
                         async {
@@ -143,7 +152,8 @@ type ServerHub() =
                             | Choice1Of2 _ -> ()
                             | Choice2Of2 ex ->
                                 Env.logException(ex,"Clnt_LoadChatSessions: ")
-                                dispatch (Srv_Error ex.Message)
+                                dispatch (Srv_Info "Due to format change, saved sessions cannot be loaded. They will be cleared. Please create new session from top right menu")
+                                do Sessions.queueOp (ClearAll invCtx) //clear all saved sessions to avoid future errors
                             dispatch Srv_Ia_Session_DoneLoading
                         }
 

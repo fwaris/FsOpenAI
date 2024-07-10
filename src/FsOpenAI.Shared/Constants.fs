@@ -31,7 +31,9 @@ module C =
     let FSOPENAI_AZURE_KEYVAULT = "FSOPENAI_AZURE_KEYVAULT"         //3nd: look for a key vault name in this environment variable,
     let FSOPENAI_AZURE_KEYVAULT_KEY = "FSOPENAI_AZURE_KEYVAULT_KEY" //     and key vault key name in this environment variable
                                                                     //     Note: key vault key value is a base64 encoded json string
-    let DFLT_MONITOR_TABLE_NAME = "tmgenai-log1"                   //Note: follow Azure Table naming rules (no underscores or dashes)
+    let DFLT_MONITOR_TABLE_NAME = "tmgenai-log1"                    //Note: follow Azure Table naming rules (no underscores or dashes)
+    let UNAUTHENTICATED = "Unauthenticated"
+    let DFLT_APP_ID = "default"
 
     module ClientHub =
         open System.Threading.Channels

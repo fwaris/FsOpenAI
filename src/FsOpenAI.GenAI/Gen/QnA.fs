@@ -139,7 +139,7 @@ module QnA =
                             ]
             let! prompt = GenUtils.renderPrompt Prompts.QnA.questionAnswerPrompt qargs
             let ch = Interaction.setUserMessage prompt ch
-            let! resp = Completions.completeChat parms invCtx ch None
+            let! resp = Completions.completeChat parms invCtx ch None (fun _ -> ())
             return resp.Content
         }
 

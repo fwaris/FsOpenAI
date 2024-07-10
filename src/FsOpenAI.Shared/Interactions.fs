@@ -264,15 +264,17 @@ module Interaction =
 
     ///trim UI state that is not required for processing chat (cannot be serialized)
     let removeUIState ch =
-        match ch.InteractionType with
-        | IndexQnADoc dbag  ->
-                {ch with
-                    InteractionType = IndexQnADoc {dbag with
-                                                        Document.DocumentRef = None
-                                                        Document.DocType=None}}
-        | QnADoc dc         ->
-            {ch with InteractionType = QnADoc {dc with DocumentRef = None; DocType=None}}
-        | _ -> ch
+        let ch = 
+            match ch.InteractionType with
+            | IndexQnADoc dbag  ->
+                    {ch with
+                        InteractionType = IndexQnADoc {dbag with
+                                                            Document.DocumentRef = None
+                                                            Document.DocType=None}}
+            | QnADoc dc         ->
+                {ch with InteractionType = QnADoc {dc with DocumentRef = None; DocType=None}}
+            | _ -> ch
+        {ch with Feedback=None} //remove feedback 
 
     let keepMessages n ch = {ch with Messages = ch.Messages |> List.rev |> List.truncate n |> List.rev}
 
@@ -330,6 +332,7 @@ module Interaction =
             {
                 Id = id
                 Name = None
+                Feedback = None
                 InteractionType = iType
                 SystemMessage = C.defaultSystemMessage
                 Question = msg
@@ -351,6 +354,8 @@ module Interaction =
         | IndexQnADoc dbag -> {c with InteractionType = IndexQnADoc {dbag with DocOnlyQuery = not dbag.DocOnlyQuery}}
         | _ -> failwith "unexpected chat type"
 
+    let setFeedback feedback c = {c with Feedback = feedback}
+
 module Interactions =
 
     let empty = []
@@ -358,7 +363,6 @@ module Interactions =
     let addNew backend ctype msg cs =
         let id,c = Interaction.create ctype backend msg
         id, cs @ [c]
-
 
     let docContent id cs = cs |> List.find(fun c -> c.Id = id) |> Interaction.docContent
 
@@ -419,3 +423,7 @@ module Interactions =
     let setMode id mode cs = updateWith (Interaction.setMode mode) id cs
 
     let toggleDocOnly id cs = updateWith (Interaction.toggleDocOnly) id cs
+
+    let setFeedback id feedback cs = updateWith (Interaction.setFeedback feedback) id cs
+    
+    let feedback id cs = cs |> List.find(fun c -> c.Id = id) |> fun c -> c.Feedback

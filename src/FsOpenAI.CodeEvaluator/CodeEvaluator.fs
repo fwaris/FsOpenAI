@@ -74,7 +74,7 @@ module CodeEval =
                                     Env.logError msg
                                     Failure ($"%A{diag}")
 
-        let regenCode parms invCtx ch codeParms code errorMessage =
+        let regenCode parms invCtx ch codeParms code errorMessage dispatch =
             async {
                 let args = GenUtils.kernelArgsDefault ["code",code; "errorMessage",errorMessage]
                 let! regenPrompt = GenUtils.renderPrompt codeParms.RegenPrompt args |> Async.AwaitTask
@@ -82,7 +82,7 @@ module CodeEval =
                 let ch = codeParms.RegenSystemPrompt 
                         |> Option.map(fun p -> ch |> Interaction.setSystemMessage p) 
                         |> Option.defaultValue ch
-                let! resp = Completions.completeChat parms invCtx ch None
+                let! resp = Completions.completeChat parms invCtx ch None dispatch
                 let reCode = GenUtils.extractCode resp.Content
                 return reCode
             }
@@ -91,21 +91,21 @@ module CodeEval =
             dispatch (Srv_Ia_Delta(ch.Id,0,answer))
             dispatch (Srv_Ia_Done (ch.Id, None))
 
-        let genAndEvalTest parms invCtx ch codeParms =
+        let genAndEvalTest parms invCtx ch codeParms dispatch =
             async {
-                let! resp = Completions.completeChat parms invCtx ch None
+                let! resp = Completions.completeChat parms invCtx ch None dispatch
                 let code = GenUtils.extractCode resp.Content
                 printfn "******** code ********"
                 printfn "%s" code
                 match evalCode codeParms.Preamble code with
                 | Success answer -> return answer
                 | Failure msg ->
-                    let! newCode = regenCode parms invCtx ch codeParms code msg
+                    let! newCode = regenCode parms invCtx ch codeParms code msg dispatch
                     printfn "%s" newCode
                     match evalCode codeParms.Preamble newCode with
                     | Success answer -> return answer
                     | Failure msg ->
-                        let! newCode = regenCode parms invCtx ch codeParms code msg
+                        let! newCode = regenCode parms invCtx ch codeParms code msg dispatch
                         printfn "%s" newCode
                         match evalCode codeParms.Preamble newCode with
                         | Success answer -> return answer
@@ -115,7 +115,7 @@ module CodeEval =
         let genAndEval parms invCtx ch codeParms dispatch =
             async {
                 dispatch (Srv_Ia_Notification (ch.Id, $"Calling LLM to generate code..."))
-                let! resp = Completions.completeChat parms invCtx ch None
+                let! resp = Completions.completeChat parms invCtx ch None dispatch
                 let code = GenUtils.extractCode resp.Content
                 printfn "%s" code
                 dispatch (Srv_Ia_Notification (ch.Id, $"Evaluing code..."))
@@ -124,13 +124,13 @@ module CodeEval =
                 | Success answer -> sendResults ch answer dispatch
                 | Failure msg ->
                     dispatch (Srv_Ia_Notification (ch.Id, $"Error evaluating code. Tyring to fix and re-evalute code 1 ..."))
-                    let! newCode = regenCode parms invCtx ch codeParms code msg
+                    let! newCode = regenCode parms invCtx ch codeParms code msg dispatch
                     printfn "%s" newCode
                     match evalCode codeParms.Preamble newCode with
                     | Success answer -> sendResults ch answer dispatch
                     | Failure msg ->
                         dispatch (Srv_Ia_Notification (ch.Id, $"Error evaluating code. Tyring to fix and re-evalute code 2 ..."))
-                        let! newCode = regenCode parms invCtx ch codeParms code msg
+                        let! newCode = regenCode parms invCtx ch codeParms code msg dispatch
                         printfn "%s" newCode
                         match evalCode codeParms.Preamble newCode with
                         | Success answer -> sendResults ch answer dispatch

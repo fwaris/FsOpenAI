@@ -163,8 +163,8 @@ module Sessions =
                         Cosmos.fromConnectionString cstr
                         |> Cosmos.database COSMOSDB
                         |> Cosmos.container t
-                    let userId = invCtx.User |> Option.defaultValue null
-                    let appId = invCtx.AppId |> Option.defaultValue null
+                    let userId = invCtx.User |> Option.defaultValue C.UNAUTHENTICATED
+                    let appId = invCtx.AppId |> Option.defaultValue C.DFLT_APP_ID
                     let dropSessions =
                         db()
                         |> Cosmos.query<SREf>(sprintf $"SELECT c.id, c.UserId, c.Timestamp FROM c WHERE c.UserId = @UserId and c.AppId = @AppId" )
@@ -232,8 +232,8 @@ module Sessions =
     let queueOp session = channel.Writer.WriteAsync session |> ignore
 
     let toSession (invCtx:InvocationContext) (ch:Interaction) =        
-        let appId = invCtx.AppId |> Option.defaultValue null
-        let userId = invCtx.User  |> Option.defaultValue null
+        let userId = invCtx.User  |> Option.defaultValue C.UNAUTHENTICATED
+        let appId = invCtx.AppId |> Option.defaultValue C.DFLT_APP_ID
         let timestamp = DateTime.UtcNow
         {
             id          = ch.Id
@@ -247,15 +247,16 @@ module Sessions =
     let tryConvert (str:string,ch:JsonDocument) = 
         let ver = ch.RootElement.GetProperty("Version").GetString()
         if ver = Version.version then 
-            let sess = Newtonsoft.Json.JsonConvert.DeserializeObject<ChatSession>(str)            
+            let sess = System.Text.Json.JsonSerializer.Deserialize<ChatSession>(str,Utils.serOptions())
+            //let sess = Newtonsoft.Json.JsonConvert.DeserializeObject<ChatSession>(str)
             Some sess.Interaction
         else
             //TODO: convert to new verison from old serialized format
             None
 
     let loadSessions (invCtx:InvocationContext) =
-        let appId = invCtx.AppId |> Option.defaultValue null
-        let userId = invCtx.User  |> Option.defaultValue null
+        let userId = invCtx.User  |> Option.defaultValue C.UNAUTHENTICATED
+        let appId = invCtx.AppId |> Option.defaultValue C.DFLT_APP_ID
         match _connParms.Value with
         | Some (cstr,t) ->
             let db =

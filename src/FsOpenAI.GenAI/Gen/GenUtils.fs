@@ -144,8 +144,6 @@ module GenUtils =
         let url = $"https://{rg}.openai.azure.com"
         rg,url,endpt.API_KEY
 
-    
-
     let getClientFor (parms:ServiceSettings) backend =
             match backend with 
             | AzureOpenAI -> 
@@ -245,9 +243,10 @@ module GenUtils =
     let diaEntryEmbeddings ch (invCtx:InvocationContext) model resource query =
         {
             id = Utils.newId()
-            AppId = invCtx.AppId |> Option.defaultValue null
-            UserId = invCtx.User  |> Option.defaultValue null
+            UserId = invCtx.User  |> Option.defaultValue C.UNAUTHENTICATED
+            AppId = invCtx.AppId |> Option.defaultValue C.DFLT_APP_ID
             Prompt = Embedding query
+            Feedback = None
             Response = ""
             Backend = string ch.Parameters.Backend
             Model = model
@@ -263,9 +262,10 @@ module GenUtils =
         let inputTokens = tokenEstimate ch
         {
             id = Utils.newId()
-            AppId = invCtx.AppId |> Option.defaultValue null
-            UserId = invCtx.User  |> Option.defaultValue null
+            UserId = invCtx.User  |> Option.defaultValue C.UNAUTHENTICATED
+            AppId = invCtx.AppId |> Option.defaultValue C.DFLT_APP_ID
             Prompt = Chat prompt
+            Feedback = None
             Response = ""
             Backend = string ch.Parameters.Backend
             Model = model
@@ -283,11 +283,11 @@ module GenUtils =
         task {
             try
                 let! resp = embClient.GetEmbeddingsAsync(EmbeddingsOptions(embModel,[query]))
-                Monitoring.write de        
+                Monitoring.write (Diag de)
                 return resp
             with ex -> 
                 Env.logException (ex,"getEmbeddings")                
-                Monitoring.write {de with Error = ex.Message}
+                Monitoring.write (Diag {de with Error = ex.Message})
                 return raise ex
         }
 

@@ -114,6 +114,6 @@
       }
     ]
   },
-  "DiagTableName": null,
-  "SessionTableName": null
+  "DiagTableName": "log1",
+  "SessionTableName": "sessios"
 }

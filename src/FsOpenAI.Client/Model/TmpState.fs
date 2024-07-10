@@ -51,6 +51,11 @@ module TmpState =
             (fun s -> {s with SysMsgOpen = not s.SysMsgOpen}) 
             {TempChatState.Default with SysMsgOpen=true}
 
+    let toggleFeedback id model =
+        updateChatTempState id model 
+            (fun s -> {s with FeedbackOpen = not s.FeedbackOpen}) 
+            {TempChatState.Default with FeedbackOpen=true}
+
     let isDocsOpen model = 
         let selChat = Model.selectedChat model
         let docs = 
@@ -96,4 +101,10 @@ module TmpState =
         model.tempChatSettings
         |> Map.tryFind id
         |> Option.map(fun x -> x.SysMsgOpen)
+        |> Option.defaultValue false
+
+    let isFeedbackOpen id model =
+        model.tempChatSettings
+        |> Map.tryFind id
+        |> Option.map(fun x -> x.FeedbackOpen)
         |> Option.defaultValue false

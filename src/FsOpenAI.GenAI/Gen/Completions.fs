@@ -95,10 +95,11 @@ module Completions =
                                 Response = resp
                                 OutputTokens = GenUtils.tokenSize resp |> int
                             }
-                        Monitoring.write de
+                        Monitoring.write (Diag de)
+                        Srv_Ia_SetSubmissionId(ch.Id,de.id) |> dispatch 
                         dispatch (Srv_Ia_Done(ch.Id,None))
                     | Choice2Of2 ex ->
-                        Monitoring.write {de with Error = ex.Message}
+                        Monitoring.write (Diag {de with Error = ex.Message})
                         dispatch (Srv_Ia_Done(ch.Id,Some ex.Message))
                 }
             match! Async.Catch comp with
@@ -108,7 +109,7 @@ module Completions =
                 dispatch (Srv_Error ex.Message)
         }
 
-    let completeChat parms invCtx ch modelSelector =
+    let completeChat parms invCtx ch modelSelector dispatch =
         async {
             let caller,opts,de = buildCall parms invCtx ch modelSelector
             try
@@ -118,15 +119,16 @@ module Completions =
                     {de with
                         Response = respMsg.Content
                         OutputTokens = GenUtils.tokenSize respMsg.Content |> int
-                    }
-                Monitoring.write de
+                    }                    
+                Monitoring.write (Diag de)
+                Srv_Ia_SetSubmissionId(ch.Id,de.id) |> dispatch
                 return respMsg
             with ex ->
-                Monitoring.write {de with Error = ex.Message}
+                Monitoring.write (Diag {de with Error = ex.Message})
                 return raise ex
         }
 
-    let completeChatLowcost parms invCtx ch modelSelector =
+    let completeChatLowcost parms invCtx ch modelSelector dispatch =
         async {
             let caller,opts,de = buildCall parms invCtx ch modelSelector
             try
@@ -137,9 +139,10 @@ module Completions =
                         Response = respMsg.Content
                         OutputTokens = GenUtils.tokenSize respMsg.Content |> int
                     }
-                Monitoring.write de
+                Monitoring.write (Diag de)
+                Srv_Ia_SetSubmissionId(ch.Id,de.id) |> dispatch
                 return respMsg
             with ex ->
-                Monitoring.write {de with Error = ex.Message}
+                Monitoring.write (Diag {de with Error = ex.Message})
                 return raise ex
         }

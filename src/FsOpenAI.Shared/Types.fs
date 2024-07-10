@@ -163,10 +163,17 @@ type SampleChatType =
     | SM_IndexQnA of string
     | SM_IndexQnADoc of string
 
+type Feedback = {
+    LogId : string
+    ThumbsUpDn : int
+    Comment : string option
+}
+    with static member Default id = {LogId=id; ThumbsUpDn=0; Comment=None}
 
 type Interaction = {
     Id : string
     Name: string option
+    Feedback : Feedback option
     Question : string
     SystemMessage : string
     InteractionType: InteractionType
@@ -218,7 +225,8 @@ type ServerInitiatedMessages =
     | Srv_Ia_Delta of string*int*string   //chat id,index,delta
     | Srv_Ia_SetSearch of string*string
     | Srv_Ia_SetDocs of string*Document list
-    | Srv_Ia_Done of string*string option //chat id (optional error)
+    | Srv_Ia_Done of string*string option //chat id, optional log id, optional error
+    | Srv_Ia_SetSubmissionId of string*string
     | Srv_Ia_Notification of string*string //chat id (optional error)
     | Srv_Ia_Session_Loaded of Interaction
     | Srv_Ia_Session_DoneLoading
@@ -248,6 +256,7 @@ type ClientInitiatedMessages =
     | Clnt_Ia_Session_LoadAll of InvocationContext
     | Clnt_Ia_Session_ClearAll of InvocationContext
     | Clnt_Ia_Session_Delete of InvocationContext*string
+    | Clnt_Ia_Feedback_Submit of InvocationContext*Feedback
     //wholesale
     | Clnt_Run_EvalCode of ServiceSettings*InvocationContext*Interaction*CodeEvalParms
 

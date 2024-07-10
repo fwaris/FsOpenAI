@@ -68,6 +68,7 @@ module Update =
         | Ia_Notification (id,note) -> {model with interactions = Interactions.addNotification id note model.interactions},Cmd.none
         | Ia_UpdateQaBag (id,bag) -> {model with interactions = Interactions.setQABag id bag model.interactions},Cmd.none
         | Ia_UpdateDocBag (id,dbag) -> {model with interactions = Interactions.setDocBag id dbag model.interactions},Cmd.none
+        | Ia_Feedback_Set (id,fb) -> {model with interactions = Interactions.setFeedback id (Some fb) model.interactions},Cmd.none
         | Ia_File_BeingLoad (id,dbag) -> {model with interactions = Interactions.setDocBag id dbag model.interactions},Cmd.ofMsg (Ia_File_Load id)
         | Ia_File_BeingLoad2 (id,dc) -> {model with interactions = Interactions.setDocContent id dc model.interactions},Cmd.ofMsg (Ia_File_Load id)
         | Ia_File_Load id -> {model with interactions = Interactions.setDocumentStatus id Uploading model.interactions},Cmd.OfTask.either IO.loadFile (id,model,uparms.serverCall) Ia_File_Loaded Error
@@ -86,6 +87,9 @@ module Update =
         | Ia_TogglePrompts id -> TmpState.togglePrompts id model, Cmd.none
         | Ia_OpenIndex id -> TmpState.toggleIndex id model, Cmd.none
         | Ia_ToggleSysMsg id -> TmpState.toggleSysMsg id model, Cmd.none
+        | Ia_ToggleFeedback(id) -> TmpState.toggleFeedback id model, Cmd.none 
+        | Ia_Feedback_Submit id -> Submission.submitFeedback uparms.serverDispatch id model; model,Cmd.none
+        | Ia_Feedback_Cancel id -> let fb = Interactions.feedback id model.interactions |> Option.map(fun x -> Feedback.Default x.LogId) in {model with interactions = Interactions.setFeedback id fb model.interactions},Cmd.none
         //session and state
         | Error exn -> model,Cmd.ofMsg (ShowError exn.Message)
         | ShowError str -> uparms.snkbar.Add(str,severity=Severity.Error) |> ignore;model,Cmd.none
@@ -131,6 +135,7 @@ module Update =
         | FromServer (Srv_Ia_SetSearch (id,query)) -> model,Cmd.ofMsg(Ia_SetSearch(id,query))
         | FromServer (Srv_Ia_Session_Loaded ch) -> {model with interactions = ch::model.interactions},Cmd.none
         | FromServer (Srv_Ia_Session_DoneLoading) -> Submission.tryLoadSamples model
+        | FromServer (Srv_Ia_SetSubmissionId(id,logId)) -> model,Cmd.ofMsg(Ia_Feedback_Set(id,Feedback.Default logId))
         //wholesale
         | FromServer(Srv_Ia_SetCode(id,c)) -> {model with interactions = Wholesale.Interactions.setCode id c model.interactions},Cmd.none
         | FromServer(Srv_Ia_SetPlan(id,p)) -> {model with interactions = Wholesale.Interactions.setPlan id p model.interactions},Cmd.none

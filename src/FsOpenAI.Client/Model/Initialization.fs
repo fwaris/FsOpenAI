@@ -88,8 +88,10 @@ module Init =
         let postInitMsgs =
             [
                 Cmd.ofMsg GetOpenAIKey
-                if persistingChats then Cmd.ofMsg (FlashInfo "Please login to continue")
-                if not persistingChats then Cmd.ofMsg Ia_Local_Load //load local chats if not persisting
+                match persistingChats, model.appConfig.RequireLogin with
+                | true, true  -> Cmd.ofMsg (FlashInfo "Please login to continue")
+                | true, false -> Cmd.ofMsg Ia_Session_Load
+                | false, _    -> Cmd.ofMsg Ia_Local_Load                
             ]
         model,Cmd.batch postInitMsgs
 

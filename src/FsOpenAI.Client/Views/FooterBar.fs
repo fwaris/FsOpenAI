@@ -36,7 +36,8 @@ module FooterBar =
                     }
                 | None -> ()
             comp<MudFab> {
-                "Icon" => Icons.Material.Outlined.ContentCopy
+                "StartIcon" => Icons.Material.Outlined.ContentCopy
+                //"EndIcon" => Icons.Material.Outlined.ContentCopy
                 "Title" => "Copy chat to clipboard"
                 "Size" => Size.Small
                 "Style" => "position: absolute; bottom: 5px; right: 5px;"

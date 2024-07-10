@@ -194,3 +194,11 @@ module Submission =
         else
             let msg = Ia_Submit(id,(Model.selectedChat model) |> Option.map (_.Question) |> Option.defaultValue "")
             model,Cmd.ofMsg msg
+
+    let submitFeedback serverDispatch id model = 
+        let ch = model.interactions |> List.find (fun c -> c.Id = id)
+        match ch.Feedback with
+        | Some fb -> serverDispatch (Clnt_Ia_Feedback_Submit(IO.invocationContext model,fb))
+        | None -> ()
+
+    

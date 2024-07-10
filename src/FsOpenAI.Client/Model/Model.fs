@@ -15,6 +15,7 @@ type TempChatState =
         PromptsOpen:bool
         IndexOpen:bool
         SysMsgOpen:bool
+        FeedbackOpen:bool
     }
     with
         static member Default =
@@ -25,6 +26,7 @@ type TempChatState =
                 PromptsOpen=false
                 IndexOpen=false
                 SysMsgOpen=false
+                FeedbackOpen=false
             }
 
 type Model =
@@ -94,8 +96,12 @@ type Message =
     | Ia_ToggleDocs of string*string option
     | Ia_ToggleDocDetails of string
     | Ia_TogglePrompts of string
+    | Ia_ToggleFeedback of string
     | Ia_OpenIndex of string
     | Ia_SetIndex of string*IndexRef list
+    | Ia_Feedback_Set of string*Feedback
+    | Ia_Feedback_Submit of string
+    | Ia_Feedback_Cancel of string
     //common
     | SaveUIState
     | LoadUIState
