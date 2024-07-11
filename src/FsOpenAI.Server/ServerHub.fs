@@ -98,7 +98,6 @@ type ServerHub() =
 
                 | Clnt_Run_IndexQnA (settings,invCtx,chat) ->
                     let settings = Settings.updateKey settings
-                    let dispatch msg = ServerHub.SendMessage(client,msg) |> ignore
                     QnA.runPlan settings invCtx chat dispatch |> Async.Start
 
                 | Clnt_Run_QnADoc (settings,invCtx,chat) ->
@@ -141,6 +140,7 @@ type ServerHub() =
                             Feedback = {ThumbsUpDn = fb.ThumbsUpDn; Comment = fb.Comment;}
                         }
                     Monitoring.write (Feedback fbe)
+                    dispatch (Srv_Info "Feedback submitted. Thanks!")
 
                 | Clnt_Ia_Session_LoadAll invCtx ->
                     do!

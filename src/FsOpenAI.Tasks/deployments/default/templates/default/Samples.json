@@ -7,7 +7,7 @@
       ]
     },
     "SampleSysMsg": "You are a helpful AI assistant\u0022\n",
-    "SampleQuestion": "What are the major languages and dialects spoken in France?",
+    "SampleQuestion": "What are the major languages and dialects spoken in France? Only list the language names",
     "SampleMode": {
       "Case": "Factual"
     },

@@ -19,7 +19,7 @@ module Test =
     let testView() = 
         comp<MudPaper> {
             "Style" => "width:80%;max-height:500px;max-width:500px;"
-            "Class" => "pa-2 d-flex flex-row"
+            "Class" => "d-flex flex-grow-1"
             "AnchorOrigin" => Origin.BottomCenter
             "TransformOrigin" => Origin.BottomCenter
             "Elevation" => 6
@@ -27,57 +27,43 @@ module Test =
             let colorUp = Color.Success //if fb.ThumbsUpDn > 0 then Color.Success else Color.Default
             let colorDn = Color.Error //if fb.ThumbsUpDn < 0 then Color.Error else Color.Default
             comp<MudTextField<string>> {
-                "Class" => "d-flex flex-grow-1 pa-2"
-                "Placeholder" => "Comment (optional)"
-                "Label" => "Feedback"
-                "MaxLines" => 3
-                "Value" => ""
+                "Class" => "d-flex flex-grow-1 mt-2 ml-2 mb-2"
+                //"Style" => "height:5rem;"
+                "Placeholder" => "Comment (optional)"            
+                "Lines" => 3
                 "Variant" => Variant.Filled
             }
             comp<MudPaper> {
-                "Class" => "pa-2"
-                "Style" => "width: 7rem; height: 7rem;"
-                comp<MudGrid> {
-                    "Dense" => true
-                    comp<MudItem> {
-                        "xs" => 6
-                        comp<MudIconButton> {
-                            "Icon" => Icons.Material.Outlined.ThumbUp
-                            "Color" => colorUp
-                            // on.click (fun _ -> dispatch (Ia_Feedback_Set(chat.Id, {fb with ThumbsUpDn = if fb.ThumbsUpDn > 0 then 0 else 1})))
-                        }                    
-                    }
-                    comp<MudItem> {
-                        "xs" => 6
-                        comp<MudIconButton> {
-                            "Icon" => Icons.Material.Outlined.ThumbDown
-                            "Color" => colorDn
-                            // on.click (fun _ -> dispatch (Ia_Feedback_Set(chat.Id, {fb with ThumbsUpDn = if fb.ThumbsUpDn < 0 then 0 else -1})))
-                        }  
-                    }
-                    comp<MudItem> {
-                        "xs" => 6
-                        comp<MudIconButton> {
-                            "Icon" => Icons.Material.Outlined.Done
-                            "Title" => "Submit"
-                            // on.click (fun _ -> 
-                            //     dispatch (Ia_ToggleFeedback(chat.Id))
-                            //     dispatch (Ia_Feedback_Submit(chat.Id)))
-                        }
-                    }         
-                    comp<MudItem> {
-                        "xs" => 6 
-                        comp<MudIconButton> {
-                            "Icon" => Icons.Material.Outlined.Cancel
-                            "Title" => "Close"
-                        //     on.click (fun _ -> 
-                        //         dispatch (Ia_ToggleFeedback(chat.Id))
-                        //         dispatch (Ia_Feedback_Set(chat.Id,fb)))
-                        }
-                    }  
-                }
+                "Class" => "ma-2 align-self-center"
+                comp<MudIconButton> {
+                    "Icon" => Icons.Material.Outlined.ThumbUp
+                    "Color" => colorUp
+                    // on.click (fun _ -> dispatch (Ia_Feedback_Set(chat.Id, {fb with ThumbsUpDn = if fb.ThumbsUpDn < 0 then 0 else -1})))
+                }  
+                comp<MudIconButton> {
+                    "Icon" => Icons.Material.Outlined.ThumbDown
+                    "Color" => colorDn
+                    // on.click (fun _ -> dispatch (Ia_Feedback_Set(chat.Id, {fb with ThumbsUpDn = if fb.ThumbsUpDn < 0 then 0 else -1})))
+                }  
             }
-        }   
+            comp<MudButton> {
+                "Class" => "align-self-center"
+                "Variant" => Variant.Filled
+                "Color" => Color.Primary
+                "Submit"
+                // on.click (fun _ -> 
+                //     dispatch (Ia_ToggleFeedback(chat.Id))
+                //     dispatch (Ia_Feedback_Submit(chat.Id)))
+            }
+            comp<MudIconButton> {
+                "Icon" => Icons.Material.Outlined.Cancel
+                "Class" => "align-self-start"
+                "Title" => "Close"
+            //     on.click (fun _ -> 
+            //         dispatch (Ia_ToggleFeedback(chat.Id))
+            //         dispatch (Ia_Feedback_Set(chat.Id,fb)))
+            }
+        }
 
 
 type MainLayout() =

@@ -106,10 +106,10 @@ let samples =
             SampleMode = ExplorationMode.Factual
             MaxDocs     = 5
             SampleSysMsg  = defaultSysMessage
-            SampleQuestion = "What are the major languages and dialects spoken in France?"
+            SampleQuestion = "What are the major languages and dialects spoken in France? Only list the language names"
         }
     ]
-
+    
 // default settings file location for local development
 let settings = "%USERPROFILE%/.fsopenai/ServiceSettings.json"
 
