@@ -8,7 +8,7 @@ open FsOpenAI.Client
 open FsOpenAI.Shared
 
 type FeedbackView() =
-    inherit ElmishComponent<Feedback*Interaction*Model,Message>()    
+    inherit ElmishComponent<Feedback*Interaction*Model,Message>()
     let commentRef = Ref<MudTextField<string>>()
     override this.View m dispatch =
         let fb,chat,model = m
@@ -24,13 +24,13 @@ type FeedbackView() =
             let colorDn = if fb.ThumbsUpDn < 0 then Color.Error else Color.Default
             comp<MudTextField<string>> {
                 "Class" => "d-flex flex-grow-1 mt-2 ml-2 mb-2"
-                "Placeholder" => "Comment (optional)"            
+                "Placeholder" => "Comment (optional)"
                 "Lines" => 3
                 "Variant" => Variant.Filled
                 "Text" => (fb.Comment |> Option.defaultValue "")
-                attr.callback "OnBlur" (fun (e:FocusEventArgs) -> 
+                attr.callback "OnBlur" (fun (e:FocusEventArgs) ->
                     commentRef.Value
-                    |> Option.iter(fun m -> 
+                    |> Option.iter(fun m ->
                         dispatch(Ia_Feedback_Set (chat.Id, {fb with Comment = Some m.Text}))))
                 commentRef
             }
@@ -40,18 +40,18 @@ type FeedbackView() =
                     "Icon" => Icons.Material.Outlined.ThumbUp
                     "Color" => colorUp
                     on.click (fun _ -> dispatch (Ia_Feedback_Set(chat.Id, {fb with ThumbsUpDn = if fb.ThumbsUpDn > 0 then 0 else +1})))
-                }  
+                }
                 comp<MudIconButton> {
                     "Icon" => Icons.Material.Outlined.ThumbDown
                     "Color" => colorDn
                     on.click (fun _ -> dispatch (Ia_Feedback_Set(chat.Id, {fb with ThumbsUpDn = if fb.ThumbsUpDn < 0 then 0 else -1})))
-                }  
+                }
             }
             comp<MudButton> {
                 "Class" => "align-self-center"
                 "Variant" => Variant.Filled
                 "Color" => Color.Primary
-                on.click (fun _ -> 
+                on.click (fun _ ->
                     dispatch (Ia_ToggleFeedback(chat.Id))
                     dispatch (Ia_Feedback_Submit(chat.Id)))
                 "Submit"
@@ -60,7 +60,7 @@ type FeedbackView() =
                 "Icon" => Icons.Material.Outlined.Cancel
                 "Class" => "align-self-start"
                 "Title" => "Close"
-                on.click (fun _ -> 
+                on.click (fun _ ->
                     dispatch (Ia_ToggleFeedback(chat.Id)))
             }
     }
@@ -76,26 +76,28 @@ type MessageView() =
             "Icon" => iconType c
             "Size" => Size.Medium
         }
-    
+
     let thumbsUpDn model (chat:Interaction) dispatch =
         concat {
             match chat.Feedback with
             | None -> ()
-            | Some fb -> 
-                let icon = 
-                    if fb.ThumbsUpDn > 0 then Icons.Material.Outlined.ThumbUp 
+            | Some fb ->
+                let icon =
+                    if fb.ThumbsUpDn > 0 then Icons.Material.Outlined.ThumbUp
                     elif fb.ThumbsUpDn < 0 then Icons.Material.Outlined.ThumbDown
                     else Icons.Material.Outlined.ThumbsUpDown
-                let color = 
+                let color =
                     if fb.ThumbsUpDn > 0 then Color.Success
                     elif fb.ThumbsUpDn < 0 then Color.Error
                     else Color.Default
                 if chat.IsBuffering |> not && chat.Feedback.IsSome then
-                    comp<MudIconButton>{
-                        "Class" => "align-self-end"
+                    comp<MudFab>{
+                    //comp<MudIconButton>{
+                        "Class" => "align-self-end mb-2"
                         "Color" => color
+                        "Size" => Size.Small
                         "Disabled" => (TmpState.isFeedbackOpen chat.Id model)
-                        "Icon" => icon
+                        "StartIcon" => icon
                         "Title" => "Feedback"
                         on.click (fun _ -> dispatch (Ia_ToggleFeedback(chat.Id)))
                     }
@@ -122,21 +124,19 @@ type MessageView() =
                 "Style" => $"background-color:{backColor};"
                 "Elevation" => 0
                 comp<MudPaper> {
-                    "Class" => "d-flex flex-grow-1 ma-1 overflow-auto"  
+                    "Class" => "d-flex flex-grow-1 ma-1 overflow-auto"
                     "Style" => $"background-color:{backColor};"
                     "Elevation" => 0
                     concat {
-                        if not isLastAsst then
-                            icon msg
-                        else
-                            comp<MudPaper> {
-                                "Class" => "d-flex flex-column"
-                                "Elevation" => 0
-                                "Style" => $"background-color:{backColor};"
-                                icon msg
-                                comp<MudSpacer> { attr.empty() }
-                                thumbsUpDn model chat dispatch
-                            }
+                        icon msg
+                        // if not isLastAsst then
+                        // else
+                        //     comp<MudPaper> {
+                        //         "Class" => "d-flex flex-column"
+                        //         "Elevation" => 0
+                        //         "Style" => $"background-color:{backColor};"
+                        //         icon msg
+                        //     }
                         div {
                             attr.style "white-space: pre-line;"
                             Model.blockQuotes msg.Message
@@ -147,22 +147,25 @@ type MessageView() =
                     "Class" => "d-flex flex-none align-start ma-1"
                     "Elevation" => 0
                     "Style" => $"background-color:{backColor};"
-                    if msg.IsUser then 
+                    if msg.IsUser then
                         comp<MudIconButton> {
                             "Icon" => Icons.Material.Outlined.RestartAlt
                             "Size" => Size.Small
                             "Title" => "Restart chat from here"
-                            "Disabled" => chat.IsBuffering 
+                            "Disabled" => chat.IsBuffering
                             on.click(fun e -> dispatch (Ia_Restart (chat.Id,msg)))
-                        }   
+                        }
+                    if isLastAsst then
+                        comp<MudSpacer> { attr.empty() }
+                        thumbsUpDn model chat dispatch
                 }
             }
-            if not chat.IsBuffering then       
-                table {                              
-                    if not docs.IsEmpty && not chat.IsBuffering then       
+            if not chat.IsBuffering then
+                table {
+                    if not docs.IsEmpty && not chat.IsBuffering then
                         tr {
-                            td {    
-                                attr.style "width: 1.5rem;"               
+                            td {
+                                attr.style "width: 1.5rem;"
                                 comp<MudIconButton> {
                                     "Class" => "align-self-center"
                                     "Title" => "Show search results"
@@ -176,15 +179,15 @@ type MessageView() =
                                     "Style" => "height: 3.5rem;"
                                     for d in docs do
                                         comp<MudTooltip> {
-                                            "Text" => Utils.shorten 40 d.Text                                    
-                                            comp<MudLink> { 
+                                            "Text" => Utils.shorten 40 d.Text
+                                            comp<MudLink> {
                                                 "Class" => "ml-2 align-self-center"
                                                 "Style" => "max-width: 140px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;"
                                                 "Href" => d.Ref
                                                 "Target" => "_blank"
                                                 d.Title
-                                            }                                    
-                                        }                    
+                                            }
+                                        }
                                 }
                             }
                         }
