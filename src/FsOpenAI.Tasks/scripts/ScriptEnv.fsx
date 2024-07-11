@@ -48,10 +48,10 @@ let installSettings (file:string) =
     let sttngs = System.Text.Json.JsonSerializer.Deserialize<ServiceSettings>(System.IO.File.ReadAllText fn, Utils.serOptions())
     settings.Value <- sttngs
 
-do if File.Exists defaultSettingsFile then 
-    try 
+do if File.Exists defaultSettingsFile then
+    try
         installSettings defaultSettingsFile
-    with ex -> 
+    with ex ->
         printfn $"Error loading default settings file {defaultSettingsFile}. \n {ex.StackTrace}"
 
 let openAIEndpoint() = randSelect settings.Value.AZURE_OPENAI_ENDPOINTS
@@ -459,6 +459,7 @@ module MetaIndex =
             p1.KeywordsFields.Add(newField "userIndexCreateTime")
             p1.KeywordsFields.Add(newField "userIndexFriendlyName")
             p1.KeywordsFields.Add(newField "groups")
+            p1.KeywordsFields.Add(newField "tag")
             p1.KeywordsFields.Add(newField "isVirtual")
             p1.KeywordsFields.Add(newField "parents")
             let ssM = new SemanticConfiguration(
@@ -473,6 +474,7 @@ module MetaIndex =
                 !> SearchableField("userIndexCreateTime", IsFilterable = true, IsSortable = true )
                 !> SearchableField("userIndexFriendlyName", IsFilterable = true, IsSortable = true )
                 !> SearchableField("description", IsFilterable = true, IsSortable = true )
+                !> SearchableField("tag", IsFilterable = true, IsSortable = true )
                 !> SearchableField("groups", collection=true,IsFilterable=true)
                 !> SearchableField("isVirtual", IsFilterable = true, IsSortable = true )
                 !> SearchableField("parents", collection=true,IsFilterable=true)

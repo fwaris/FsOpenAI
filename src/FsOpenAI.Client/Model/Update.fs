@@ -87,7 +87,7 @@ module Update =
         | Ia_TogglePrompts id -> TmpState.togglePrompts id model, Cmd.none
         | Ia_OpenIndex id -> TmpState.toggleIndex id model, Cmd.none
         | Ia_ToggleSysMsg id -> TmpState.toggleSysMsg id model, Cmd.none
-        | Ia_ToggleFeedback(id) -> TmpState.toggleFeedback id model, Cmd.none 
+        | Ia_ToggleFeedback(id) -> TmpState.toggleFeedback id model, Cmd.none
         | Ia_Feedback_Submit id -> Submission.submitFeedback uparms.serverDispatch id model; model,Cmd.none
         | Ia_Feedback_Cancel id -> let fb = Interactions.feedback id model.interactions |> Option.map(fun x -> Feedback.Default x.LogId) in {model with interactions = Interactions.setFeedback id fb model.interactions},Cmd.none
         //session and state

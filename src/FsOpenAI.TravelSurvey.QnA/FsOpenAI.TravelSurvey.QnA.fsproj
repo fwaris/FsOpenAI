@@ -11,4 +11,7 @@
     <ProjectReference Include="..\FsOpenAI.GenAI\FsOpenAI.GenAI.fsproj" />
     <ProjectReference Include="..\FsOpenAI.CodeEvaluator\FsOpenAI.CodeEvaluator.fsproj" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Update="FSharp.Core" Version="8.0.301" />
+  </ItemGroup>
 </Project>

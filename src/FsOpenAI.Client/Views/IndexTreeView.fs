@@ -13,20 +13,23 @@ type IndexTreePopup() =
     let tree = Ref<MudTreeView<IndexTree>>()
     let mutable sels = HashSet<IndexTree>()
 
-    let setIndexes id treeMap dispatch =         
+    let setIndexes id treeMap dispatch =
         let isels = sels |> Seq.map (fun x -> x.Idx) |> set
-        let psels = 
-            (isels,isels) 
-            ||> Set.fold(fun acc idx -> 
+        let psels =
+            (isels,isels)
+            ||> Set.fold(fun acc idx ->
                 let subT = treeMap |> Map.find idx |> IO.subTree Set.empty |> Set.map (fun x->x.Idx)
                 let childNodes = Set.remove idx subT
                 (acc,childNodes) ||> Set.fold (fun acc x -> acc |> Set.remove x))
         dispatch (Ia_SetIndex (id,Set.toList psels))
 
     override this.View m dispatch =
-        let bag,chat,model = m        
-        let treeMap = Init.flatten model.indexTrees |> List.map(fun x -> x.Idx,x) |> Map.ofList                
-        let isels = (Set.empty,bag.Indexes |> List.map (fun x->treeMap.[x])) ||> List.fold IO.subTree
+        let bag,chat,model = m
+        let treeMap = Init.flatten model.indexTrees |> List.map(fun x -> x.Idx,x) |> Map.ofList
+        //let isels = (Set.empty,bag.Indexes |> List.map (fun x->treeMap.[x])) ||> List.fold IO.subTree
+        let isels =
+            let found = bag.Indexes |> List.choose (fun x -> Map.tryFind x treeMap)
+            (Set.empty,found) ||> List.fold IO.subTree
         sels.Clear()
         isels |> Seq.iter(fun x -> sels.Add x |> ignore)
 
@@ -35,27 +38,28 @@ type IndexTreePopup() =
             "AnchorOrigin" => Origin.TopRight
             "TransformOrigin" => Origin.TopRight
             "Paper" => true
-            "Class" => "d-flex flex-row flex-grow-1 mud-full-width"        
+            "Class" => "d-flex flex-row flex-grow-1 mud-full-width"
             "Style" => "max-width:90vw; overflow: auto;"
             comp<MudTreeView<IndexTree>> {
                 "Class" => "d-flex flex-grow-1 flex-column"
-                "Items" => HashSet model.indexTrees
-                "MultiSelection" => true
+                "Items" => HashSet<TreeItemData<IndexTree>> (model.indexTrees |> List.map(fun x -> TreeItemData<IndexTree>(Value=x)))
+                "SelectionMode" => SelectionMode.MultiSelection
                 "Dense" => true
-                attr.callback "SelectedValuesChanged" (fun (xs:HashSet<IndexTree>) -> sels <- xs)
-                attr.fragmentWith "ItemTemplate"(fun (idxt:IndexTree) -> 
+                attr.callback "SelectedValuesChanged" (fun (xs:IReadOnlyCollection<IndexTree>) ->printfn "%A" xs; sels <- HashSet(xs))
+                attr.fragmentWith "ItemTemplate"(fun (idxt:TreeItemData<IndexTree>) ->
                     comp<MudTreeViewItem<IndexTree>> {
-                        "Value" => idxt
-                        "Selected" => sels.Contains idxt
-                        "Items" => HashSet idxt.Children 
+                        "Value" => idxt.Value
+                        "Selected" => sels.Contains idxt.Value
+                        "Items" => HashSet<TreeItemData<IndexTree>>(idxt.Value.Children |> List.map(fun x -> TreeItemData<IndexTree>(Value=x)))
                         "Expanded" => true
-                        attr.fragmentWith "BodyContent" (fun (_:MudTreeViewItem<IndexTree>) -> 
+                        attr.fragmentWith "BodyContent" (fun (_:MudTreeViewItem<IndexTree>) ->
                             comp<MudPaper> {
                                 "Class" => "align-center"
                                 "Elevation" => 0
-                                text idxt.Description
+                                text idxt.Value.Description
                                 comp<MudChip<string>> {
-                                    text idxt.Idx.Name
+                                   // text idxt.Idx.Name
+                                    text idxt.Value.Tag
                                 }
                             }
                         )
@@ -72,7 +76,7 @@ type IndexTreePopup() =
 
 type IndexTreeView() =
     inherit ElmishComponent<QABag*Interaction*Model,Message>()
-            
+
     override this.View mdl dispatch =
         let bag,chat,model = mdl
         comp<MudPaper> {
@@ -85,7 +89,7 @@ type IndexTreeView() =
                 comp<MudPaper> {
                     "Style" => "height: 2.5rem; overflow-y: auto;"
                     "Elevation" => 0
-                    for idx in bag.Indexes do                        
+                    for idx in bag.Indexes do
                         comp<MudChip<string>> {
                             text idx.Name
                         }

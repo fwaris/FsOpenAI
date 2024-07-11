@@ -13,7 +13,7 @@ type DocBagPopupView() =
     override this.View m dispatch =
         let dbag,chat,model = m
         let inputId = $"{chat.Id}_input"
-        let textColor = match dbag.Document.Status with 
+        let textColor = match dbag.Document.Status with
                         | Ready -> Color.Tertiary
                         | No_Document -> Color.Default
                         | _           -> Color.Warning
@@ -31,37 +31,37 @@ type DocBagPopupView() =
                     "Label" => "Document Name"
                     "Variant"  => Variant.Filled
                     "Placeholder" => "[no document selected]"
-                    "Text" => (IO.browserFile dbag.Document.DocumentRef 
-                                |> Option.map (fun f -> Path.GetFileName(f.Name)) 
+                    "Text" => (IO.browserFile dbag.Document.DocumentRef
+                                |> Option.map (fun f -> Path.GetFileName(f.Name))
                                 |> Option.defaultValue null)
                     "ReadOnly" => true
-                }                
+                }
                 comp<MudTextField<string>> {
                     "Class" => "d-flex flex-grow-1 ma-2"
                     "Style" => $"color: {Colors.Green.Darken2};"
                     "Variant"  => Variant.Filled
                     attr.callback "ValueChanged" (fun e -> dispatch (Ia_SetSearch (chat.Id,e)))
-                    "Lines" => 4                                 
+                    "Lines" => 4
                     "Placeholder" => "shows search terms extracted from document"
                     "Label" => "Search Terms"
                     "Disabled" => dbag.SearchWithOrigText
                     "Text" => match dbag.SearchTerms with Some q -> q | None -> null
                 }
-                comp<MudTooltip> {                                 
+                comp<MudTooltip> {
                     "Delay" => 200.
                     "Text" => "When checked, the entire document text is used for searching instead of the extracted search terms"
                     "Placement" =>  Placement.Right
                     "Arrow" => true
                     comp<MudSwitch<bool>> {
-                        "Class" => "flex-shrink-1 ma-2"  
+                        "Class" => "flex-shrink-1 ma-2"
                         //"Label" => "Use entire document text"
-                        "Checked" => dbag.SearchWithOrigText
-                        attr.callback "CheckedChanged" (fun (e:bool) -> 
+                        "Value" => dbag.SearchWithOrigText
+                        attr.callback "ValueChanged" (fun (e:bool) ->
                             dispatch (Ia_UpdateDocBag (chat.Id, {dbag with SearchWithOrigText = e})))
                         "Color" => if dbag.SearchWithOrigText then Color.Tertiary else Color.Default
                         text "Search with full document text"
-                    }       
-                }                    
+                    }
+                }
             }
             comp<MudPaper> {
                 "Elevation" => 0
@@ -70,14 +70,14 @@ type DocBagPopupView() =
                     on.click (fun _ -> dispatch (Ia_ToggleDocDetails chat.Id))
                 }
             }
-        }                
+        }
 
 type DocBagView() =
     inherit ElmishComponent<DocBag*Interaction*Model,Message>()
     override this.View m dispatch =
         let dbag,chat,model = m
         let inputId = $"{chat.Id}_input"
-        let textColor = match dbag.Document.Status with 
+        let textColor = match dbag.Document.Status with
                         | Ready -> Color.Tertiary
                         | No_Document -> Color.Default
                         | _           -> Color.Warning
@@ -87,13 +87,13 @@ type DocBagView() =
             comp<MudFileUpload<IBrowserFile>> {
                 "Class" => "d-flex flex-grow-0 align-self-center ma-2"
                 attr.id inputId
-                attr.callback "OnFilesChanged" (fun (e:InputFileChangeEventArgs) -> 
-                    let doc = 
+                attr.callback "OnFilesChanged" (fun (e:InputFileChangeEventArgs) ->
+                    let doc =
                         {
                             DocumentRef = Some e.File
                             DocType = IO.docType e.File.Name
                             DocumentText = None
-                            Status = DocumentStatus.No_Document                            
+                            Status = DocumentStatus.No_Document
                         }
                     let dbag = {dbag with Document = doc; SearchTerms=None}
                     dispatch (Ia_File_BeingLoad (chat.Id,dbag)))
@@ -103,23 +103,23 @@ type DocBagView() =
                         "Disabled" => (Auth.isAuthorized model |> not)
                         "Variant" => Variant.Filled
                         "Color" => Color.Primary
-                        attr.``for`` inputId                           
-                        "HtmlTag" => "label"                                                                
+                        attr.``for`` inputId
+                        "HtmlTag" => "label"
                         text "Document"
                     }
-                )                                                        
+                )
             }
             comp<MudPaper> {
                 "Class" => "d-flex align-self-center ma-3"
                 "Elevation" => 0
                 comp<MudIcon> {
-                    "Title" => match dbag.Document.Status with 
+                    "Title" => match dbag.Document.Status with
                                 | No_Document -> "No document selected"
                                 | Uploading -> "Uploading document..."
                                 | Receiving -> "Receiving document content ..."
                                 | ExtractingTerms -> "Extracting search terms..."
                                 | Ready -> "Document ready"
-                    "Icon" => match dbag.Document.Status with 
+                    "Icon" => match dbag.Document.Status with
                                 | No_Document -> Icons.Material.Outlined.UploadFile
                                 | Uploading -> Icons.Material.Outlined.Upload
                                 | Receiving -> Icons.Material.Outlined.Download
@@ -131,13 +131,13 @@ type DocBagView() =
             comp<MudBreakpointProvider> {
                 comp<MudHidden> {
                     "Breakpoint" => Breakpoint.SmAndDown
-                    comp<MudText> {                            
+                    comp<MudText> {
                         "Class" => "ma-2 overflow-hidden"
                         "Style" => "max-height:3rem; max-width:10rem "
                         "Align" => Align.Center
-                        text                            
+                        text
                             (IO.browserFile dbag.Document.DocumentRef
-                            |> Option.map (fun f -> $" [{Path.GetFileName(f.Name)}]") 
+                            |> Option.map (fun f -> $" [{Path.GetFileName(f.Name)}]")
                             |> Option.defaultValue "")
                     }
                 }
@@ -148,9 +148,9 @@ type DocBagView() =
                         "Style" => "max-height:3rem; max-width:10rem"
                         "Color" => textColor
                         "Align" => Align.Center
-                        match dbag.Document.DocumentText with 
+                        match dbag.Document.DocumentText with
                         | None  -> "..."
-                        | Some t -> Utils.shorten 30 t                      
+                        | Some t -> Utils.shorten 30 t
                     }
                 }
             }

@@ -45,17 +45,17 @@
     <PackageReference Include="Bolero" Version="0.*" />
     <PackageReference Include="Bolero.Build" Version="0.*" />
     <PackageReference Include="Bolero.HotReload" Version="0.*" />
-    <PackageReference Include="MudBlazor" Version="7.0.0" />
+    <PackageReference Include="MudBlazor" Version="7.1.1" />
     <PackageReference Include="System.Threading.Channels" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.6" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.6" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.Authentication.WebAssembly.Msal" Version="8.0.6" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.7" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.7" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Authentication.WebAssembly.Msal" Version="8.0.7" />
     <PackageReference Include="FSharp.Control.AsyncSeq" Version="3.2.1" />
     <PackageReference Include="Plotly.Blazor" Version="5.1.1" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Update="FSharp.Core" Version="8.0.300" />
+    <PackageReference Update="FSharp.Core" Version="8.0.301" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />

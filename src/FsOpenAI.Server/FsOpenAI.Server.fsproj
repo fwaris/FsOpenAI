@@ -18,14 +18,14 @@
     <PackageReference Include="Bolero.Server" Version="0.*" />
     <PackageReference Include="Bolero.HotReload.Server" Version="0.*" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.AzureAppServices" Version="8.0.6" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.6" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.6" NoWarn="NU1605" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="8.0.6" NoWarn="NU1605" />
+    <PackageReference Include="Microsoft.Extensions.Logging.AzureAppServices" Version="8.0.7" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.7" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.7" NoWarn="NU1605" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="8.0.7" NoWarn="NU1605" />
     <PackageReference Include="Microsoft.Identity.Web.UI" Version="2.20.0" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Update="FSharp.Core" Version="8.0.300" />
+    <PackageReference Update="FSharp.Core" Version="8.0.301" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="wwwroot\app\Templates\" />

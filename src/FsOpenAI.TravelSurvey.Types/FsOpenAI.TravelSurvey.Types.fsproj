@@ -12,4 +12,7 @@
   <ItemGroup>
     <PackageReference Include="Fsharp.Data.Csv.Core" Version="6.4.0" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Update="FSharp.Core" Version="8.0.301" />
+  </ItemGroup>
 </Project>

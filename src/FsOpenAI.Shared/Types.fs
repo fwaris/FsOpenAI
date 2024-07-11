@@ -48,7 +48,7 @@ type IndexRef =
             | Azure _ -> false
             | Virtual _ -> true
 
-type IndexTree = {Idx:IndexRef; Description:string; Children: IndexTree list}
+type IndexTree = {Idx:IndexRef; IndexName:string option; Description:string; Tag:string; Children: IndexTree list}
     with member this.isVirtual = this.Idx.isVirtual
 
 type QABag =

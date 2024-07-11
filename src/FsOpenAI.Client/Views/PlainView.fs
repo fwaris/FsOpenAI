@@ -31,8 +31,8 @@ type PlainView() =
                         comp<MudCheckBox<bool>> { 
                             "Class" => "mr-2"
                             "Label" => "Use web"    
-                            "Checked" => cbag.UseWeb
-                            attr.callback "CheckedChanged" (fun (t:bool) -> dispatch (Ia_UseWeb (chat.Id,t)))
+                            "Value" => cbag.UseWeb
+                            attr.callback "ValueChanged" (fun (t:bool) -> dispatch (Ia_UseWeb (chat.Id,t)))
                         }
                     }
                 }
