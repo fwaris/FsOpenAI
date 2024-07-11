@@ -15,6 +15,70 @@ type Model =
 type Message =
     | Ping
 
+module Test = 
+    let testView() = 
+        comp<MudPaper> {
+            "Style" => "width:80%;max-height:500px;max-width:500px;"
+            "Class" => "pa-2 d-flex flex-row"
+            "AnchorOrigin" => Origin.BottomCenter
+            "TransformOrigin" => Origin.BottomCenter
+            "Elevation" => 6
+            "Paper" => true
+            let colorUp = Color.Success //if fb.ThumbsUpDn > 0 then Color.Success else Color.Default
+            let colorDn = Color.Error //if fb.ThumbsUpDn < 0 then Color.Error else Color.Default
+            comp<MudTextField<string>> {
+                "Class" => "d-flex flex-grow-1 pa-2"
+                "Placeholder" => "Comment (optional)"
+                "Label" => "Feedback"
+                "MaxLines" => 3
+                "Value" => ""
+                "Variant" => Variant.Filled
+            }
+            comp<MudPaper> {
+                "Class" => "pa-2"
+                "Style" => "width: 7rem; height: 7rem;"
+                comp<MudGrid> {
+                    "Dense" => true
+                    comp<MudItem> {
+                        "xs" => 6
+                        comp<MudIconButton> {
+                            "Icon" => Icons.Material.Outlined.ThumbUp
+                            "Color" => colorUp
+                            // on.click (fun _ -> dispatch (Ia_Feedback_Set(chat.Id, {fb with ThumbsUpDn = if fb.ThumbsUpDn > 0 then 0 else 1})))
+                        }                    
+                    }
+                    comp<MudItem> {
+                        "xs" => 6
+                        comp<MudIconButton> {
+                            "Icon" => Icons.Material.Outlined.ThumbDown
+                            "Color" => colorDn
+                            // on.click (fun _ -> dispatch (Ia_Feedback_Set(chat.Id, {fb with ThumbsUpDn = if fb.ThumbsUpDn < 0 then 0 else -1})))
+                        }  
+                    }
+                    comp<MudItem> {
+                        "xs" => 6
+                        comp<MudIconButton> {
+                            "Icon" => Icons.Material.Outlined.Done
+                            "Title" => "Submit"
+                            // on.click (fun _ -> 
+                            //     dispatch (Ia_ToggleFeedback(chat.Id))
+                            //     dispatch (Ia_Feedback_Submit(chat.Id)))
+                        }
+                    }         
+                    comp<MudItem> {
+                        "xs" => 6 
+                        comp<MudIconButton> {
+                            "Icon" => Icons.Material.Outlined.Cancel
+                            "Title" => "Close"
+                        //     on.click (fun _ -> 
+                        //         dispatch (Ia_ToggleFeedback(chat.Id))
+                        //         dispatch (Ia_Feedback_Set(chat.Id,fb)))
+                        }
+                    }  
+                }
+            }
+        }   
+
 
 type MainLayout() =
     inherit ElmishComponent<Model,Message>()    
@@ -57,47 +121,11 @@ type MainLayout() =
                                         "tag" => c
                                         "BadgeDot" => true
                                         "ShowCloseIcon" => true
-                                        comp<MudPaper> {                                           
-                                            comp<MudText> {
-                                                text "Tab header content"
-                                            }
-                                            comp<MudPaper> {
-                                                "Class" => "overflow-auto"
-                                                "Style" => "height: 100vh; padding-bottom: 20rem"
-                                                comp<MudList> {
-                                                    "Class" => "d-flex flex-column"
-                                                    "Dense" => true
-                                                    concat {
-                                                        for i in 1 .. 3 do 
-                                                            comp<MudListItem> {
-                                                                comp<MudPaper> {
-                                                                    "Class" => "d-flex flex-row justify-content-between"
-                                                                    comp<MudText> {text $"Item {i}"}
-                                                                    comp<MudIconButton> {
-                                                                        "Icon" => Icons.Material.Filled.Delete
-                                                                        "Color" => Color.Primary                                                            
-                                                                    }
-                                                                }
-                                                            }
-
-                                                    }
-                                                }
-                                            }
-                                        }
+                                        Test.testView()
                                     }
                             }                            
                         }
                     }
                 }
             }         
-            comp<MudPopover> {
-                "Style" => "height:11rem; width:100%; max-width:60rem;"
-                "Open" => true
-                "Fixed" => false
-                "AnchorOrigin" => Origin.BottomCenter
-                "TransformOrigin" => Origin.BottomCenter
-                comp<MudPaper> {
-                    comp<MudText> {text "Question goes here ..."}
-                }
-            }
         }

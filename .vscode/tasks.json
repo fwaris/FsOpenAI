@@ -20,7 +20,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/UISandbox/src/UISandbox.Client/UISandbox.Client.fsproj"
+                "${workspaceFolder}/src/UISandbox/src/UISandbox.Client/UISandbox.Client.fsproj"
             ],
             "problemMatcher": "$msCompile"
         }

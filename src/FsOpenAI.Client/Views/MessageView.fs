@@ -14,61 +14,71 @@ type FeedbackView() =
         let fb,chat,model = m
         comp<MudPopover> {
             "Style" => "width:80%;max-height:500px;max-width:500px;"
-            "Class" => "pa-2"
+            "Class" => "pa-2 d-flex flex-row"
             "AnchorOrigin" => Origin.BottomCenter
             "TransformOrigin" => Origin.BottomCenter
             "Open" => TmpState.isFeedbackOpen chat.Id model
             "Elevation" => 6
             "Paper" => true
+            let fb = chat.Feedback.Value
+            let colorUp = if fb.ThumbsUpDn > 0 then Color.Success else Color.Default
+            let colorDn = if fb.ThumbsUpDn < 0 then Color.Error else Color.Default
+            comp<MudTextField<string>> {
+                "Class" => "d-flex flex-grow-1 pa-2"
+                "Placeholder" => "Comment (optional)"
+                "Label" => "Feedback"
+                "MaxLines" => 3
+                "Value" => (fb.Comment |> Option.defaultValue "")
+                "Variant" => Variant.Filled
+                attr.callback "OnBlur" (fun (e:FocusEventArgs) -> 
+                        commentRef.Value
+                        |> Option.iter(fun m -> 
+                            dispatch (Ia_Feedback_Set(chat.Id, {fb with Comment = Some m.Text}))))
+                commentRef
+            }
             comp<MudPaper> {
-                "Class" => "d-flex flex-row"
-                let fb = chat.Feedback.Value
-                let colorUp = if fb.ThumbsUpDn > 0 then Color.Success else Color.Default
-                let colorDn = if fb.ThumbsUpDn < 0 then Color.Error else Color.Default
-                comp<MudPaper> {
-                    "Class" => "d-flex flex-row flex-grow-1"
-                    comp<MudIconButton> {
-                        "Icon" => Icons.Material.Outlined.ThumbUp
-                        "Color" => colorUp
-                        on.click (fun _ -> dispatch (Ia_Feedback_Set(chat.Id, {fb with ThumbsUpDn = if fb.ThumbsUpDn > 0 then 0 else 1})))
+                "Class" => "pa-2"
+                "Style" => "width: 10rel; height: 10rel;"
+                comp<MudGrid> {
+                    comp<MudItem> {
+                        "xs" => 6
+                        comp<MudIconButton> {
+                            "Icon" => Icons.Material.Outlined.ThumbUp
+                            "Color" => colorUp
+                            on.click (fun _ -> dispatch (Ia_Feedback_Set(chat.Id, {fb with ThumbsUpDn = if fb.ThumbsUpDn > 0 then 0 else 1})))
+                        }                    
                     }
-                    comp<MudIconButton> {
-                        "Icon" => Icons.Material.Outlined.ThumbDown
-                        "Color" => colorDn
-                        on.click (fun _ -> dispatch (Ia_Feedback_Set(chat.Id, {fb with ThumbsUpDn = if fb.ThumbsUpDn < 0 then 0 else -1})))
+                    comp<MudItem> {
+                        "xs" => 6
+                        comp<MudIconButton> {
+                            "Icon" => Icons.Material.Outlined.ThumbDown
+                            "Color" => colorDn
+                            on.click (fun _ -> dispatch (Ia_Feedback_Set(chat.Id, {fb with ThumbsUpDn = if fb.ThumbsUpDn < 0 then 0 else -1})))
+                        }  
                     }
-                    comp<MudTextField<string>> {
-                        "Class" => "d-flex flex-grow-1 pa-2"
-                        "Placeholder" => "Comment (optional)"
-                        "Label" => "Feedback"
-                        "MaxLines" => 3
-                        "Value" => (fb.Comment |> Option.defaultValue "")
-                        "Variant" => Variant.Filled
-                        attr.callback "OnBlur" (fun (e:FocusEventArgs) -> 
-                                commentRef.Value
-                                |> Option.iter(fun m -> 
-                                    dispatch (Ia_Feedback_Set(chat.Id, {fb with Comment = Some m.Text}))))
-                        commentRef
-                    }
-                }
-                comp<MudPaper> {
-                    comp<MudIconButton> {
-                        "Icon" => Icons.Material.Outlined.Done
-                        "Title" => "Submit"
-                        on.click (fun _ -> 
-                            dispatch (Ia_ToggleFeedback(chat.Id))
-                            dispatch (Ia_Feedback_Submit(chat.Id)))
-                    }
-                    comp<MudIconButton> {
-                        "Icon" => Icons.Material.Outlined.Cancel
-                        "Title" => "Close"
-                        on.click (fun _ -> 
-                            dispatch (Ia_ToggleFeedback(chat.Id))
-                            dispatch (Ia_Feedback_Cancel(chat.Id)))
-                    }
+                    comp<MudItem> {
+                        "xs" => 6
+                        comp<MudIconButton> {
+                            "Icon" => Icons.Material.Outlined.Done
+                            "Title" => "Submit"
+                            on.click (fun _ -> 
+                                dispatch (Ia_ToggleFeedback(chat.Id))
+                                dispatch (Ia_Feedback_Submit(chat.Id)))
+                        }
+                    }         
+                    comp<MudItem> {
+                        "xs" => 6 
+                        comp<MudIconButton> {
+                            "Icon" => Icons.Material.Outlined.Cancel
+                            "Title" => "Close"
+                            on.click (fun _ -> 
+                                dispatch (Ia_ToggleFeedback(chat.Id))
+                                dispatch (Ia_Feedback_Set(chat.Id,fb)))
+                        }
+                    }  
                 }
             }
-        }
+    }
 
 
 type MessageView() =

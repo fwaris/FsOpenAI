@@ -56,8 +56,13 @@
                 "preLaunchTask": "Build: UISandbox.Client",
             },
             "type": "blazorwasm",
+            "hosted": false,
             "request": "launch",
-            "cwd": "${workspaceFolder}/UISandbox/src/UISandbox.Client",
+            "program": "${workspaceFolder}/src/UISandbox/src/UISandbox.Client/bin/Debug/net8.0/UISandbox.Client.dll",
+            "cwd": "${workspaceFolder}/src/UISandbox/src/UISandbox.Client",
+
+            "launchSettingsFilePath": "${workspaceFolder}/src/UISandbox/src/UISandbox.Client/Properties/launchSettings.json",
+            "launchSettingsProfile": "UISandbox.Client", 
         }
     ]
 }

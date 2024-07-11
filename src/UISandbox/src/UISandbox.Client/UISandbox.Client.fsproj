@@ -12,8 +12,8 @@
   <ItemGroup>
     <PackageReference Include="Bolero" Version="0.*" />
     <PackageReference Include="Bolero.Build" Version="0.*" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.*" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.6" PrivateAssets="all" />
     <PackageReference Include="System.Net.Http.Json" Version="8.0.*" />
-	<PackageReference Include="MudBlazor" Version="6.20.0" />
+    <PackageReference Include="MudBlazor" Version="7.0.0" />
   </ItemGroup>
 </Project>
