@@ -4,6 +4,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="AsyncExts.fs" />
     <Compile Include="Env.fs" />
     <Compile Include="Sessions.fs" />
     <Compile Include="Monitoring.fs" />

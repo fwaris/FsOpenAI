@@ -6,9 +6,9 @@ to an Azure vector search index
 *)
 
 ScriptEnv.installSettings "%USERPROFILE%/.fsopenai/ServiceSettings.json"
-
+let embModel = "text-embedding-ada-002"
 let shredded = ScriptEnv.Indexes.shredHtmlAsync @"C:\s\glean\plans"
-let embedded = ScriptEnv.Indexes.getEmbeddingsAsync 7.0 shredded
+let embedded = ScriptEnv.Indexes.getEmbeddingsAsync embModel ScriptEnv.openAiClient 7.0 shredded
 let searchDocs = embedded |> AsyncSeq.map ScriptEnv.Indexes.toSearchDoc
 let indexDef = ScriptEnv.Indexes.indexDefinition "plans"
 ScriptEnv.Indexes.loadIndexAsync true indexDef searchDocs |> Async.Start

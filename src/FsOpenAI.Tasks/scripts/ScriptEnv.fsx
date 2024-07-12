@@ -13,6 +13,7 @@ open FSharp.Control
 open FsOpenAI.Shared
 open FSharp.Data
 open Docnet.Core
+open AsyncExts
 
 let inline (!>) (x:^a) : ^b = ((^a or ^b) : (static member op_Implicit : ^a -> ^b) x)
 
@@ -61,112 +62,18 @@ let indexClient() =
     let ep = searchEndpoint()
     SearchIndexClient(Uri ep.ENDPOINT,AzureKeyCredential(ep.API_KEY))
 
-let openAiClient() =
+let azureOpenAiClient() =
     let ep = openAIEndpoint()
     let openAiEndpoint = $"https://{ep.RESOURCE_GROUP}.openai.azure.com"
     OpenAIClient(Uri openAiEndpoint,AzureKeyCredential(ep.API_KEY))
 
+let openAiClient() = 
+    let key = settings.Value.OPENAI_KEY |> Option.defaultWith (fun _ -> failwith "OpenAI key not found")
+    OpenAIClient(key)
+
 let inline await fn = fn |> Async.AwaitTask |> Async.RunSynchronously
 
 let inline awaitList asyncEnum = asyncEnum |> AsyncSeq.ofAsyncEnum |> AsyncSeq.toBlockingSeq |> Seq.toList
-
-module Async =
-   let map f a = async.Bind(a, f >> async.Return)
-
-module AsyncSeq =
-    let mapAsyncParallelThrottled (parallelism:int) (f:'a -> Async<'b>) (s:AsyncSeq<'a>) : AsyncSeq<'b> = asyncSeq {
-        use mb = MailboxProcessor.Start (ignore >> async.Return)
-        use sm = new SemaphoreSlim(parallelism)
-        let! err =
-            s
-            |> AsyncSeq.iterAsync (fun a -> async {
-            let! _ = sm.WaitAsync () |> Async.AwaitTask
-            let! b = Async.StartChild (async {
-                try return! f a
-                finally sm.Release () |> ignore })
-            mb.Post (Some b) })
-            |> Async.map (fun _ -> mb.Post None)
-            |> Async.StartChildAsTask
-        yield!
-            AsyncSeq.unfoldAsync (fun (t:Task) -> async{
-            if t.IsFaulted then
-                return None
-            else
-                let! d = mb.Receive()
-                match d with
-                | Some c ->
-                    let! d' = c
-                    return Some (d',t)
-                | None -> return None
-            })
-            err
-    }
-(*
-      //implementation possible within AsyncSeq, with the supporting code available there
-      let mapAsyncParallelThrottled (parallelism:int) (f:'a -> Async<'b>) (s:AsyncSeq<'a>) : AsyncSeq<'b> = asyncSeq {
-        use mb = MailboxProcessor.Start (ignore >> async.Return)
-        use sm = new SemaphoreSlim(parallelism)
-        let! err =
-          s
-          |> iterAsync (fun a -> async {
-            do! sm.WaitAsync () |> Async.awaitTaskUnitCancellationAsError
-            let! b = Async.StartChild (async {
-              try return! f a
-              finally sm.Release () |> ignore })
-            mb.Post (Some b) })
-          |> Async.map (fun _ -> mb.Post None)
-          |> Async.StartChildAsTask
-        yield!
-          replicateUntilNoneAsync (Task.chooseTask (err |> Task.taskFault) (async.Delay mb.Receive))
-          |> mapAsync id }
-*)
-    let mapAsyncParallelRateLimit (opsPerSecond:float) (f:'a -> Async<'b>) (s:AsyncSeq<'a>) : AsyncSeq<'b> = asyncSeq {
-        let mutable tRef = DateTime.Now
-        use mb = MailboxProcessor.Start (ignore >> async.Return)
-        let mutable l = 0L
-        let incr() = Interlocked.Increment(&l)
-        let! err =
-            s
-            |> AsyncSeq.iterAsync (fun a -> async {
-                let l' = incr() |> float
-                let elapsed = (DateTime.Now - tRef).TotalSeconds
-                let rate = l' / elapsed |> min (2.0 * opsPerSecond)
-                if elapsed > 60. then
-                    tRef <- DateTime.Now
-                    l <- 0
-                    printfn $"rate {rate}"
-                let diffRate = rate - opsPerSecond
-                if diffRate > 0 then
-                    do! Async.Sleep (int diffRate * 1000)
-                let! b = Async.StartChild (async {
-                    try return! f a
-                    finally () })
-                mb.Post (Some b) })
-            |> Async.map (fun _ -> mb.Post None)
-            |> Async.StartChildAsTask
-        yield!
-            AsyncSeq.unfoldAsync (fun (t:Task) -> async{
-            if t.IsFaulted then
-                return None
-            else
-                let! d = mb.Receive()
-                match d with
-                | Some c ->
-                    let! d' = c
-                    return Some (d',t)
-                | None -> return None
-            })
-            err
-    }
-
-// let collectString (rs:AsyncSeq<Nullable<int>*ChatMessage>) =
-//     let mutable ls = []
-//     rs
-//     //|> asAsyncSeqRe
-//     |> AsyncSeq.map(fun(i,x) -> x)
-//     |> AsyncSeq.iter(fun x-> printfn "%A" x.Content; ls<-x.Content::ls)
-//     |> Async.RunSynchronously
-//     List.rev ls
 
 module Secrets =
     open Azure.Identity;
@@ -339,13 +246,12 @@ module Indexes =
             printfn "done loading index"
         }
 
-    let getEmbeddingsAsync rateLimit (chunks : AsyncSeq<Doc>) =
+    let getEmbeddingsAsync (embModel:string) (clientFac:unit->OpenAIClient) rateLimit (chunks : AsyncSeq<Doc>) =
         chunks
         |> AsyncSeq.mapAsyncParallelRateLimit rateLimit (fun doc ->
             async {
                 let t1 = DateTime.Now
-                let client = openAiClient()
-                let embModel = "text-embedding-ada-002"
+                let client = clientFac()
                 let t = client.GetEmbeddingsAsync(EmbeddingsOptions(embModel,[doc.Chunk])) |> Async.AwaitTask
                 let! emb = submitLoop "embedding" 0 t
                 return {Time = t1; Doc=doc; Embeddings = emb.Value.Data.[0].Embedding.ToArray() }

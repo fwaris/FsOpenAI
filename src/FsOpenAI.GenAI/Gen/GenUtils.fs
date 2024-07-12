@@ -240,13 +240,14 @@ module GenUtils =
         |> AsyncSeq.toBlockingSeq
         |> Seq.toList
 
-    let diaEntryEmbeddings ch (invCtx:InvocationContext) model resource query =
+    let diaEntryEmbeddings (ch:Interaction) (invCtx:InvocationContext) model resource query =
         {
             id = Utils.newId()
             UserId = invCtx.User  |> Option.defaultValue C.UNAUTHENTICATED
             AppId = invCtx.AppId |> Option.defaultValue C.DFLT_APP_ID
             Prompt = Embedding query
             Feedback = None
+            Question = ch.Question
             Response = ""
             Backend = string ch.Parameters.Backend
             Model = model
@@ -257,7 +258,7 @@ module GenUtils =
             Timestamp = DateTime.UtcNow
         }
 
-    let diaEntryChat ch (invCtx:InvocationContext) model resource  =
+    let diaEntryChat (ch:Interaction) (invCtx:InvocationContext) model resource  =
         let prompt = serializeChat ch 
         let inputTokens = tokenEstimate ch
         {
@@ -266,6 +267,7 @@ module GenUtils =
             AppId = invCtx.AppId |> Option.defaultValue C.DFLT_APP_ID
             Prompt = Chat prompt
             Feedback = None
+            Question = ch.Question
             Response = ""
             Backend = string ch.Parameters.Backend
             Model = model
@@ -277,12 +279,15 @@ module GenUtils =
         }
     
     let getEmbeddings (parms:ServiceSettings) (invCtx:InvocationContext) (ch:Interaction) query =
-        let embModel = invCtx.ModelsConfig.EmbeddingsModels.Head.Model
+        let embModel = 
+            invCtx.ModelsConfig.EmbeddingsModels 
+            |> List.tryFind (fun m -> m.Backend = ch.Parameters.Backend) 
+            |> Option.defaultValue (invCtx.ModelsConfig.EmbeddingsModels.Head)
         let embClient,resource = getEmbeddingsClient parms ch
-        let de = diaEntryEmbeddings ch invCtx embModel resource query
+        let de = diaEntryEmbeddings ch invCtx embModel.Model resource query
         task {
             try
-                let! resp = embClient.GetEmbeddingsAsync(EmbeddingsOptions(embModel,[query]))
+                let! resp = embClient.GetEmbeddingsAsync(EmbeddingsOptions(embModel.Model,[query]))
                 Monitoring.write (Diag de)
                 return resp
             with ex -> 

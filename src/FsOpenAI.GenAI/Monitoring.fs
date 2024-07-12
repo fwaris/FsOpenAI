@@ -43,6 +43,7 @@ type DiagEntry = {
     UserId : string
     Prompt : PromptLog
     Feedback : MFeedback option
+    Question : string
     Response : string
     InputTokens : int
     OutputTokens : int

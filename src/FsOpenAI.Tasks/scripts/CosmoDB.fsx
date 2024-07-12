@@ -6,7 +6,7 @@ open FSharp.Control
 
 type SREf = {[<Id>] id:string; [<PartitionKey>] UserId:string; Timestamp:DateTime}
 
-let baseSettingsFile = @"%USERPROFILE%/.fsopenai/ptu/ServiceSettings.json"
+let baseSettingsFile = @"%USERPROFILE%/.fsopenai/poc/ServiceSettings.json"
 ScriptEnv.installSettings baseSettingsFile
 let cstr = ScriptEnv.settings.Value.LOG_CONN_STR.Value
 
@@ -32,9 +32,6 @@ let drop (drops:SREf list) =
         |> AsyncSeq.iterAsync Async.Ignore)
     |> Async.Start
 
-
 let toDrop = findDrops()
 
 drop toDrop
-
-
