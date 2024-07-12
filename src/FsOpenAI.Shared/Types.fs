@@ -238,7 +238,7 @@ type ServerInitiatedMessages =
     | Srv_LoadSamples of (string*SamplePrompt list)
     | Srv_SetConfig of AppConfig
     | Srv_DoneInit of unit
-    //wholesale
+    //code eval support
     | Srv_Ia_SetCode of (string*string option)
     | Srv_Ia_SetPlan of (string*string option)
 
@@ -257,7 +257,7 @@ type ClientInitiatedMessages =
     | Clnt_Ia_Session_ClearAll of InvocationContext
     | Clnt_Ia_Session_Delete of InvocationContext*string
     | Clnt_Ia_Feedback_Submit of InvocationContext*Feedback
-    //wholesale
+    //code eval support
     | Clnt_Run_EvalCode of ServiceSettings*InvocationContext*Interaction*CodeEvalParms
 
 
