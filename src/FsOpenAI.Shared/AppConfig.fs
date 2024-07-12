@@ -142,6 +142,8 @@ type AppConfig =
 
         ModelsConfig : ModelsConfig
 
+        DatabaseName : string
+
         DiagTableName : string option
 
         SessionTableName : string option
@@ -167,6 +169,7 @@ type AppConfig =
                 AppName = Some "FsOpenAI"
                 PersonaText = None
                 PersonaSubText = None
+                DatabaseName = C.DFLT_COSMOSDB_NAME
                 DiagTableName = None
                 SessionTableName = None
             }

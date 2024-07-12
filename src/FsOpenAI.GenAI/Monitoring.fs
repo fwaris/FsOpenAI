@@ -60,18 +60,20 @@ type LogEntry = Diag of DiagEntry | Feedback of FeedbackEntry
 module Monitoring = 
     let BUFFER_SIZE = 1000
     let BUFFER_WAIT = 10000
-    let COSMOSDB = "fsopenai"
     let mutable private _tableClient = lazy None
 
     let private installTable() =
         Env.logInfo "installing monitoring"
         try 
             Env.appConfig.Value
-            |> Option.bind(fun x -> Env.logInfo $"{x.DiagTableName}"; x.DiagTableName)
-            |> Option.bind(fun t -> Settings.getSettings().Value.LOG_CONN_STR |> Option.map(fun cstr -> Env.logInfo $"{t} - {Utils.shorten 30 cstr}";cstr,t))
-            |> Option.bind(fun (cstr,t) -> 
+            |> Option.bind(fun x -> Env.logInfo $"{x.DatabaseName},{x.DiagTableName}"; x.DiagTableName |> Option.map(fun t -> x.DatabaseName,t))
+            |> Option.bind(fun dbInfo -> 
+                Settings.getSettings().Value.LOG_CONN_STR 
+                |> Option.map(fun cstr -> Env.logInfo $"{snd dbInfo} - {Utils.shorten 30 cstr}";cstr,dbInfo))
+            |> Option.bind(fun (cstr,dbInfo) -> 
             (*
             *)
+                let COSMOSDB,TABLE = dbInfo
                 let db =
                     Cosmos.fromConnectionString cstr
                     |> Cosmos.database COSMOSDB
@@ -85,14 +87,14 @@ module Monitoring =
 
                 do 
                     db
-                    |> Cosmos.container t                 
+                    |> Cosmos.container TABLE               
                     |> Cosmos.createContainerIfNotExists<DiagEntry>
                     |> Cosmos.execAsync
                     |> AsyncSeq.iter (printfn "%A")
                     |> Async.RunSynchronously
 
-                Env.logInfo($"Logging diagnostics to {t}")
-                Some(cstr,t))
+                Env.logInfo($"Logging diagnostics to {dbInfo}")
+                Some(cstr,dbInfo))
 
             |> Option.orElseWith(fun () -> 
                 Env.logError("unable to configure diagnostics - no connection string provided")
@@ -106,12 +108,13 @@ module Monitoring =
     let private writeDiagAsync (diagEntries:DiagEntry[]) =
         async {
             match _tableClient.Value with
-            | Some (cstr,t) -> 
+            | Some (cstr,dbInfo) -> 
+                let COSMOSDB,TABLE = dbInfo                
                 try
                     do!
                         Cosmos.fromConnectionString cstr
                             |> Cosmos.database COSMOSDB
-                            |> Cosmos.container t
+                            |> Cosmos.container TABLE
                             |> Cosmos.upsertMany (Array.toList diagEntries)
                             |> Cosmos.execAsync
                             |> AsyncSeq.iter (fun _ -> ())
@@ -126,12 +129,13 @@ module Monitoring =
     let private updateWithFeedbackAsync (fbEntries:FeedbackEntry[]) =
         async {
             match _tableClient.Value with
-            | Some (cstr,t) -> 
+            | Some (cstr,dbInfo) -> 
+                let COSMOSDB,TABLE = dbInfo                
                 try
                     let db =
                         Cosmos.fromConnectionString cstr
                         |> Cosmos.database COSMOSDB
-                        |> Cosmos.container t
+                        |> Cosmos.container TABLE
 
                     do! 
                         fbEntries

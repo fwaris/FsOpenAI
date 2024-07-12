@@ -114,6 +114,7 @@
       }
     ]
   },
+  "DatabaseName": "fsopenai",
   "DiagTableName": "log1",
   "SessionTableName": "sessios"
 }
