@@ -35,7 +35,6 @@ module Sessions =
     let BUFFER_SIZE = 1000
     let BUFFER_WAIT = 10000
     let MAX_SESSIONS = 15
-    let COSMOSDB = "fsopenai"
 
     let mutable private _connParms = lazy None
 
@@ -43,9 +42,10 @@ module Sessions =
         Env.logInfo "installing session connection info"
         try 
             Env.appConfig.Value
-            |> Option.bind(fun x -> Env.logInfo $"{x.SessionTableName}"; x.SessionTableName)
-            |> Option.bind(fun t -> Settings.getSettings().Value.LOG_CONN_STR |> Option.map(fun cstr -> Env.logInfo $"{t} - {Utils.shorten 30 cstr}";cstr,t))
-            |> Option.bind(fun (cstr,t) -> 
+            |> Option.bind(fun x -> Env.logInfo $"{x.SessionTableName}"; x.SessionTableName |> Option.map(fun t -> x.DatabaseName,t))
+            |> Option.bind(fun dbInfo -> Settings.getSettings().Value.LOG_CONN_STR |> Option.map(fun cstr -> Env.logInfo $"{snd dbInfo} - {Utils.shorten 30 cstr}";cstr,dbInfo))
+            |> Option.bind(fun (cstr,dbInfo) -> 
+                let COSMOSDB,TABLE = dbInfo
                 let db() =
                     Cosmos.fromConnectionString cstr
                     |> Cosmos.database COSMOSDB
@@ -59,14 +59,14 @@ module Sessions =
 
                 do 
                     db()
-                    |> Cosmos.container t                 
+                    |> Cosmos.container TABLE               
                     |> Cosmos.createContainerIfNotExists<ChatSession>
                     |> Cosmos.execAsync
                     |> AsyncSeq.iter (printfn "%A")
                     |> Async.RunSynchronously
 
-                Env.logInfo($"Saving session to {t}")
-                Some(cstr,t))
+                Env.logInfo($"Saving session to {dbInfo}")
+                Some(cstr,dbInfo))
 
             |> Option.orElseWith(fun () -> 
                 Env.logError("No configuration found for saving chat sessions")
@@ -82,12 +82,13 @@ module Sessions =
     let private saveSessionsForUser ((userId:string,appId:string), chatSessions:ChatSession[]) =
         async {
             match _connParms.Value with
-            | Some (cstr,t) -> 
+            | Some (cstr,dbInfo) -> 
+                let COSMOSDB,TABLE = dbInfo
                 try   
                     let db() = 
                         Cosmos.fromConnectionString cstr
                         |> Cosmos.database COSMOSDB
-                        |> Cosmos.container t
+                        |> Cosmos.container TABLE
                     do!
                         db()
                         |> Cosmos.upsertMany (Array.toList chatSessions)
@@ -119,7 +120,8 @@ module Sessions =
     let private saveSessions (chatSessions:ChatSession[]) =
         async {
             match _connParms.Value with
-            | Some (cstr,t) -> 
+            | Some (cstr,dbInfo) -> 
+                let COSMOSDB,TABLE = dbInfo
                 try 
                     do!
                     chatSessions
@@ -137,13 +139,14 @@ module Sessions =
     let private delete (invCtx:InvocationContext,id:string) =
         async {
             match _connParms.Value with
-            | Some (cstr,t) -> 
+            | Some (cstr,dbInfo) -> 
+                let COSMOSDB,TABLE = dbInfo
                 try 
                     let user = invCtx.User |> Option.defaultValue null
                     let db() = 
                         Cosmos.fromConnectionString cstr
                         |> Cosmos.database COSMOSDB
-                        |> Cosmos.container t
+                        |> Cosmos.container TABLE
                     do!
                         db()
                         |> Cosmos.deleteItem<ChatSession> id user
@@ -157,12 +160,13 @@ module Sessions =
     let private clearAll (invCtx:InvocationContext) =
         async {
             match _connParms.Value with
-            | Some (cstr,t) -> 
+            | Some (cstr,dbInfo) -> 
+                let COSMOSDB,TABLE = dbInfo
                 try 
                     let db() = 
                         Cosmos.fromConnectionString cstr
                         |> Cosmos.database COSMOSDB
-                        |> Cosmos.container t
+                        |> Cosmos.container TABLE
                     let userId = invCtx.User |> Option.defaultValue C.UNAUTHENTICATED
                     let appId = invCtx.AppId |> Option.defaultValue C.DFLT_APP_ID
                     let dropSessions =
@@ -258,11 +262,12 @@ module Sessions =
         let userId = invCtx.User  |> Option.defaultValue C.UNAUTHENTICATED
         let appId = invCtx.AppId |> Option.defaultValue C.DFLT_APP_ID
         match _connParms.Value with
-        | Some (cstr,t) ->
+        | Some (cstr,dbInfo) -> 
+            let COSMOSDB,TABLE = dbInfo
             let db =
                 Cosmos.fromConnectionString cstr
                 |> Cosmos.database COSMOSDB
-                |> Cosmos.container t           
+                |> Cosmos.container TABLE
             db
             |> Cosmos.query<SREf>(sprintf $"SELECT c.id, c.UserId, c.Timestamp FROM c WHERE c.UserId = @UserId and c.AppId = @AppId ORDER BY c.Timestamp DESC" )
             |> Cosmos.parameters ["@UserId", box userId; "@AppId", box appId]
