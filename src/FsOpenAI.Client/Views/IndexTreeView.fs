@@ -45,7 +45,7 @@ type IndexTreePopup() =
                 "Items" => HashSet<TreeItemData<IndexTree>> (model.indexTrees |> List.map(fun x -> TreeItemData<IndexTree>(Value=x)))
                 "SelectionMode" => SelectionMode.MultiSelection
                 "Dense" => true
-                attr.callback "SelectedValuesChanged" (fun (xs:IReadOnlyCollection<IndexTree>) ->printfn "%A" xs; sels <- HashSet(xs))
+                attr.callback "SelectedValuesChanged" (fun (xs:IReadOnlyCollection<IndexTree>) -> sels <- HashSet(xs))
                 attr.fragmentWith "ItemTemplate"(fun (idxt:TreeItemData<IndexTree>) ->
                     comp<MudTreeViewItem<IndexTree>> {
                         "Value" => idxt.Value

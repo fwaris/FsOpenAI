@@ -57,6 +57,7 @@ module Submission =
                     model.interactions
                     |> List.find(fun x->x.Id=id)
                     |> Interaction.preSerialize
+                    |> Interaction.setQuestion prompt //send the question to the server separately also for logging (note the prompt may be modfied along the way)
                 let idxs = Interaction.getIndexes ch
                 let ch =
                     if List.isEmpty idxs then

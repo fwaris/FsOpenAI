@@ -10,14 +10,14 @@
             "request": "launch",
             "preLaunchTask": "Build: solution",
             "launchSettingsFilePath": "${workspaceFolder}/src/FsOpenAI.Server/Properties/launchSettings.json",
-            "launchSettingsProfile": "FsOpenAI.Server",
+            "launchSettingsProfile": "https",
             "program": "${workspaceFolder}/src/FsOpenAI.Server/bin/Debug/net8.0/FsOpenAI.Server.dll",
             "args": [],
             "cwd": "${workspaceFolder}/src/FsOpenAI.Server",
             "stopAtEntry": false,
             "serverReadyAction": {
                 "action": "openExternally",
-                "pattern": "\\bNow listening on:\\s+(https?://\\S+)",                
+                "pattern": "\\bNow listening on:\\s+(https?://\\S+)",
             },
             "env": {
                 "ASPNETCORE_ENVIRONMENT": "Development"
@@ -40,7 +40,7 @@
             "stopAtEntry": false,
             "serverReadyAction": {
                 "action": "openExternally",
-                "pattern": "\\bNow listening on:\\s+(https?://\\S+)",                
+                "pattern": "\\bNow listening on:\\s+(https?://\\S+)",
             },
             "env": {
                 "ASPNETCORE_ENVIRONMENT": "Development"
@@ -62,7 +62,7 @@
             "cwd": "${workspaceFolder}/src/UISandbox/src/UISandbox.Client",
 
             "launchSettingsFilePath": "${workspaceFolder}/src/UISandbox/src/UISandbox.Client/Properties/launchSettings.json",
-            "launchSettingsProfile": "UISandbox.Client", 
+            "launchSettingsProfile": "UISandbox.Client",
         }
     ]
 }
