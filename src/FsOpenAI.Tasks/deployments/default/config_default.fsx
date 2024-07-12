@@ -156,11 +156,11 @@ let run() =
 
 
 (* uncomment to copy baseSettings file to default location so the running app can find it
+
+*)
 File.Copy(
     ScriptEnv.expandEnv baseSettingsFile,
     ScriptEnv.expandEnv settings,true )
-
-*)
 
 
 (*

@@ -23,8 +23,8 @@ type LoginRedirectView() =
             comp<MudGrid> {
                 comp<MudItem> {
                     "xs" => 3
-                    comp<MudLink> {                    
-                        "Href" => this.NavMgr.BaseUri                    
+                    comp<MudLink> {
+                        "Href" => this.NavMgr.BaseUri
                         comp<MudPaper> {
                             "Class" => "d-flex gap-4"
                             comp<MudIcon> {
@@ -54,7 +54,7 @@ type LoginRedirectView() =
                 //}
             }
             //this component does all the login magic
-            comp<RemoteAuthenticatorView> { 
+            comp<RemoteAuthenticatorView> {
                 "Action" => action
             }
         }
@@ -62,17 +62,17 @@ type LoginRedirectView() =
 type AvatarView() =
     inherit ElmishComponent<Model,Message>()
 
-    override this.View model (dispatch:Message -> unit) = 
+    override this.View model (dispatch:Message -> unit) =
         let isUnauthenticated = match model.user with Unauthenticated -> true | _ -> false
 
-        let badgeColor = 
+        let badgeColor =
             match model.user with
             | Authenticated u when u.IsAuthorized -> Color.Tertiary
             | Authenticated _                     -> Color.Warning
             | Unauthenticated                     -> Color.Info
 
         concat {
-            if model.appConfig.RequireLogin && isUnauthenticated then 
+            if model.appConfig.RequireLogin && isUnauthenticated then
                 comp<MudButton> {
                     "Class" => "mt-2"
                     "Variant" => Variant.Filled
@@ -80,10 +80,10 @@ type AvatarView() =
                     on.click (fun _ -> dispatch LoginLogout)
                     text "Login"
                 }
-            else 
+            else
                 comp<MudMenu> {
                     "Class" => "mt-4"
-                    "Origin" => Anchor.Top            
+                    "Origin" => Anchor.Top
                     attr.fragment "ActivatorContent" (
                         comp<MudBadge> {
                             "Elevation" => 10
@@ -92,17 +92,17 @@ type AvatarView() =
                             "Bordered" => isUnauthenticated
                             "Dot" => not isUnauthenticated
                             "Origin" => Origin.CenterRight
-                            comp<MudAvatar> {                            
-                                "Image" => (match model.photo with Some s -> s | _ -> "imgs/person.png")
+                            comp<MudAvatar> {
                                 "Size" => Size.Small
-                                "Eelevation" => 7
-                            }                            
+                                comp<MudImage> {
+                                    "Src" => (match model.photo with Some s -> s | _ -> "imgs/person.png")
+                                }
+                            }
                         }
                     )
                     comp<MudMenuItem> {
-                        attr.callback "OnTouch" (fun (e:TouchEventArgs) -> dispatch LoginLogout)
                         on.click (fun e -> dispatch LoginLogout)
-                        match model.user with 
+                        match model.user with
                         | Authenticated u -> $"Logout {u.Name}"
                         | _               -> "Login"
                     }
