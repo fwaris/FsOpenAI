@@ -58,11 +58,6 @@ let toCENSUS_R (v:string) : CENSUS_R =
     | 3 -> CENSUS_R_South
     | 4 -> CENSUS_R_West
 
-let toFLAG100 (v:string) : FLAG100 =
-    match int v with
-    | 1 -> ``FLAG100_All eligible household members completed``
-    | 2 -> ``FLAG100_75% to 99% of eligible household members completed``
-
 let toHHFAMINC (v:string) : HHFAMINC =
     match int v with
     | -7 -> ``HHFAMINC_I prefer not to answer``
@@ -92,16 +87,6 @@ let toHHFAMINC_IMP (v:string) : HHFAMINC_IMP =
     | 9 -> ``HHFAMINC_IMP_125,000 to 149,999``
     | 10 -> ``HHFAMINC_IMP_150,000 to 199,999``
     | 11 -> ``HHFAMINC_IMP_200,000 or more``
-
-let toHHRELATD (v:string) : HHRELATD =
-    match int v with
-    | 1 -> ``HHRELATD_At least two persons in hh are related``
-    | 2 -> ``HHRELATD_No related persons in hh``
-
-let toHH_HISP (v:string) : HH_HISP =
-    match int v with
-    | 1 -> ``HH_HISP_Hispanic or Latino``
-    | 2 -> ``HH_HISP_Not Hispanic or Latino``
 
 let toHH_RACE (v:string) : HH_RACE =
     match int v with
@@ -182,11 +167,6 @@ let toURBANSIZE (v:string) : URBANSIZE =
     | 4 -> ``URBANSIZE_1,000,000 or more with heavy rail``
     | 5 -> ``URBANSIZE_1,000,000 or more without heavy rail``
     | 6 -> ``URBANSIZE_Not in urbanized area``
-
-let toURBRUR (v:string) : URBRUR =
-    match int v with
-    | 1 -> URBRUR_Urban
-    | 2 -> URBRUR_Rural
 
 let toMAKE (v:string) : MAKE =
     match int v with
@@ -354,11 +334,6 @@ let toPRMACT (v:string) : PRMACT =
     | 5 -> PRMACT_Retired
     | 97 -> ``PRMACT_Something else``
 
-let toPROXY (v:string) : PROXY =
-    match int v with
-    | 1 -> PROXY_Self
-    | 2 -> ``PROXY_Someone else``
-
 let toQACSLAN3 (v:string) : QACSLAN3 =
     match int v with
     | -1 -> ``QACSLAN3_Valid skip``
@@ -367,11 +342,6 @@ let toQACSLAN3 (v:string) : QACSLAN3 =
     | 2 -> QACSLAN3_Well
     | 3 -> ``QACSLAN3_Not well``
     | 4 -> ``QACSLAN3_Not at all``
-
-let toR_HISP (v:string) : R_HISP =
-    match int v with
-    | 1 -> R_HISP_Hispanic
-    | 2 -> ``R_HISP_Not Hispanic``
 
 let toR_RACE (v:string) : R_RACE =
     match int v with
@@ -402,11 +372,6 @@ let toR_SEX (v:string) : R_SEX =
     | -9 -> ``R_SEX_Not ascertained``
     | 1 -> R_SEX_Male
     | 2 -> R_SEX_Female
-
-let toR_SEX_IMP (v:string) : R_SEX_IMP =
-    match int v with
-    | 1 -> R_SEX_IMP_Male
-    | 2 -> R_SEX_IMP_Female
 
 let toSAMEPLC (v:string) : SAMEPLC =
     match int v with
@@ -633,16 +598,6 @@ let toHHMEMDRV (v:string) : HHMEMDRV =
     | 1 -> ``HHMEMDRV_Household member drove``
     | 2 -> ``HHMEMDRV_Non-household member drove``
 
-let toLOOP_TRIP (v:string) : LOOP_TRIP =
-    match int v with
-    | 1 -> ``LOOP_TRIP_Loop trip``
-    | 2 -> ``LOOP_TRIP_Not a loop trip``
-
-let toONTD_P1 (v:string) : ONTD_P1 =
-    match int v with
-    | 1 -> ONTD_P1_Selected
-    | 2 -> ``ONTD_P1_Not Selected``
-
 let toONTD_P10 (v:string) : ONTD_P10 =
     match int v with
     | -1 -> ``ONTD_P10_Valid skip``
@@ -677,16 +632,6 @@ let toPSGR_FLG (v:string) : PSGR_FLG =
     | -1 -> ``PSGR_FLG_Valid skip``
     | 1 -> ``PSGR_FLG_Passenger on trip``
     | 2 -> ``PSGR_FLG_Not passenger on trip``
-
-let toPUBTRANS (v:string) : PUBTRANS =
-    match int v with
-    | 1 -> ``PUBTRANS_Used public transit``
-    | 2 -> ``PUBTRANS_Did not use public transit``
-
-let toTDWKND (v:string) : TDWKND =
-    match int v with
-    | 1 -> TDWKND_Weekend
-    | 2 -> TDWKND_Weekday
 
 let toTRIPPURP (v:string) : TRIPPURP =
     match int v with
@@ -988,28 +933,28 @@ let to_Household (vals:string[]) =
         RAIL = toYesNo vals.[7]
         CENSUS_D = toCENSUS_D vals.[8]
         CENSUS_R = toCENSUS_R vals.[9]
-        HH_HISP = toHH_HISP vals.[10]
+        HH_HISP = toYesNo vals.[10]
         DRVRCNT = toFloat vals.[11]
         CNTTDHH = toFloat vals.[12]
         CDIVMSAR = toCDIVMSAR vals.[13]
-        FLAG100 = toFLAG100 vals.[14]
+        FLAG100 = toYesNo vals.[14]
         HHFAMINC = toHHFAMINC vals.[15]
         HHFAMINC_IMP = toHHFAMINC_IMP vals.[16]
         HH_RACE = toHH_RACE vals.[17]
         HHSIZE = toFloat vals.[18]
         HHVEHCNT = toFloat vals.[19]
-        HHRELATD = toHHRELATD vals.[20]
+        HHRELATD = toYesNo vals.[20]
         LIF_CYC = toLIF_CYC vals.[21]
         MSACAT = toMSACAT vals.[22]
         MSASIZE = toMSASIZE vals.[23]
         TRAVDAY = toTRAVDAY vals.[24]
         URBAN = toURBAN vals.[25]
         URBANSIZE = toURBANSIZE vals.[26]
-        URBRUR = toURBRUR vals.[27]
+        URBRUR = toYesNo vals.[27]
         PPT517 = toFloat vals.[28]
         YOUNGCHILD = toFloat vals.[29]
         RESP_CNT = toFloat vals.[30]
-        URBRUR_2010 = toURBRUR vals.[31]
+        URBRUR_2010 = toYesNo vals.[31]
         TDAYDATE = toDateTime vals.[32]
         WRKCOUNT = toFloat vals.[33]
         STRATUMID = string vals.[34]
@@ -1044,7 +989,7 @@ let to_Vehicle (vals:string[]) =
         RAIL = toYesNo vals.[24]
         CENSUS_D = toCENSUS_D vals.[25]
         CENSUS_R = toCENSUS_R vals.[26]
-        HH_HISP = toHH_HISP vals.[27]
+        HH_HISP = toYesNo vals.[27]
         DRVRCNT = toFloat vals.[28]
         CDIVMSAR = toCDIVMSAR vals.[29]
         HHFAMINC = toHHFAMINC vals.[30]
@@ -1056,7 +1001,7 @@ let to_Vehicle (vals:string[]) =
         TRAVDAY = toTRAVDAY vals.[36]
         URBAN = toURBAN vals.[37]
         URBANSIZE = toURBANSIZE vals.[38]
-        URBRUR = toURBRUR vals.[39]
+        URBRUR = toYesNo vals.[39]
         TDAYDATE = toDateTime vals.[40]
         WRKCOUNT = toFloat vals.[41]
         STRATUMID = string vals.[42]
@@ -1083,8 +1028,8 @@ let to_Person (vals:string[]) =
         OUTOFTWN = toYesNo vals.[12]
         USEPUBTR = toYesNo vals.[13]
         R_RACE_IMP = toHH_RACE vals.[14]
-        R_HISP = toR_HISP vals.[15]
-        PROXY = toPROXY vals.[16]
+        R_HISP = toYesNo vals.[15]
+        PROXY = toYesNo vals.[16]
         WHOPROXY = toWHOPROXY vals.[17]
         EDUC = toEDUC vals.[18]
         LAST30_TAXI = toYesNo vals.[19]
@@ -1173,13 +1118,13 @@ let to_Person (vals:string[]) =
         COV2_PT = toCOV2_OHD vals.[102]
         COV2_OHD = toCOV2_OHD vals.[103]
         CNTTDTR = toFloat vals.[104]
-        R_SEX_IMP = toR_SEX_IMP vals.[105]
+        R_SEX_IMP = toYesNo vals.[105]
         NUMADLT = toFloat vals.[106]
         HOMEOWN = toHOMEOWN vals.[107]
         RAIL = toYesNo vals.[108]
         CENSUS_D = toCENSUS_D vals.[109]
         CENSUS_R = toCENSUS_R vals.[110]
-        HH_HISP = toHH_HISP vals.[111]
+        HH_HISP = toYesNo vals.[111]
         DRVRCNT = toFloat vals.[112]
         CDIVMSAR = toCDIVMSAR vals.[113]
         HHFAMINC = toHHFAMINC vals.[114]
@@ -1192,7 +1137,7 @@ let to_Person (vals:string[]) =
         TRAVDAY = toTRAVDAY vals.[121]
         URBAN = toURBAN vals.[122]
         URBANSIZE = toURBANSIZE vals.[123]
-        URBRUR = toURBRUR vals.[124]
+        URBRUR = toYesNo vals.[124]
         TDAYDATE = toDateTime vals.[125]
         WRKCOUNT = toFloat vals.[126]
         STRATUMID = string vals.[127]
@@ -1209,11 +1154,11 @@ let to_Trip (vals:string[]) =
         FRSTHM = toYesNo vals.[5]
         PARK = toYesNo vals.[6]
         HHMEMDRV = toHHMEMDRV vals.[7]
-        TDWKND = toTDWKND vals.[8]
+        TDWKND = toYesNo vals.[8]
         TRAVDAY = toTRAVDAY vals.[9]
-        LOOP_TRIP = toLOOP_TRIP vals.[10]
+        LOOP_TRIP = toYesNo vals.[10]
         DWELTIME = toBaseResponse vals.[11]
-        PUBTRANS = toPUBTRANS vals.[12]
+        PUBTRANS = toYesNo vals.[12]
         TRIPPURP = toTRIPPURP vals.[13]
         WHYFROM = toWHYFROM vals.[14]
         WHYTRP1S = toWHYTRP1S vals.[15]
@@ -1224,7 +1169,7 @@ let to_Trip (vals:string[]) =
         VEHID = string vals.[20]
         TRPTRANS = toTRPTRANS vals.[21]
         NUMONTRP = toFloat vals.[22]
-        ONTD_P1 = toONTD_P1 vals.[23]
+        ONTD_P1 = toYesNo vals.[23]
         ONTD_P2 = toONTD_P2 vals.[24]
         ONTD_P3 = toONTD_P2 vals.[25]
         ONTD_P4 = toONTD_P2 vals.[26]
@@ -1258,7 +1203,7 @@ let to_Trip (vals:string[]) =
         RAIL = toYesNo vals.[54]
         CENSUS_D = toCENSUS_D vals.[55]
         CENSUS_R = toCENSUS_R vals.[56]
-        HH_HISP = toHH_HISP vals.[57]
+        HH_HISP = toYesNo vals.[57]
         DRVRCNT = toFloat vals.[58]
         CDIVMSAR = toCDIVMSAR vals.[59]
         HHFAMINC = toHHFAMINC vals.[60]
@@ -1270,7 +1215,7 @@ let to_Trip (vals:string[]) =
         MSASIZE = toMSASIZE vals.[66]
         URBAN = toURBAN vals.[67]
         URBANSIZE = toURBANSIZE vals.[68]
-        URBRUR = toURBRUR vals.[69]
+        URBRUR = toYesNo vals.[69]
         TDAYDATE = toDateTime vals.[70]
         WRKCOUNT = toFloat vals.[71]
         STRATUMID = string vals.[72]
@@ -1279,11 +1224,11 @@ let to_Trip (vals:string[]) =
         WORKER = toWORKER vals.[75]
         DRIVER = toYesNo vals.[76]
         R_RACE = toR_RACE vals.[77]
-        R_HISP = toR_HISP vals.[78]
-        PROXY = toPROXY vals.[79]
+        R_HISP = toYesNo vals.[78]
+        PROXY = toYesNo vals.[79]
         EDUC = toEDUC vals.[80]
         PRMACT = toPRMACT vals.[81]
-        R_SEX_IMP = toR_SEX_IMP vals.[82]
+        R_SEX_IMP = toYesNo vals.[82]
         VEHTYPE = toVEHTYPE vals.[83]
         HHFAMINC_IMP = toHHFAMINC_IMP vals.[84]
 }
@@ -1326,7 +1271,7 @@ let to_LongTrip (vals:string[]) =
         RAIL = toYesNo vals.[33]
         CENSUS_D = toCENSUS_D vals.[34]
         CENSUS_R = toCENSUS_R vals.[35]
-        HH_HISP = toHH_HISP vals.[36]
+        HH_HISP = toYesNo vals.[36]
         DRVRCNT = toFloat vals.[37]
         CDIVMSAR = toCDIVMSAR vals.[38]
         HHFAMINC = toHHFAMINC vals.[39]
@@ -1340,7 +1285,7 @@ let to_LongTrip (vals:string[]) =
         TRAVDAY = toTRAVDAY vals.[47]
         URBAN = toURBAN vals.[48]
         URBANSIZE = toURBANSIZE vals.[49]
-        URBRUR = toURBRUR vals.[50]
+        URBRUR = toYesNo vals.[50]
         TDAYDATE = toDateTime vals.[51]
         WRKCOUNT = toFloat vals.[52]
         STRATUMID = string vals.[53]
@@ -1352,8 +1297,8 @@ let to_LongTrip (vals:string[]) =
         WORKER = toWORKER vals.[59]
         DRIVER = toYesNo vals.[60]
         R_RACE = toR_RACE vals.[61]
-        R_HISP = toR_HISP vals.[62]
-        PROXY = toPROXY vals.[63]
+        R_HISP = toYesNo vals.[62]
+        PROXY = toYesNo vals.[63]
         EDUC = toEDUC vals.[64]
-        R_SEX_IMP = toR_SEX_IMP vals.[65]
+        R_SEX_IMP = toYesNo vals.[65]
 }

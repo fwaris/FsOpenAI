@@ -673,16 +673,6 @@ type URBANSIZE =
 | ``URBANSIZE_1,000,000 or more without heavy rail``
 | ``URBANSIZE_Not in urbanized area``
 
-/// All HH members completed survey?
-type FLAG100 =
-| ``FLAG100_All eligible household members completed``
-| ``FLAG100_75% to 99% of eligible household members completed``
-
-/// Flag indicating at least 2 persons in HH are related
-type HHRELATD =
-| ``HHRELATD_At least two persons in hh are related``
-| ``HHRELATD_No related persons in hh``
-
 /// Trip mode, derived
 type TRPTRANS =
 | TRPTRANS_Car
@@ -705,16 +695,6 @@ type TRPTRANS =
 | ``TRPTRANS_E-scooter``
 | TRPTRANS_Walked
 | ``TRPTRANS_Other (specify)``
-
-/// Person 5 or older - Hispanic or Latino
-type R_HISP =
-| R_HISP_Hispanic
-| ``R_HISP_Not Hispanic``
-
-/// Hispanic status of household respondent
-type HH_HISP =
-| ``HH_HISP_Hispanic or Latino``
-| ``HH_HISP_Not Hispanic or Latino``
 
 /// Trip purpose summary
 type WHYTRP1S =
@@ -757,16 +737,6 @@ type HHFAMINC_IMP =
 | ``HHFAMINC_IMP_125,000 to 149,999``
 | ``HHFAMINC_IMP_150,000 to 199,999``
 | ``HHFAMINC_IMP_200,000 or more``
-
-/// Trip origin and destination at Identical location
-type LOOP_TRIP =
-| ``LOOP_TRIP_Loop trip``
-| ``LOOP_TRIP_Not a loop trip``
-
-/// Respondent sex (imputed)
-type R_SEX_IMP =
-| R_SEX_IMP_Male
-| R_SEX_IMP_Female
 
 /// MSA category for the HH home address
 type MSACAT =
@@ -845,16 +815,6 @@ type WHYTO =
 | ``WHYTO_Religious or other community activities``
 | ``WHYTO_Something else (specify)``
 
-/// Person 1  was on trip
-type ONTD_P1 =
-| ONTD_P1_Selected
-| ``ONTD_P1_Not Selected``
-
-/// Survey completed by self or someone else
-type PROXY =
-| PROXY_Self
-| ``PROXY_Someone else``
-
 /// Travel day - day of week
 type TRAVDAY =
 | TRAVDAY_Sunday
@@ -877,21 +837,6 @@ type WHYTRP90 =
 | ``WHYTRP90_Other Social|Recreational``
 | WHYTRP90_Other
 | ``WHYTRP90_Refused | Don't Know``
-
-/// Household in urban/rural area
-type URBRUR =
-| URBRUR_Urban
-| URBRUR_Rural
-
-/// Used public transit on trip
-type PUBTRANS =
-| ``PUBTRANS_Used public transit``
-| ``PUBTRANS_Did not use public transit``
-
-/// Weekend trip
-type TDWKND =
-| TDWKND_Weekend
-| TDWKND_Weekday
 
 /// Race of household respondent
 type HH_RACE =
@@ -962,28 +907,28 @@ type Household = {
     RAIL : YesNo // MSA heavy rail status for household
     CENSUS_D : CENSUS_D // Census division classification for home address
     CENSUS_R : CENSUS_R // Census region classification for home address
-    HH_HISP : HH_HISP // Hispanic status of household respondent
+    HH_HISP : YesNo // Hispanic status of household respondent
     DRVRCNT : float // Number of drivers in the household
     CNTTDHH : float // Count of household trips on travel day
     CDIVMSAR : CDIVMSAR // Grouping of household by combination of Census division, MSA status, and presence of rail
-    FLAG100 : FLAG100 // All HH members completed survey?
+    FLAG100 : YesNo // All HH members completed survey?
     HHFAMINC : HHFAMINC // Household income
     HHFAMINC_IMP : HHFAMINC_IMP // Household income (imputed)
     HH_RACE : HH_RACE // Race of household respondent
     HHSIZE : float // Total number of people in household
     HHVEHCNT : float // Total number of vehicles in household
-    HHRELATD : HHRELATD // Flag indicating at least 2 persons in HH are related
+    HHRELATD : YesNo // Flag indicating at least 2 persons in HH are related
     LIF_CYC : LIF_CYC // Life Cycle classification for the household
     MSACAT : MSACAT // MSA category for the HH home address
     MSASIZE : MSASIZE // Population size category of the MSA from the five-year ACS API
     TRAVDAY : TRAVDAY // Travel day - day of week
     URBAN : URBAN // Household urban area classification, based on 2020 TIGER/Line Shapefile
     URBANSIZE : URBANSIZE // Urban area size where home address is located
-    URBRUR : URBRUR // Household in urban/rural area
+    URBRUR : YesNo // Household in urban/rural area
     PPT517 : float // Count of household members 5-17 years old
     YOUNGCHILD : float // Count of household members under 5 years old
     RESP_CNT : float // Count of responding persons in household
-    URBRUR_2010 : URBRUR // Household in urban/rural area based on 2010 Census
+    URBRUR_2010 : YesNo // Household in urban/rural area based on 2010 Census
     TDAYDATE : DateTime // Date of travel day (YYYYMM)
     WRKCOUNT : float // Count of workers in household
     STRATUMID : string // Household Stratum ID
@@ -1017,7 +962,7 @@ type Vehicle = {
     RAIL : YesNo // MSA heavy rail status for household
     CENSUS_D : CENSUS_D // Census division classification for home address
     CENSUS_R : CENSUS_R // Census region classification for home address
-    HH_HISP : HH_HISP // Hispanic status of household respondent
+    HH_HISP : YesNo // Hispanic status of household respondent
     DRVRCNT : float // Number of drivers in the household
     CDIVMSAR : CDIVMSAR // Grouping of household by combination of Census division, MSA status, and presence of rail
     HHFAMINC : HHFAMINC // Household income
@@ -1029,7 +974,7 @@ type Vehicle = {
     TRAVDAY : TRAVDAY // Travel day - day of week
     URBAN : URBAN // Household urban area classification, based on 2020 TIGER/Line Shapefile
     URBANSIZE : URBANSIZE // Urban area size where home address is located
-    URBRUR : URBRUR // Household in urban/rural area
+    URBRUR : YesNo // Household in urban/rural area
     TDAYDATE : DateTime // Date of travel day (YYYYMM)
     WRKCOUNT : float // Count of workers in household
     STRATUMID : string // Household Stratum ID
@@ -1055,8 +1000,8 @@ type Person = {
     OUTOFTWN : YesNo // Away from home entire travel day
     USEPUBTR : YesNo // Public Transit Usage on Travel Date
     R_RACE_IMP : HH_RACE // Respondent race (imputed)
-    R_HISP : R_HISP // Person 5 or older - Hispanic or Latino
-    PROXY : PROXY // Survey completed by self or someone else
+    R_HISP : YesNo // Person 5 or older - Hispanic or Latino
+    PROXY : YesNo // Survey completed by self or someone else
     WHOPROXY : WHOPROXY // Who is completing the survey
     EDUC : EDUC // Highest level of education
     LAST30_TAXI : YesNo // Used taxi service in last 30 days
@@ -1145,13 +1090,13 @@ type Person = {
     COV2_PT : COV2_OHD // Public transit use changes temporary or permanent
     COV2_OHD : COV2_OHD // Home delivery changes temporary or permanent
     CNTTDTR : float // Count of person trips on travel day
-    R_SEX_IMP : R_SEX_IMP // Respondent sex (imputed)
+    R_SEX_IMP : YesNo // Respondent sex (imputed)
     NUMADLT : float // Count of adult household members at least 18 years old
     HOMEOWN : HOMEOWN // Whether home owned or rented
     RAIL : YesNo // MSA heavy rail status for household
     CENSUS_D : CENSUS_D // Census division classification for home address
     CENSUS_R : CENSUS_R // Census region classification for home address
-    HH_HISP : HH_HISP // Hispanic status of household respondent
+    HH_HISP : YesNo // Hispanic status of household respondent
     DRVRCNT : float // Number of drivers in the household
     CDIVMSAR : CDIVMSAR // Grouping of household by combination of Census division, MSA status, and presence of rail
     HHFAMINC : HHFAMINC // Household income
@@ -1164,7 +1109,7 @@ type Person = {
     TRAVDAY : TRAVDAY // Travel day - day of week
     URBAN : URBAN // Household urban area classification, based on 2020 TIGER/Line Shapefile
     URBANSIZE : URBANSIZE // Urban area size where home address is located
-    URBRUR : URBRUR // Household in urban/rural area
+    URBRUR : YesNo // Household in urban/rural area
     TDAYDATE : DateTime // Date of travel day (YYYYMM)
     WRKCOUNT : float // Count of workers in household
     STRATUMID : string // Household Stratum ID
@@ -1180,11 +1125,11 @@ type Trip = {
     FRSTHM : YesNo // Started travel day at home
     PARK : YesNo // Paid for parking at any time during travel day
     HHMEMDRV : HHMEMDRV // Household member drove on trip
-    TDWKND : TDWKND // Weekend trip
+    TDWKND : YesNo // Weekend trip
     TRAVDAY : TRAVDAY // Travel day - day of week
-    LOOP_TRIP : LOOP_TRIP // Trip origin and destination at Identical location
+    LOOP_TRIP : YesNo // Trip origin and destination at Identical location
     DWELTIME : Response // Time at Destination (minutes)
-    PUBTRANS : PUBTRANS // Used public transit on trip
+    PUBTRANS : YesNo // Used public transit on trip
     TRIPPURP : TRIPPURP // General purpose of trip
     WHYFROM : WHYFROM // Reason for previous trip
     WHYTRP1S : WHYTRP1S // Trip purpose summary
@@ -1195,7 +1140,7 @@ type Trip = {
     VEHID : string // Vehicle ID within household
     TRPTRANS : TRPTRANS // Trip mode, derived
     NUMONTRP : float // Number of people on trip
-    ONTD_P1 : ONTD_P1 // Person 1 was on trip
+    ONTD_P1 : YesNo // Person 1 was on trip
     ONTD_P2 : ONTD_P2 // Person 2 was on trip
     ONTD_P3 : ONTD_P2 // Person 3 was on trip
     ONTD_P4 : ONTD_P2 // Person 4 was on trip
@@ -1229,7 +1174,7 @@ type Trip = {
     RAIL : YesNo // MSA heavy rail status for household
     CENSUS_D : CENSUS_D // Census division classification for home address
     CENSUS_R : CENSUS_R // Census region classification for home address
-    HH_HISP : HH_HISP // Hispanic status of household respondent
+    HH_HISP : YesNo // Hispanic status of household respondent
     DRVRCNT : float // Number of drivers in the household
     CDIVMSAR : CDIVMSAR // Grouping of household by combination of Census division, MSA status, and presence of rail
     HHFAMINC : HHFAMINC // Household income
@@ -1241,7 +1186,7 @@ type Trip = {
     MSASIZE : MSASIZE // Population size category of the MSA from the five-year ACS API
     URBAN : URBAN // Household urban area classification, based on 2020 TIGER/Line Shapefile
     URBANSIZE : URBANSIZE // Urban area size where home address is located
-    URBRUR : URBRUR // Household in urban/rural area
+    URBRUR : YesNo // Household in urban/rural area
     TDAYDATE : DateTime // Date of travel day (YYYYMM)
     WRKCOUNT : float // Count of workers in household
     STRATUMID : string // Household Stratum ID
@@ -1250,11 +1195,11 @@ type Trip = {
     WORKER : WORKER // Employment status of respondent
     DRIVER : YesNo // Driver status, derived
     R_RACE : R_RACE // Respondent race
-    R_HISP : R_HISP // Person 5 or older - Hispanic or Latino
-    PROXY : PROXY // Survey completed by self or someone else
+    R_HISP : YesNo // Person 5 or older - Hispanic or Latino
+    PROXY : YesNo // Survey completed by self or someone else
     EDUC : EDUC // Highest level of education
     PRMACT : PRMACT // Primary activity for those who did not work for pay last week
-    R_SEX_IMP : R_SEX_IMP // Respondent sex (imputed)
+    R_SEX_IMP : YesNo // Respondent sex (imputed)
     VEHTYPE : VEHTYPE // Vehicle type
     HHFAMINC_IMP : HHFAMINC_IMP // Household income (imputed)
 }
@@ -1296,7 +1241,7 @@ type LongTrip = {
     RAIL : YesNo // MSA heavy rail status for household
     CENSUS_D : CENSUS_D // Census division classification for home address
     CENSUS_R : CENSUS_R // Census region classification for home address
-    HH_HISP : HH_HISP // Hispanic status of household respondent
+    HH_HISP : YesNo // Hispanic status of household respondent
     DRVRCNT : float // Number of drivers in the household
     CDIVMSAR : CDIVMSAR // Grouping of household by combination of Census division, MSA status, and presence of rail
     HHFAMINC : HHFAMINC // Household income
@@ -1310,7 +1255,7 @@ type LongTrip = {
     TRAVDAY : TRAVDAY // Travel day - day of week
     URBAN : URBAN // Household urban area classification, based on 2020 TIGER/Line Shapefile
     URBANSIZE : URBANSIZE // Urban area size where home address is located
-    URBRUR : URBRUR // Household in urban/rural area
+    URBRUR : YesNo // Household in urban/rural area
     TDAYDATE : DateTime // Date of travel day (YYYYMM)
     WRKCOUNT : float // Count of workers in household
     STRATUMID : string // Household Stratum ID
@@ -1322,10 +1267,10 @@ type LongTrip = {
     WORKER : WORKER // Employment status of respondent
     DRIVER : YesNo // Driver status, derived
     R_RACE : R_RACE // Respondent race
-    R_HISP : R_HISP // Person 5 or older - Hispanic or Latino
-    PROXY : PROXY // Survey completed by self or someone else
+    R_HISP : YesNo // Person 5 or older - Hispanic or Latino
+    PROXY : YesNo // Survey completed by self or someone else
     EDUC : EDUC // Highest level of education
-    R_SEX_IMP : R_SEX_IMP // Respondent sex (imputed)
+    R_SEX_IMP : YesNo // Respondent sex (imputed)
 }
 
 
