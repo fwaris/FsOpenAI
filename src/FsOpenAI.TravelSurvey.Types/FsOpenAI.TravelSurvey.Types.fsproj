@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <!-- <OutputType>Exe</OutputType> -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Types.fs" />
+    <Compile Include="Loader.fs" />
+    <Compile Include="Data.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Fsharp.Data.Csv.Core" Version="6.4.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Update="FSharp.Core" Version="8.0.301" />
+  </ItemGroup>
+</Project>
