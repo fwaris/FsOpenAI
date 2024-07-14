@@ -59,12 +59,12 @@ module CodeEval =
                 FsiEvaluationSession.Create(fsiConfig, argv, inStream, outStream, errStream, collectible=true)
 
             match fsiSession.EvalInteractionNonThrowing(preamble) with
-            | Choice1Of2 v, diag -> printfn "%A; %A" v diag
-            | Choice2Of2 e, diag -> printfn "%A; %A" e.Message diag
+            | Choice1Of2 v, diag -> () //printfn "%A; %A" v diag
+            | Choice2Of2 e, diag -> () //printfn "%A; %A" e.Message diag
 
             match fsiSession.EvalInteractionNonThrowing(interactiveLines) with
-            | Choice1Of2 v, diag -> printfn "%A; %A" v diag
-            | Choice2Of2 e, diag -> printfn "%A; %A" e.Message diag
+            | Choice1Of2 v, diag -> () //printfn "%A; %A" v diag
+            | Choice2Of2 e, diag -> () //printfn "%A; %A" e.Message diag
 
             match fsiSession.EvalExpressionNonThrowing(expressionLines) with
             | Choice1Of2 v, diag -> match v.Value.ReflectionValue with
@@ -100,11 +100,13 @@ module CodeEval =
                 match evalCode codeParms.Preamble code with
                 | Success answer -> return answer
                 | Failure msg ->
+                    printfn $"Regenerating... after error: {msg}"
                     let! newCode = regenCode parms invCtx ch codeParms code msg dispatch
                     printfn "%s" newCode
                     match evalCode codeParms.Preamble newCode with
                     | Success answer -> return answer
                     | Failure msg ->
+                        printfn $"Regenerating... after error: {msg}"
                         let! newCode = regenCode parms invCtx ch codeParms code msg dispatch
                         printfn "%s" newCode
                         match evalCode codeParms.Preamble newCode with

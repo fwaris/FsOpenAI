@@ -3,6 +3,7 @@ open System
 open FSharp.Interop.Excel
 open FSharp.Data
 type TMeta = CsvProvider<"Type,Name,Label",Schema="Type,Name,Label">
+type TMetaCompact = CsvProvider<"Name,Label,Datasets",Schema="Name,Label,Datasets">
 
 let [<Literal>] CodebookFile  = @"E:\s\nhts\csv\codebook.xlsx"
 
@@ -22,20 +23,27 @@ let metaData =
     }
     |> Seq.map TMeta.Row
 
-let metaFile = @"E:\s\nhts\csv\metaData.csv"
-
-(new TMeta(metaData)).Save(metaFile)
-
 let byName = 
     metaData
     |> Seq.groupBy(_.Name)
-    |> Seq.map(fun (x,ys) -> x, ys |> Seq.map(_.Type) |> Seq.distinct |> Seq.toList)
+    |> Seq.map(fun (x,ys) -> x, ys |> Seq.map(_.Type) |> Seq.distinct |> Seq.toList, (Seq.head ys).Label)
     |> Seq.toList
 
-let dupes = byName |> List.filter(fun (_,xs) -> xs.Length > 1)
+let compactMeta = 
+    byName
+    |> Seq.map(fun (x,ys,z) -> x, z, ys |> String.concat ", ")
+    |> Seq.map TMetaCompact.Row
+
+let metaFile = @"E:\s\nhts\csv\metaDataCompact.csv"
+
+(new TMetaCompact(compactMeta)).Save(metaFile)
+
+
+let dupes = byName |> List.filter(fun (_,xs,_) -> xs.Length > 1)
 dupes.Length
 byName.Length
-dupes |> List.iter (fun (x,ys) -> printfn "%s %A" x ys)
+dupes |> List.iter (fun (x,ys,_) -> printfn "%s %A" x ys)
+
 
 
 

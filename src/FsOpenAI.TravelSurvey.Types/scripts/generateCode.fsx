@@ -14,6 +14,7 @@ open FsOpenAI.Shared
 open FsOpenAI.GenAI
 open FsOpenAI.CodeEvaluator.CodeEval
 
+let dispatch (m:ServerInitiatedMessages) = ()
 let invCtx = InvocationContext.Default
 ScriptEnv.installSettings @"%USERPROFILE%\.fsopenai/openai/ServiceSettings.json"
 let settings = ScriptEnv.settings.Value
@@ -51,10 +52,12 @@ let questions =
     //
     "What is the percentage of trips by vehicle type?"
     "What percentage of persons used rideshare in the last 30 days. Present the data by Census region." 
-    ""
+    "What is the distribution of riders per trip?"
+    "What is the average length of trips by mode of transportation?"
+    "What percentage of the trips are loop trips?"
     ]
 
-let question = questions.[8]
+let question = questions.[10]
 
 let chPlan =
     Interaction.create InteractionCreateType.Crt_Plain OpenAI None
@@ -62,7 +65,7 @@ let chPlan =
     |> Interaction.setSystemMessage (FsOpenAI.TravelSurvey.Prompts.planSysMessage fsiTypes)
     |> Interaction.setUserMessage question
 
-let plan = Completions.completeChat settings invCtx chPlan None |> ScriptEnv.runA
+let plan = Completions.completeChat settings invCtx chPlan None dispatch |> ScriptEnv.runA
 ;;
 
 printfn "%s" plan.Content
@@ -74,4 +77,5 @@ let chCode =
     |> Interaction.setSystemMessage FsOpenAI.TravelSurvey.Prompts.codeSysMessage
     |> Interaction.setUserMessage codePrompt
 
-Evaluation.genAndEvalTest ScriptEnv.settings.Value invCtx chCode evalParms  |> ScriptEnv.runA
+Evaluation.genAndEvalTest ScriptEnv.settings.Value invCtx chCode evalParms dispatch  |> ScriptEnv.runA
+

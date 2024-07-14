@@ -5,15 +5,15 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
   <ItemGroup>
+    <None Include="scripts\compactMetaData.fsx" />
+    <None Include="scripts\createTypes.fsx" />
+    <None Include="scripts\generateCode.fsx" />
+    <None Include="scripts\generatedCodeTester.fsx" />
+    <None Include="scripts\packages.fsx" />
+    <None Include="scripts\testData.fsx" />
     <Compile Include="Types.fs" />
     <Compile Include="Loader.fs" />
     <Compile Include="Data.fs" />
-    <None Include="scripts/compactMetaData.fsx" />
-    <None Include="scripts/createTypes.fsx" />
-    <None Include="scripts/packages.fsx" />
-    <None Include="scripts/testCodeGen.fsx" />
-    <None Include="scripts/testData.fsx" />
-    <None Include="scripts/testGenCode.fsx" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Fsharp.Data.Csv.Core" Version="6.4.0" />
@@ -21,4 +21,5 @@
   <ItemGroup>
     <PackageReference Update="FSharp.Core" Version="8.0.301" />
   </ItemGroup>
+  <ItemGroup />
 </Project>

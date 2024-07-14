@@ -168,6 +168,14 @@ let (|YesNo|_|) (codebook:Codebook) =
         else
             None
 
+let (|Alt_YesNo|_|) (codebook:Codebook) = 
+    let cs = codes codebook |> List.choose fst |> set
+    let markers = set [1;2]
+    if cs = markers then 
+        baseYesNoType() |> Some
+    else
+        None
+
 let isIdentifier (s:string) = 
     s.Length > 0
     && not(Char.IsDigit s.[0])
@@ -256,6 +264,7 @@ let deriveType cache (codebook:Codebook) =
         | Numeric x         -> x
         | CharNumeric x     -> x
         | YesNo x           -> x
+        | Alt_YesNo x       -> x
         | BaseReponse x     -> x
         | OtherEum x        -> x
         | _                 -> failwith "unexpected type"
@@ -436,7 +445,7 @@ let converters =
        vehTypeConverter]
 
 (*
-let cb1 = vehCb |> List.find(fun x->x.Name="VEHTYPE")
+let cb1 = tripCb |> List.find(fun x->x.Name="LOOP_TRIP")
 let (i : TypeDef option) = (|OtherEum|_|) cb1
 printfn "%A" i
 typeDefs.[cb1.CodeSet].TypeDef |> Option.iter (printfn "%s")
