@@ -40,6 +40,7 @@
 #I "../../FsOpenAI.GenAI"
 #load "AsyncExts.fs"
 #load "Env.fs"
+#load "Connection.fs"
 #load "Monitoring.fs"
 #load "Gen/GenUtils.fs"
 #load "Gen/Prompts.fs"

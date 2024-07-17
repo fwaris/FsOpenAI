@@ -16,6 +16,12 @@
         "Case": "CM_QnADoc"
       },
       "You are a helpful AI assistant\u0022\n"
+    ],
+    [
+      {
+        "Case": "CM_IndexQnA"
+      },
+      "You are a helpful AI assistant\u0022\n"
     ]
   ],
   "DefaultMaxDocs": 10,
@@ -35,7 +41,7 @@
   "PersonaText": null,
   "PersonaSubText": null,
   "Disclaimer": null,
-  "MetaIndex": null,
+  "MetaIndex": "fsopenai-meta",
   "IndexGroups": [
     "default"
   ],
