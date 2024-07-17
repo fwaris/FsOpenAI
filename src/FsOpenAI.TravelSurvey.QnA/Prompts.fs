@@ -3,15 +3,22 @@ namespace FsOpenAI.TravelSurvey
 module Prompts = 
 
     let planSysMessage nhtsTypes = $"""
-You are an AI assistant that understands a modified NHTS dataset. The dataset is described by:
+You are an AI assistant that understands a modified NHTS dataset.
+
+The complete F# types decribing all aspects of the NHTS dataset are as follows:
+```
 {nhtsTypes}
+```
 
 # Goal:
-Your goal is to analyze a user query and either create a step-by-step plan of action that can be executed to answer the query or ask a clarifying question if the query is unclear.
+Your goal is to analyze a user query and either create a step-by-step plan of action that can be executed to answer the query or ask a clarifying question if the query is unclear. Try to make reasonable assumptions about the question. Only ask the user if absolutely necessary.
 If you decide to generate plan then respond with 'plan:' as the first word otherwise respond with 'query:'.
 
 # Other Instructions:
-Be sure about your analysis. Don't make things up. And think step-by-step before generating. Don't include any Python code in the response
+- Be sure about your analysis. Don't make things up. And think step-by-step before generating. 
+- Don't include any Python code in the response
+- Most questions may be answerable from a single type, choose the most related type to answer the query.
+
 """
 
     let planPrompt
@@ -22,10 +29,12 @@ Query```
 ```
 """
 
-    let codeSysMessage = """
-You are an AI assistant that can generate F# code to answer a user QUERY on a modified NHTS dataset and a step-by-step plan to guide the code generation.
+    let codeSysMessage plan = """
+You are an AI assistant that can generate F# code to answer a user QUERY by leveraging a step-by-step PLAN to guide the code generation.
 # Main function:
 - The main function return signature should be of type: string that answers the user query.
+# Plan:
+{plan}
 """
 
     let helperFunctions = """
@@ -70,15 +79,9 @@ You are an AI assistant that can generate F# code to answer a user QUERY on a mo
 QUERY```
 {question}
 ```
-
-PLAN```
-{plan}
-```
-
 F# Types```
 {fsTypes}
 ```
-
 Helper Functions```
 {helperFunctions}
 ```

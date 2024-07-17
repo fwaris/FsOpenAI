@@ -8,7 +8,9 @@
     <None Include="scripts\compactMetaData.fsx" />
     <None Include="scripts\createTypes.fsx" />
     <None Include="scripts\generateCode.fsx" />
-    <None Include="scripts\generatedCodeTester.fsx" />
+    <None Include="scripts\generatedCodeEval.fsx" />
+    <None Include="scripts\generateCodeBaseline.fsx" />
+    <None Include="scripts\codeTester.fsx" />
     <None Include="scripts\packages.fsx" />
     <None Include="scripts\testData.fsx" />
     <Compile Include="Types.fs" />

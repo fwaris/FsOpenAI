@@ -91,30 +91,7 @@ module CodeEval =
             dispatch (Srv_Ia_Delta(ch.Id,0,answer))
             dispatch (Srv_Ia_Done (ch.Id, None))
 
-        let genAndEvalTest parms invCtx ch codeParms dispatch =
-            async {
-                let! resp = Completions.completeChat parms invCtx ch None dispatch
-                let code = GenUtils.extractCode resp.Content
-                printfn "******** code ********"
-                printfn "%s" code
-                match evalCode codeParms.Preamble code with
-                | Success answer -> return answer
-                | Failure msg ->
-                    printfn $"Regenerating... after error: {msg}"
-                    let! newCode = regenCode parms invCtx ch codeParms code msg dispatch
-                    printfn "%s" newCode
-                    match evalCode codeParms.Preamble newCode with
-                    | Success answer -> return answer
-                    | Failure msg ->
-                        printfn $"Regenerating... after error: {msg}"
-                        let! newCode = regenCode parms invCtx ch codeParms code msg dispatch
-                        printfn "%s" newCode
-                        match evalCode codeParms.Preamble newCode with
-                        | Success answer -> return answer
-                        | Failure msg -> return $"Error {msg}"
-            }
-
-        let genAndEval parms invCtx ch codeParms dispatch =
+        let private _genAndEval parms invCtx ch codeParms sendResults dispatch =
             async {
                 dispatch (Srv_Ia_Notification (ch.Id, $"Calling LLM to generate code..."))
                 let! resp = Completions.completeChat parms invCtx ch None dispatch
@@ -128,15 +105,32 @@ module CodeEval =
                     dispatch (Srv_Ia_Notification (ch.Id, $"Error evaluating code. Tyring to fix and re-evalute code 1 ..."))
                     let! newCode = regenCode parms invCtx ch codeParms code msg dispatch
                     printfn "%s" newCode
+                    dispatch (Srv_Ia_SetCode (ch.Id, Some code))
                     match evalCode codeParms.Preamble newCode with
                     | Success answer -> sendResults ch answer dispatch
                     | Failure msg ->
                         dispatch (Srv_Ia_Notification (ch.Id, $"Error evaluating code. Tyring to fix and re-evalute code 2 ..."))
                         let! newCode = regenCode parms invCtx ch codeParms code msg dispatch
                         printfn "%s" newCode
+                        dispatch (Srv_Ia_SetCode (ch.Id, Some code))
                         match evalCode codeParms.Preamble newCode with
                         | Success answer -> sendResults ch answer dispatch
                         | Failure msg -> dispatch (Srv_Ia_Done (ch.Id, Some msg))
+            }
+
+        let genAndEval parms invCtx ch codeParms dispatch =
+            _genAndEval parms invCtx ch codeParms sendResults dispatch
+
+        //returns the value from the generated and evaluated code
+        let genAndEvalTest parms invCtx ch codeParms dispatch =
+            let event = new Event<string>()
+            let aevent = event.Publish
+            let sendResults ch answer dispatch = event.Trigger(answer)   // success case
+            let dispatch = function Srv_Ia_Done (chId,Some msg) -> event.Trigger(msg) | x -> dispatch x //failure case
+            async {
+                do! _genAndEval parms invCtx ch codeParms sendResults dispatch
+                let! v = Async.AwaitEvent(aevent)
+                return v
             }
 
     let run parms invCtx ch (codeGen:CodeEvalParms) dispatch =

@@ -6,6 +6,7 @@
   <ItemGroup>
     <Compile Include="AsyncExts.fs" />
     <Compile Include="Env.fs" />
+    <Compile Include="Connection.fs" />
     <Compile Include="Sessions.fs" />
     <Compile Include="Monitoring.fs" />
     <Compile Include="Gen\SemanticVectorSearch.fs" />

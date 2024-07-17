@@ -60,61 +60,42 @@ type LogEntry = Diag of DiagEntry | Feedback of FeedbackEntry
 module Monitoring = 
     let BUFFER_SIZE = 1000
     let BUFFER_WAIT = 10000
-    let mutable private _tableClient = lazy None
 
-    let private installTable() =
-        Env.logInfo "installing monitoring"
-        try 
+    let mutable private _cnctnInfo = lazy None
+
+    let init (ccstr,database,container) = 
+        match Connection.tryCreate(ccstr,database,container) with
+        | Some x -> _cnctnInfo <- lazy(Some x)
+        | None -> ()
+ 
+    let getConnectionFromConfig() =
+        try
             Env.appConfig.Value
             |> Option.bind(fun x -> Env.logInfo $"{x.DatabaseName},{x.DiagTableName}"; x.DiagTableName |> Option.map(fun t -> x.DatabaseName,t))
-            |> Option.bind(fun dbInfo -> 
+            |> Option.bind(fun (database,container) -> 
                 Settings.getSettings().Value.LOG_CONN_STR 
-                |> Option.map(fun cstr -> Env.logInfo $"{snd dbInfo} - {Utils.shorten 30 cstr}";cstr,dbInfo))
-            |> Option.bind(fun (cstr,dbInfo) -> 
-            (*
-            *)
-                let COSMOSDB,TABLE = dbInfo
-                let db =
-                    Cosmos.fromConnectionString cstr
-                    |> Cosmos.database COSMOSDB
-
-                do
-                    db
-                    |> Cosmos.createDatabaseIfNotExists
-                    |> Cosmos.execAsync
-                    |> AsyncSeq.iter (printfn "%A")
-                    |> Async.RunSynchronously
-
-                do 
-                    db
-                    |> Cosmos.container TABLE               
-                    |> Cosmos.createContainerIfNotExists<DiagEntry>
-                    |> Cosmos.execAsync
-                    |> AsyncSeq.iter (printfn "%A")
-                    |> Async.RunSynchronously
-
-                Env.logInfo($"Logging diagnostics to {dbInfo}")
-                Some(cstr,dbInfo))
-
-            |> Option.orElseWith(fun () -> 
-                Env.logError("unable to configure diagnostics - no connection string provided")
-                None)
+                |> Option.map(fun cstr -> Env.logInfo $"{Utils.shorten 30 cstr}";cstr,database,container))
         with ex ->
-            Env.logException (ex,"Monitoring.installTable: ")
+            Env.logException (ex,"Monitoring.getConnectionFromConfig")
             None
 
-    let update() = _tableClient <- lazy(installTable())
+    let ensureConnection() = 
+        match _cnctnInfo.Value with
+        | Some _ -> ()
+        | None -> 
+            match getConnectionFromConfig() with
+            | Some (cstr,db,cntnr) -> init(cstr,db,cntnr)
+            | None -> ()
 
     let private writeDiagAsync (diagEntries:DiagEntry[]) =
         async {
-            match _tableClient.Value with
-            | Some (cstr,dbInfo) -> 
-                let COSMOSDB,TABLE = dbInfo                
+            match _cnctnInfo.Value with
+            | Some c  -> 
                 try
                     do!
-                        Cosmos.fromConnectionString cstr
-                            |> Cosmos.database COSMOSDB
-                            |> Cosmos.container TABLE
+                        Cosmos.fromConnectionString c.ConnectionString
+                            |> Cosmos.database c.DatabaseName
+                            |> Cosmos.container c.ContainerName
                             |> Cosmos.upsertMany (Array.toList diagEntries)
                             |> Cosmos.execAsync
                             |> AsyncSeq.iter (fun _ -> ())
@@ -128,14 +109,13 @@ module Monitoring =
 
     let private updateWithFeedbackAsync (fbEntries:FeedbackEntry[]) =
         async {
-            match _tableClient.Value with
-            | Some (cstr,dbInfo) -> 
-                let COSMOSDB,TABLE = dbInfo                
+            match _cnctnInfo.Value with
+            | Some c ->             
                 try
                     let db =
-                        Cosmos.fromConnectionString cstr
-                        |> Cosmos.database COSMOSDB
-                        |> Cosmos.container TABLE
+                        Cosmos.fromConnectionString c.ConnectionString
+                            |> Cosmos.database c.DatabaseName
+                            |> Cosmos.container c.ContainerName
 
                     do! 
                         fbEntries
