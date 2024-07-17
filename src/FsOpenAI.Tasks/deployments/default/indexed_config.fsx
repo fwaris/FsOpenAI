@@ -52,7 +52,7 @@ let defaultSysMessage = """You are a helpful AI assistant"
 let docDesc =
     [
         //index name, tag, description, isVirtual, parents
-        "sample-index", "sample-index", "Document Index",false,[]   //virtual index = true means its not a real index; only use for grouping other indexes
+        "sample-index", "sample-index", "AI Document Collection Index",false,[]   //virtual index = true means its not a real index; only use for grouping other indexes
     ]
 
 let docs =

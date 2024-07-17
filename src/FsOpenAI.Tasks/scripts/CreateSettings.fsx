@@ -1,5 +1,7 @@
 ﻿#load "ScriptEnv.fsx"
 open FsOpenAI.Shared
+open System
+open System.IO
 open System.Text.Json
 
 //shows how to create a settings json in a type-safe way
@@ -16,5 +18,10 @@ let settings =
         }
 let str = JsonSerializer.Serialize(settings,serOpts)
 printfn $"{str}"
-let settings' = JsonSerializer.Deserialize<ServiceSettings>(str, serOpts)
+
+let str2 = File.ReadAllText (Environment.ExpandEnvironmentVariables(@"%USERPROFILE%\.fsopenai/ServiceSettings.json"))
+let str3 = str2 |> Text.Encoding.UTF8.GetBytes |> Convert.ToBase64String
+printfn $"{str3}"
+let settings' = JsonSerializer.Deserialize<ServiceSettings>(str2, serOpts)
+
 
