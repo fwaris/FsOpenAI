@@ -121,6 +121,7 @@ module Submission =
 
     let checkAddInteraction ctype model =
         let backend = Init.defaultBackend model
+        let next = Cmd.ofMsg (OpenCloseSettings C.ADD_CHAT_MENU)
         if model.interactions.Length < C.MAX_INTERACTIONS then
             let id,cs = Interactions.addNew backend ctype None model.interactions
             let c = cs |> List.find (fun c -> c.Id=id)
@@ -129,9 +130,9 @@ module Submission =
                 cs
                 |> Interactions.setSystemMessage id (defSysMsg ctype model.appConfig)
                 |> Interactions.setMaxDocs id model.appConfig.DefaultMaxDocs
-            {model with interactions = cs; selectedChatId = Some id },Cmd.none
+            {model with interactions = cs; selectedChatId = Some id },next
         else
-            model,Cmd.ofMsg (ShowInfo "Max number of tabs reached")
+            model,Cmd.batch [next; Cmd.ofMsg (ShowInfo "Max number of tabs reached")]
 
     let updateDocs (id,docs) model =
         {model with interactions = Interactions.addDocuments id docs model.interactions}

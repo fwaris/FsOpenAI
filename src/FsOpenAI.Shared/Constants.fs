@@ -9,12 +9,13 @@ module C =
 
     let LS_OPENAI_KEY = "LS_OPENAI_KEY"
     let MAIN_SETTINGS = "MAIN_SETTINGS"
+    let ADD_CHAT_MENU = "ADD_CHAT_MENU"
     let CHATS = "CHATS"
 
     let DARK_THEME = "DARK_THEME"
     let TABS_UP = "TABS_UP"
 
-    let MAX_UPLOAD_FILE_SIZE = 1024L * 1024L * 7L    
+    let MAX_UPLOAD_FILE_SIZE = 1024L * 1024L * 14L    
     let defaultSystemMessage = "You are a helpful AI Assistant"
 
     let TEMPLATES_ROOT = "app/Templates"

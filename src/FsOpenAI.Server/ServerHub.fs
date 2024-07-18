@@ -80,9 +80,9 @@ type ServerHub() =
                 match msg with
 
                 | Clnt_Connected _ ->
-                    do! Settings.refreshSettings dispatch  //we refresh keys at client connect time (n
-                    try Monitoring.update() with ex -> Env.logException (ex,"Monitoring.update"); dispatch (Srv_Error ex.Message)
-                    try Sessions.update() with ex -> Env.logException (ex,"Sessions.update"); dispatch (Srv_Error ex.Message)
+                    do! Settings.refreshSettings dispatch  //we refresh keys at client connect time 
+                    try Monitoring.ensureConnection() with ex -> dispatch (Srv_Error ex.Message)
+                    try Sessions.ensureConnection() with ex ->  dispatch (Srv_Error ex.Message)
                     do! Inititalizaiton.initClient (Settings.getSettings().Value) dispatch
 
                 | Clnt_Run_Plain (settings,invCtx,chat) ->

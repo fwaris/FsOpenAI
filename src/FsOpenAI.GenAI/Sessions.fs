@@ -8,7 +8,7 @@ open FSharp.CosmosDb
 
 module Version =
     let version = "0.1.0" //serialize format version change this when conversion to new format is required
-        
+
 type SessionMsg = {
     Role : string
     Content : string
@@ -19,158 +19,140 @@ type ChatSession = {
     id: string
     [<PartitionKey>]
     UserId : string
-    AppId : string    
+    AppId : string
     Timestamp : DateTime
     Version : string
     Interaction : Interaction
 }
 
-type SessionOp = 
+type SessionOp =
     | Upsert of ChatSession
     | Delete of InvocationContext*string
     | ClearAll of InvocationContext
 
 [<RequireQualifiedAccess>]
-module Sessions = 
+module Sessions =
     let BUFFER_SIZE = 1000
     let BUFFER_WAIT = 10000
     let MAX_SESSIONS = 15
 
-    let mutable private _connParms = lazy None
+    let mutable private _cnctnInfo = lazy None
 
-    let private installConnection() =
-        Env.logInfo "installing session connection info"
-        try 
+    let init (ccstr,database,container) =
+        match Connection.tryCreate(ccstr,database,container) with
+        | Some x -> _cnctnInfo <- lazy(Some x)
+        | None -> ()
+
+    let getConnectionFromConfig() =
+        try
             Env.appConfig.Value
-            |> Option.bind(fun x -> Env.logInfo $"{x.SessionTableName}"; x.SessionTableName |> Option.map(fun t -> x.DatabaseName,t))
-            |> Option.bind(fun dbInfo -> Settings.getSettings().Value.LOG_CONN_STR |> Option.map(fun cstr -> Env.logInfo $"{snd dbInfo} - {Utils.shorten 30 cstr}";cstr,dbInfo))
-            |> Option.bind(fun (cstr,dbInfo) -> 
-                let COSMOSDB,TABLE = dbInfo
-                let db() =
-                    Cosmos.fromConnectionString cstr
-                    |> Cosmos.database COSMOSDB
-
-                do
-                    db()
-                    |> Cosmos.createDatabaseIfNotExists
-                    |> Cosmos.execAsync
-                    |> AsyncSeq.iter (printfn "%A")
-                    |> Async.RunSynchronously
-
-                do 
-                    db()
-                    |> Cosmos.container TABLE               
-                    |> Cosmos.createContainerIfNotExists<ChatSession>
-                    |> Cosmos.execAsync
-                    |> AsyncSeq.iter (printfn "%A")
-                    |> Async.RunSynchronously
-
-                Env.logInfo($"Saving session to {dbInfo}")
-                Some(cstr,dbInfo))
-
-            |> Option.orElseWith(fun () -> 
-                Env.logError("No configuration found for saving chat sessions")
-                None)
+            |> Option.bind(fun x -> Env.logInfo $"{x.DatabaseName},{x.SessionTableName}"; x.SessionTableName |> Option.map(fun t -> x.DatabaseName,t))
+            |> Option.bind(fun (database,container) ->
+                Settings.getSettings().Value.LOG_CONN_STR
+                |> Option.map(fun cstr -> Env.logInfo $"{Utils.shorten 30 cstr}";cstr,database,container))
         with ex ->
-            Env.logException (ex,"Sessions.installConnection: ")
+            Env.logException (ex,"Monitoring.getConnectionFromConfig")
             None
 
-    let update() = _connParms <- lazy(installConnection())
+    let ensureConnection() =
+        match _cnctnInfo.Value with
+        | Some _ -> ()
+        | None ->
+            match getConnectionFromConfig() with
+            | Some (cstr,db,cntnr) -> init(cstr,db,cntnr)
+            | None -> ()
+
 
     type SREf = {[<Id>] id:string; [<PartitionKey>] UserId:string; Timestamp:DateTime}
 
     let private saveSessionsForUser ((userId:string,appId:string), chatSessions:ChatSession[]) =
         async {
-            match _connParms.Value with
-            | Some (cstr,dbInfo) -> 
-                let COSMOSDB,TABLE = dbInfo
-                try   
-                    let db() = 
-                        Cosmos.fromConnectionString cstr
-                        |> Cosmos.database COSMOSDB
-                        |> Cosmos.container TABLE
+            match _cnctnInfo.Value with
+            | Some c ->
+                try
+                    let db =
+                        Cosmos.fromConnectionString c.ConnectionString
+                        |> Cosmos.database c.DatabaseName
+                        |> Cosmos.container c.ContainerName
                     do!
-                        db()
+                        db
                         |> Cosmos.upsertMany (Array.toList chatSessions)
                         |> Cosmos.execAsync
                         |> AsyncSeq.iter (fun _ -> ())
                     let ls =
-                        db()
+                        db
                         |> Cosmos.query<SREf>(sprintf $"SELECT c.id, c.UserId, c.Timestamp FROM c WHERE c.UserId = @UserId and c.AppId = @AppId" )
                         |> Cosmos.parameters ["@UserId", box userId; "@AppId", box appId]
                         |> Cosmos.execAsync
                         |> AsyncSeq.toBlockingSeq
                         |> Seq.toList
-                    let sessions = ls |> List.sortBy(fun x -> x.Timestamp) 
+                    let sessions = ls |> List.sortBy(fun x -> x.Timestamp)
                     if sessions.Length > MAX_SESSIONS then
                         let dropSessions = sessions |> List.take (MAX_SESSIONS - sessions.Length)
                         do!
                             dropSessions
                             |> AsyncSeq.ofSeq
-                            |> AsyncSeq.iterAsync (fun c -> 
-                                db() 
-                                |> Cosmos.deleteItem<ChatSession> c.id c.UserId 
-                                |> Cosmos.execAsync 
+                            |> AsyncSeq.iterAsync (fun c ->
+                                db
+                                |> Cosmos.deleteItem<ChatSession> c.id c.UserId
+                                |> Cosmos.execAsync
                                 |> AsyncSeq.iterAsync Async.Ignore)
-                with ex -> 
+                with ex ->
                     Env.logException (ex,"Sessions.saveSessionsForUser: ")
             | None -> ()
-        }    
+        }
 
     let private saveSessions (chatSessions:ChatSession[]) =
         async {
-            match _connParms.Value with
-            | Some (cstr,dbInfo) -> 
-                let COSMOSDB,TABLE = dbInfo
-                try 
+            match _cnctnInfo.Value with
+            | Some _ ->
+                try
                     do!
-                    chatSessions
-                    |> Array.groupBy(fun x -> x.UserId,x.AppId)
-                    |> Array.map saveSessionsForUser
-                    |> Async.Parallel 
-                    |> Async.Ignore
-                with ex -> 
+                        chatSessions
+                        |> Array.groupBy(fun x -> x.UserId,x.AppId)
+                        |> Array.map saveSessionsForUser
+                        |> Async.Parallel
+                        |> Async.Ignore
+                with ex ->
                     Env.logException (ex,"Sessions.saveSessions: ")
             | None -> ()
         }
-        
+
     let private channel = Channel.CreateBounded<SessionOp>(BoundedChannelOptions(BUFFER_SIZE,FullMode = BoundedChannelFullMode.DropOldest))
 
     let private delete (invCtx:InvocationContext,id:string) =
         async {
-            match _connParms.Value with
-            | Some (cstr,dbInfo) -> 
-                let COSMOSDB,TABLE = dbInfo
-                try 
+            match _cnctnInfo.Value with
+            | Some c ->
+                try
                     let user = invCtx.User |> Option.defaultValue null
-                    let db() = 
-                        Cosmos.fromConnectionString cstr
-                        |> Cosmos.database COSMOSDB
-                        |> Cosmos.container TABLE
+                    let db =
+                        Cosmos.fromConnectionString c.ConnectionString
+                        |> Cosmos.database c.DatabaseName
+                        |> Cosmos.container c.ContainerName
                     do!
-                        db()
+                        db
                         |> Cosmos.deleteItem<ChatSession> id user
                         |> Cosmos.execAsync
                         |> AsyncSeq.iter (fun _ -> ())
-                with ex -> 
+                with ex ->
                     Env.logException (ex,"Sessions.delete: ")
             | None -> ()
         }
 
     let private clearAll (invCtx:InvocationContext) =
         async {
-            match _connParms.Value with
-            | Some (cstr,dbInfo) -> 
-                let COSMOSDB,TABLE = dbInfo
-                try 
-                    let db() = 
-                        Cosmos.fromConnectionString cstr
-                        |> Cosmos.database COSMOSDB
-                        |> Cosmos.container TABLE
+            match _cnctnInfo.Value with
+            | Some c ->
+                try
+                    let db =
+                        Cosmos.fromConnectionString c.ConnectionString
+                        |> Cosmos.database c.DatabaseName
+                        |> Cosmos.container c.ContainerName
                     let userId = invCtx.User |> Option.defaultValue C.UNAUTHENTICATED
                     let appId = invCtx.AppId |> Option.defaultValue C.DFLT_APP_ID
                     let dropSessions =
-                        db()
+                        db
                         |> Cosmos.query<SREf>(sprintf $"SELECT c.id, c.UserId, c.Timestamp FROM c WHERE c.UserId = @UserId and c.AppId = @AppId" )
                         |> Cosmos.parameters ["@UserId", box userId; "@AppId", box appId]
                         |> Cosmos.execAsync
@@ -179,18 +161,18 @@ module Sessions =
                     do!
                         dropSessions
                         |> AsyncSeq.ofSeq
-                        |> AsyncSeq.iterAsync (fun c -> 
+                        |> AsyncSeq.iterAsync (fun c ->
                             async {
-                                try 
+                                try
                                     do!
-                                        db() 
-                                        |> Cosmos.deleteItem<ChatSession> c.id c.UserId 
-                                        |> Cosmos.execAsync 
+                                        db
+                                        |> Cosmos.deleteItem<ChatSession> c.id c.UserId
+                                        |> Cosmos.execAsync
                                         |> AsyncSeq.iter (fun x -> ())
-                                with ex -> 
-                                    Env.logError ex.Message                                    
-                            })                            
-                with ex -> 
+                                with ex ->
+                                    Env.logError ex.Message
+                            })
+                with ex ->
                     Env.logException (ex,"Sessions.delete: ")
             | None -> ()
         }
@@ -200,19 +182,19 @@ module Sessions =
             let gops = ops |> Array.groupBy (function | Upsert _ -> 0 | Delete _ -> 1 | ClearAll _ -> 2)
             for (k,ops) in gops do
                 match k with
-                | 0 -> 
+                | 0 ->
                     do!
-                        ops 
-                        |> Array.choose (fun op -> match op with | Upsert session -> Some session | _ -> None) 
-                        |> saveSessions 
+                        ops
+                        |> Array.choose (fun op -> match op with | Upsert session -> Some session | _ -> None)
+                        |> saveSessions
                 | 1 ->
                     do!
                         ops
-                        |> AsyncSeq.ofSeq                        
+                        |> AsyncSeq.ofSeq
                         |> AsyncSeq.choose (fun op -> match op with | Delete (invCtx,id) -> Some (invCtx,id) | _ -> None)
                         |> AsyncSeq.iterAsync delete
-                        
-                | 2 -> 
+
+                | 2 ->
                     do!
                         ops
                         |> AsyncSeq.ofSeq
@@ -223,7 +205,7 @@ module Sessions =
         }
 
     //background loop to read channel and write diagnostics entry to backend
-    let private consumerLoop =    
+    let private consumerLoop =
         asyncSeq {
             while true do
                 let! data = channel.Reader.ReadAsync().AsTask() |> Async.AwaitTask
@@ -235,7 +217,7 @@ module Sessions =
 
     let queueOp session = channel.Writer.WriteAsync session |> ignore
 
-    let toSession (invCtx:InvocationContext) (ch:Interaction) =        
+    let toSession (invCtx:InvocationContext) (ch:Interaction) =
         let userId = invCtx.User  |> Option.defaultValue C.UNAUTHENTICATED
         let appId = invCtx.AppId |> Option.defaultValue C.DFLT_APP_ID
         let timestamp = DateTime.UtcNow
@@ -248,9 +230,9 @@ module Sessions =
             Interaction = ch
         }
 
-    let tryConvert (str:string,ch:JsonDocument) = 
+    let tryConvert (str:string,ch:JsonDocument) =
         let ver = ch.RootElement.GetProperty("Version").GetString()
-        if ver = Version.version then 
+        if ver = Version.version then
             let sess = System.Text.Json.JsonSerializer.Deserialize<ChatSession>(str,Utils.serOptions())
             //let sess = Newtonsoft.Json.JsonConvert.DeserializeObject<ChatSession>(str)
             Some sess.Interaction
@@ -261,18 +243,17 @@ module Sessions =
     let loadSessions (invCtx:InvocationContext) =
         let userId = invCtx.User  |> Option.defaultValue C.UNAUTHENTICATED
         let appId = invCtx.AppId |> Option.defaultValue C.DFLT_APP_ID
-        match _connParms.Value with
-        | Some (cstr,dbInfo) -> 
-            let COSMOSDB,TABLE = dbInfo
+        match _cnctnInfo.Value with
+        | Some c ->
             let db =
-                Cosmos.fromConnectionString cstr
-                |> Cosmos.database COSMOSDB
-                |> Cosmos.container TABLE
+                Cosmos.fromConnectionString c.ConnectionString
+                |> Cosmos.database c.DatabaseName
+                |> Cosmos.container c.ContainerName
             db
             |> Cosmos.query<SREf>(sprintf $"SELECT c.id, c.UserId, c.Timestamp FROM c WHERE c.UserId = @UserId and c.AppId = @AppId ORDER BY c.Timestamp DESC" )
             |> Cosmos.parameters ["@UserId", box userId; "@AppId", box appId]
             |> Cosmos.execAsync
-            |> AsyncSeq.collect (fun sref -> 
+            |> AsyncSeq.collect (fun sref ->
                 db
                 |> Cosmos.read sref.id sref.UserId
                 |> Cosmos.execAsync)

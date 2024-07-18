@@ -73,22 +73,29 @@ module AppBar =
                     if model.appConfig.RequireLogin then
                         ecomp<AvatarView,_,_> model dispatch {attr.empty()}
                 }
+                //add chat
+                comp<MudItem> {
+                    "xs" => 1
+                    "sm" => 1
+                    comp<MudFab> {
+                        "StartIcon" => Icons.Material.Filled.Add
+                        "IconSize" => Size.Large
+                        "Color" => Color.Primary
+                        on.click(fun _ -> dispatch (OpenCloseSettings C.ADD_CHAT_MENU))
+                    }
+                }
                 //burger
                 comp<MudItem> {
-                    "xs" => 2
-                    "sm" => 2
+                    "xs" => 1
+                    "sm" => 1
                     comp<MudMenu> {
                         "Icon" => Icons.Material.Filled.Menu
                         "IconSize" => Size.Small
-                        "TransformOrigin" => Origin.TopRight
                         "Class" => "mt-1"
+                        //"TransformOrigin" => Origin.TopRight
                         //"Disabled" => (model.appConfig.RequireLogin && (match model.user with Unauthenticated -> true | _ -> false))
-                        concat {
-                            comp<MudMenuItem> {
-                                "Icon" => Icons.Material.Filled.Add
-                                "Color" => Color.Tertiary
-                                Init.createMenu model dispatch
-                            }
+                        comp<MudPaper> {
+                            "Style" => "margin-top:1rem;"
                             comp<MudMenuItem> {
                                 "Icon" => if model.darkTheme then Icons.Material.Outlined.WbSunny else Icons.Material.Outlined.Nightlight
                                 on.click(fun _ -> dispatch ToggleTheme)
@@ -111,9 +118,10 @@ module AppBar =
                                     on.click(fun _ -> dispatch (OpenCloseSettings C.MAIN_SETTINGS))
                                     "Application Settings"
                                 }
-                        }
+                        }             
                     }
-                }
-            }
+                }                  
+            }        
             ecomp<MainSettingsView,_,_> model dispatch {attr.empty()}
+            ecomp<ChatCreateView,_,_> model dispatch {attr.empty()}
         }
