@@ -29,10 +29,16 @@ type MFeedback = {
     Comment     : string option
 }
 
+
 type FeedbackEntry = {
     LogId : string
     UserId : string
     Feedback : MFeedback
+}
+
+type MIndexRef = {
+    Backend: string
+    Name: string
 }
 
 type DiagEntry = {
@@ -51,6 +57,7 @@ type DiagEntry = {
     Backend : string
     Resource : string
     Model : string
+    IndexRefs : MIndexRef list
     Timestamp : DateTime
 }
 

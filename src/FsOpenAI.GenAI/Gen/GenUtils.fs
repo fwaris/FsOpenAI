@@ -12,6 +12,7 @@ open Microsoft.Extensions.DependencyInjection
 open Microsoft.SemanticKernel.ChatCompletion
 open FSharp.Control
 open FsOpenAI.Shared
+open FsOpenAI.Shared.Interactions
 
 module GenUtils =
     open Microsoft.SemanticKernel.Memory
@@ -240,6 +241,12 @@ module GenUtils =
         |> AsyncSeq.toBlockingSeq
         |> Seq.toList
 
+    let toMIdxRefs ch = 
+            Interaction.getIndexes ch
+            |> List.map (function 
+                | Azure idx -> {Backend="Azure"; Name = idx}
+                | Virtual idx -> {Backend="OpenAI"; Name = idx})
+
     let diaEntryEmbeddings (ch:Interaction) (invCtx:InvocationContext) model resource query =
         {
             id = Utils.newId()
@@ -252,6 +259,7 @@ module GenUtils =
             Backend = string ch.Parameters.Backend
             Model = model
             Resource = resource
+            IndexRefs = toMIdxRefs ch
             InputTokens = tokenSize query |> int
             OutputTokens = 0
             Error = ""
@@ -272,6 +280,7 @@ module GenUtils =
             Backend = string ch.Parameters.Backend
             Model = model
             Resource = resource
+            IndexRefs = toMIdxRefs ch
             InputTokens = inputTokens |> int
             OutputTokens = 0
             Error = ""
