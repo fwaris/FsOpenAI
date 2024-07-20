@@ -67,7 +67,7 @@ let azureOpenAiClient() =
     let openAiEndpoint = $"https://{ep.RESOURCE_GROUP}.openai.azure.com"
     OpenAIClient(Uri openAiEndpoint,AzureKeyCredential(ep.API_KEY))
 
-let openAiClient() = 
+let openAiClient() =
     let key = settings.Value.OPENAI_KEY |> Option.defaultWith (fun _ -> failwith "OpenAI key not found")
     OpenAIClient(key)
 
@@ -125,7 +125,9 @@ module Config =
 
     let installClientFiles sourcePath =
         let dest = Path.GetFullPath(__SOURCE_DIRECTORY__ + @"../../../FsOpenAI.Client/wwwroot")
-        File.Copy(sourcePath @@ "appSettings.json", dest @@ "appSettings.json",true)
+        let destAppSettings = dest @@ "appSettings.json"
+        File.Copy(sourcePath @@ "appSettings.json", destAppSettings,true)
+        printfn $"Copied {destAppSettings}"
         let destImgsPath = dest @@ "app" @@ "imgs"
         Directory.GetFiles destImgsPath |> Seq.iter File.Delete
         Directory.GetFiles(sourcePath @@ "app" @@ "imgs")
@@ -159,6 +161,13 @@ module Indexes =
 
     type Doc = {File:string; Page:int; Chunk:string; Link:string}
     type DocEmb = {Time:DateTime; Doc:Doc; Embeddings:float32[]}
+
+    let printMetaIndex indexGroups metaIndexName =
+        let idxClient = FsOpenAI.GenAI.Indexes.searchServiceClient settings.Value
+        let deployedIndexes = FsOpenAI.GenAI.Indexes.metaIndexEntries idxClient indexGroups metaIndexName |> runA
+        printfn "Name,Description,Tag,IsVirtual,Parents"
+        deployedIndexes.Value
+        |> List.iter (fun x -> printfn $"""%A{x.title},%A{x.description},%A{x.tag},%A{x.isVirtual},%A{x.parents}""")
 
         //define the index format
     let indexDefinition(name) =

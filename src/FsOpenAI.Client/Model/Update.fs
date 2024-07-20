@@ -133,7 +133,7 @@ module Update =
         | FromServer (Srv_Ia_SetDocs (id,docs)) -> Submission.updateDocs (id,docs) model, Cmd.none
         | FromServer (Srv_Ia_SetContents (id,cntnt,isDone)) -> model,Cmd.ofMsg(Ia_File_SetContents(id,cntnt,isDone))
         | FromServer (Srv_Ia_SetSearch (id,query)) -> model,Cmd.ofMsg(Ia_SetSearch(id,query))
-        | FromServer (Srv_Ia_Session_Loaded ch) -> {model with interactions = ch::model.interactions},Cmd.none
+        | FromServer (Srv_Ia_Session_Loaded ch) -> {model with interactions = IO.fixIndexRefs model [ch] @ model.interactions},Cmd.none
         | FromServer (Srv_Ia_Session_DoneLoading) -> Submission.tryLoadSamples model
         | FromServer (Srv_Ia_SetSubmissionId(id,logId)) -> model,Cmd.ofMsg(Ia_Feedback_Set(id,Feedback.Default logId))
         //wholesale

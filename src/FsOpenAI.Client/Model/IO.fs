@@ -60,7 +60,11 @@ module IO =
         let treeMap = Init.flatten model.indexTrees |> List.map(fun x -> x.Idx,x) |> Map.ofList
         let rec loop acc (idx: IndexRef) =
             if idx.isVirtual then               //if index is virtual then loop over its children to add non-virtual parents to the set
-                let subT = subTree Set.empty treeMap.[idx] |> Set.map(_.Idx)
+                let subT =
+                    treeMap
+                    |> Map.tryFind idx  //use try find as an old index may not exist)
+                    |> Option.map (fun t ->  subTree Set.empty t |> Set.map(_.Idx))
+                    |> Option.defaultValue Set.empty
                 let children = Set.remove idx subT
                 (acc,children) ||> Set.fold loop
             else
@@ -91,6 +95,14 @@ module IO =
             do! localStore.SetItemAsync(C.CHATS,cs)
             return "Chats saved"
         }
+
+    ///saved chats may have references to old, currently non-existent indexes. This function will fix those references
+    let fixIndexRefs model (chs:Interaction list) =
+        let treeMap = Init.flatten model.indexTrees |> List.map(fun x -> x.Idx,x) |> Map.ofList
+        chs
+        |> List.map (fun ch ->
+            let idxs = Interaction.getIndexes ch |> List.filter (treeMap.ContainsKey)
+            Interaction.setIndexes idxs ch)
 
     let loadChatSessions serverDispatch model =
         let invCtx = invocationContext model

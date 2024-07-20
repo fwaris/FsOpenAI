@@ -19,6 +19,12 @@ module AppBar =
                 |> Option.bind (fun x -> x.AppBar)
                 |> Option.defaultValue Colors.BlueGray.Lighten1
 
+        let disabled =
+            model.appConfig.RequireLogin
+            && (match model.user with
+                | Unauthenticated -> true
+                | _               -> false)
+
         comp<MudAppBar> {
             "Style" => $"background:{bg};"
             "Fixed" => true
@@ -81,6 +87,7 @@ module AppBar =
                         "StartIcon" => Icons.Material.Filled.Add
                         "IconSize" => Size.Large
                         "Color" => Color.Primary
+                        "Disabled" => disabled
                         on.click(fun _ -> dispatch (OpenCloseSettings C.ADD_CHAT_MENU))
                     }
                 }
@@ -92,8 +99,7 @@ module AppBar =
                         "Icon" => Icons.Material.Filled.Menu
                         "IconSize" => Size.Small
                         "Class" => "mt-1"
-                        //"TransformOrigin" => Origin.TopRight
-                        //"Disabled" => (model.appConfig.RequireLogin && (match model.user with Unauthenticated -> true | _ -> false))
+                        "Disabled" => disabled
                         comp<MudPaper> {
                             "Style" => "margin-top:1rem;"
                             comp<MudMenuItem> {
@@ -118,10 +124,10 @@ module AppBar =
                                     on.click(fun _ -> dispatch (OpenCloseSettings C.MAIN_SETTINGS))
                                     "Application Settings"
                                 }
-                        }             
+                        }
                     }
-                }                  
-            }        
+                }
+            }
             ecomp<MainSettingsView,_,_> model dispatch {attr.empty()}
             ecomp<ChatCreateView,_,_> model dispatch {attr.empty()}
         }

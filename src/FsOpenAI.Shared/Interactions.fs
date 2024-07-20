@@ -128,7 +128,7 @@ module Interaction =
         match ch.InteractionType with
         | IndexQnA bag        -> setQABag (updateBag bag) ch
         | IndexQnADoc dbag    -> setQABag (updateBag dbag.QABag) ch
-        | _                   -> failwith "unexpected chat type"
+        | _                   -> ch
 
     let clearDocuments c =
         {c with
@@ -264,7 +264,7 @@ module Interaction =
 
     ///trim UI state that is not required for processing chat (cannot be serialized)
     let removeUIState ch =
-        let ch = 
+        let ch =
             match ch.InteractionType with
             | IndexQnADoc dbag  ->
                     {ch with
@@ -274,7 +274,7 @@ module Interaction =
             | QnADoc dc         ->
                 {ch with InteractionType = QnADoc {dc with DocumentRef = None; DocType=None}}
             | _ -> ch
-        {ch with Feedback=None} //remove feedback 
+        {ch with Feedback=None} //remove feedback
 
     let keepMessages n ch = {ch with Messages = ch.Messages |> List.rev |> List.truncate n |> List.rev}
 
@@ -425,5 +425,5 @@ module Interactions =
     let toggleDocOnly id cs = updateWith (Interaction.toggleDocOnly) id cs
 
     let setFeedback id feedback cs = updateWith (Interaction.setFeedback feedback) id cs
-    
+
     let feedback id cs = cs |> List.find(fun c -> c.Id = id) |> fun c -> c.Feedback

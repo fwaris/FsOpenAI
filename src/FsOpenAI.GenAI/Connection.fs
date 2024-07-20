@@ -22,15 +22,8 @@ module Connection =
                 |> Cosmos.execAsync
                 |> AsyncSeq.iter (printfn "%A")
                 |> Async.RunSynchronously
-            do
-                db
-                |> Cosmos.container container
-                |> Cosmos.createContainerIfNotExists
-                |> Cosmos.execAsync
-                |> AsyncSeq.iter (printfn "%A")
-                |> Async.RunSynchronously
             Some { ConnectionString = cstr; DatabaseName = database; ContainerName = container }
-        with ex -> 
+        with ex ->
             Env.logException (ex,"Monitoring.installTable: ")
-            None 
+            None
 
