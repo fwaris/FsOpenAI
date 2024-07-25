@@ -96,7 +96,7 @@ module Completions =
                                 OutputTokens = GenUtils.tokenSize resp |> int
                             }
                         Monitoring.write (Diag de)
-                        Srv_Ia_SetSubmissionId(ch.Id,de.id) |> dispatch 
+                        Srv_Ia_SetSubmissionId(ch.Id,de.id) |> dispatch
                         dispatch (Srv_Ia_Done(ch.Id,None))
                     | Choice2Of2 ex ->
                         Monitoring.write (Diag {de with Error = ex.Message})
@@ -106,7 +106,7 @@ module Completions =
             | Choice1Of2 _ -> ()
             | Choice2Of2 ex ->
                 Env.logException (ex,"streamCompleteChat: ")
-                dispatch (Srv_Error ex.Message)
+                dispatch (Srv_Ia_Done(ch.Id,Some ex.Message))
         }
 
     let completeChat parms invCtx ch modelSelector dispatch =
@@ -119,7 +119,7 @@ module Completions =
                     {de with
                         Response = respMsg.Content
                         OutputTokens = GenUtils.tokenSize respMsg.Content |> int
-                    }                    
+                    }
                 Monitoring.write (Diag de)
                 Srv_Ia_SetSubmissionId(ch.Id,de.id) |> dispatch
                 return respMsg
