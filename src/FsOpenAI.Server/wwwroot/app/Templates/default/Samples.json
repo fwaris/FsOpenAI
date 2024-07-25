@@ -1,6 +1,20 @@
 [
   {
     "SampleChatType": {
+      "Case": "SM_IndexQnA",
+      "Fields": [
+        "sample-index"
+      ]
+    },
+    "SampleSysMsg": "You are a helpful AI assistant\u0022\n",
+    "SampleQuestion": "What is RAG?",
+    "SampleMode": {
+      "Case": "Factual"
+    },
+    "MaxDocs": 5
+  },
+  {
+    "SampleChatType": {
       "Case": "SM_Plain",
       "Fields": [
         false

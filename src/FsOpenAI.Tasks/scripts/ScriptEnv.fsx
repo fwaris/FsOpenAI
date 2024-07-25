@@ -415,22 +415,22 @@ module ModelDefs =
     let shortChat =
         [
             {Backend=AzureOpenAI; Model="gpt-4o"; TokenLimit=8000};
-            {Backend=OpenAI; Model="gpt-4o"; TokenLimit=127000};
+            {Backend=OpenAI; Model="gpt-4o-mini"; TokenLimit=127000};
         ]
     let longChat =
         [
             {Backend=AzureOpenAI; Model="gpt-4o"; TokenLimit=30000}
-            {Backend=OpenAI; Model="gpt-4o"; TokenLimit=127000}
+            {Backend=OpenAI; Model="gpt-4o-mini"; TokenLimit=127000}
         ]
     let completion =
         [
             {Backend=AzureOpenAI; Model="text-davinci-003"; TokenLimit=4000}
-            {Backend=OpenAI; Model="gpt-4o"; TokenLimit=4000}
+            {Backend=OpenAI; Model="gpt-4o-mini"; TokenLimit=4000}
         ]
     let lowcost =
         [
             {Backend=AzureOpenAI; Model="gpt-35-turbo"; TokenLimit=8000}
-            {Backend=OpenAI; Model="gpt-4o"; TokenLimit=8000}
+            {Backend=OpenAI; Model="gpt-4o-mini"; TokenLimit=8000}
         ]
     let modelsConfig =
         {

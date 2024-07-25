@@ -47,8 +47,11 @@ module Interaction =
         @ (cfg.ModelsConfig.ShortChatModels |> List.map _.Backend)
         |> List.distinct
 
-    let getModeCases() = FSharpType.GetUnionCases typeof<ExplorationMode>
-    let getModeCase (mode:ExplorationMode) = FSharpValue.GetUnionFields(mode,typeof<ExplorationMode>)
+    let getExplorationModeCases() = FSharpType.GetUnionCases typeof<ExplorationMode>
+    let getExplorationModeCase (mode:ExplorationMode) = FSharpValue.GetUnionFields(mode,typeof<ExplorationMode>)
+
+    let getSearchModeCases() = FSharpType.GetUnionCases typeof<SearchMode>
+    let getSearchModeCase (mode:SearchMode) = FSharpValue.GetUnionFields(mode,typeof<SearchMode>)
 
     let maxDocs defaultVal (ch:Interaction) =
         match ch.InteractionType with

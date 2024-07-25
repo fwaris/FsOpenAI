@@ -18,6 +18,8 @@ type InteractionMessage = {MsgId:string; Role:MessageRole; Message: string}
 
 type ExplorationMode = Factual | Exploratory | Creative
 
+type SearchMode = Semantic | Hybrid | Keyword
+
 type DocType = DT_Pdf | DT_Word | DT_Powerpoint | DT_Excel | DT_Text | DT_RTF
 
 type InteractionParameters =
@@ -55,13 +57,13 @@ type QABag =
     {
         Indexes         : IndexRef list
         MaxDocs         : int
-        HybridSearch    : bool
+        SearchMode      : SearchMode
     }
     with static member Default =
             {
                 Indexes = []
                 MaxDocs = 10
-                HybridSearch = true
+                SearchMode = Hybrid
             }
 
 type DocumentStatus = No_Document | Uploading | Receiving | ExtractingTerms | Ready

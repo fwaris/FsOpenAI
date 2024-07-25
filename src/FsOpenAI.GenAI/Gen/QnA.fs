@@ -70,7 +70,10 @@ module QnA =
             let idxClient = Indexes.searchServiceClient parms
             let srchClient = idxClient.GetSearchClient(idx.Name)
             let openAIClient,_ = GenUtils.getEmbeddingsClient parms ch
-            let mode = if bag.HybridSearch then SearchMode.Hybrid else SearchMode.Semantic
+            let mode = match bag.SearchMode with
+                        | Hybrid    -> SemanticVectorSearch.SearchMode.Hybrid
+                        | Semantic  -> SemanticVectorSearch.SearchMode.Semantic            
+                        | Keyword   -> SemanticVectorSearch.SearchMode.Plain
             SemanticVectorSearch.CognitiveSearch(mode,srchClient,openAIClient,embModel,["contentVector"],"content","sourcefile","title"))
 
     let runRefineQuery (k:Kernel) userMessage chatHistory = 

@@ -67,7 +67,7 @@
         "Backend": {
           "Case": "OpenAI"
         },
-        "Model": "gpt-4o",
+        "Model": "gpt-4o-mini",
         "TokenLimit": 127000
       }
     ],
@@ -83,7 +83,7 @@
         "Backend": {
           "Case": "OpenAI"
         },
-        "Model": "gpt-4o",
+        "Model": "gpt-4o-mini",
         "TokenLimit": 127000
       }
     ],
@@ -99,7 +99,7 @@
         "Backend": {
           "Case": "OpenAI"
         },
-        "Model": "gpt-4o",
+        "Model": "gpt-4o-mini",
         "TokenLimit": 4000
       }
     ],
@@ -115,7 +115,7 @@
         "Backend": {
           "Case": "OpenAI"
         },
-        "Model": "gpt-4o",
+        "Model": "gpt-4o-mini",
         "TokenLimit": 8000
       }
     ]

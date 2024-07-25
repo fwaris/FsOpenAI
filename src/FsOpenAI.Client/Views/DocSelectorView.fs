@@ -69,7 +69,7 @@ type DocSelectorView() =
                         | _           -> Color.Warning
 
         comp<MudPaper> {
-            "Class" => "d-flex flex-grow-1 flex-row"
+            "Class" => "d-flex flex-grow-1 flex-row ma-2"
             comp<MudFileUpload<IBrowserFile>> {
                 "Class" => "d-flex flex-grow-0 align-self-center ma-2"
                 attr.id inputId

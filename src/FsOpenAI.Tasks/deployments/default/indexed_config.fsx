@@ -102,6 +102,13 @@ let SamplesPath = templatesPath @@ "default" @@ "Samples.json"
 let samples =
     [
         {
+            SampleChatType = SM_IndexQnA "sample-index"
+            SampleMode = ExplorationMode.Factual
+            MaxDocs     = 5
+            SampleSysMsg  = defaultSysMessage
+            SampleQuestion = "What is RAG?"
+        }
+        {
             SampleChatType = SM_Plain false
             SampleMode = ExplorationMode.Factual
             MaxDocs     = 5

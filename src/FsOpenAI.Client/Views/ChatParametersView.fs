@@ -18,6 +18,22 @@ type ChatParametersView() =
         let settingsOpen,chat,model = mdl
         let backends = model.appConfig.EnabledBackends
 
+        let buttonSytle isSelected =
+            if isSelected then
+                let c = 
+                    if model.darkTheme then
+                        model.theme.PaletteDark.Primary.Value
+                    else
+                        model.theme.PaletteLight.Primary.Value
+                $"color:{c}; text-decoration: underline;"                                             
+            else 
+                ""
+
+        let searchTooltip = function
+            | SearchMode.Semantic -> "Search with meaning, e.g. 'small' should match 'tiny', 'little', 'not big', etc."
+            | SearchMode.Keyword -> "Search using exact keyword matches. Useful for product codes, acronyms, etc."
+            | SearchMode.Hybrid -> "A mix of Semantic and Keyword (default)"
+
         concat {
             comp<MudPopover> {
                     "AnchorOrigin" => Origin.TopLeft
@@ -47,23 +63,18 @@ type ChatParametersView() =
                             comp<MudField> {
                                 "Class" => "ma-2 d-flex"
                                 "Variant" => Variant.Outlined
-                                "Label" => "Mode"
+                                "Label" => "Generation Mode (temperature)"
                                 comp<MudButtonGroup> {
                                     "Variant" => Variant.Filled
-                                    "Class" => "d-flex self-align-center justify-center"
-                                    for m in Interaction.getModeCases() do
-                                        let uc,vs = Interaction.getModeCase chat.Parameters.Mode
+                                    "Elevation" => 0
+                                    "Class" => "d-flex"
+                                    for m in Interaction.getExplorationModeCases() do
+                                        let uc,vs = Interaction.getExplorationModeCase chat.Parameters.Mode
                                         let c = FSharpValue.MakeUnion (m,vs) :?> ExplorationMode
-                                        let color =
-                                            if uc.Name = m.Name then
-                                                if model.darkTheme then
-                                                    model.theme.PaletteDark.Primary.Value
-                                                else
-                                                    model.theme.PaletteLight.Primary.Value
-                                            else ""
                                         comp<MudButton> {
-                                            "Style" => $"color:{color}"
-                                            on.click (fun e -> dispatch (Ia_UpdateParms (chat.Id, {chat.Parameters with Mode = c})))
+                                            "Class" => "d-flex flex-grow-1"
+                                            "Style" => (buttonSytle (uc.Name = m.Name))
+                                            on.click (fun _ -> dispatch (Ia_UpdateParms (chat.Id, {chat.Parameters with Mode = c})))
                                             text m.Name
                                         }
                                 }
@@ -94,15 +105,27 @@ type ChatParametersView() =
                             }
                             match Interaction.qaBag chat with
                             | Some bag ->
-                                comp<MudTooltip> {
-                                    "Placement" => Placement.Right
-                                    "Text" => "If enabled, search method will also use literal terms (e.g. keywords, etc.), in addition to semantic/conceptual content"
-                                    comp<MudSwitch<bool>> {
-                                        "Class" => "px-4 mr-4"
-                                        "Color" => if bag.HybridSearch then Color.Tertiary else Color.Default
-                                        "Label" => "Hybrid Search"
-                                        "Value" => bag.HybridSearch
-                                        attr.callback "ValueChanged" (fun (e:bool) -> dispatch (Ia_UpdateQaBag (chat.Id,{bag with HybridSearch = e})))
+                                comp<MudField> {
+                                    "Class" => "ma-2 d-flex"
+                                    "Variant" => Variant.Outlined
+                                    "Label" => "Search Mode"
+                                    comp<MudButtonGroup> {
+                                        "Variant" => Variant.Filled
+                                        "Class" => "d-flex"
+                                        for m in Interaction.getSearchModeCases() do
+                                            let uc,vs = Interaction.getSearchModeCase bag.SearchMode
+                                            let c = FSharpValue.MakeUnion (m,vs) :?> SearchMode
+                                            comp<MudButton> {
+                                                "Style" => (buttonSytle (uc.Name = m.Name))
+                                                "Class" => "d-flex flex-grow-1"
+                                                on.click (fun _ -> dispatch (Ia_UpdateQaBag (chat.Id,{bag with SearchMode = c})))
+                                                comp<MudTooltip> {
+                                                    "Text" => (searchTooltip c)
+                                                    "Placement" => Placement.Right
+                                                    "Class" => "d-flex flex-grow-1"
+                                                    text m.Name
+                                                }
+                                            }
                                     }
                                 }
                                 comp<MudSlider<int>> {

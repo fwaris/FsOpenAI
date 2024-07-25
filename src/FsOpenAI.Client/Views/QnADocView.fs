@@ -21,12 +21,13 @@ type QnADocView() =
             "Elevation" => 3
             "Class" => "d-flex flex-column ma-2"
             comp<MudPaper> {
-                "Class" => "d-flex flex-row flex-grow-1 ma-2"
+                "Class" => "d-flex flex-row flex-grow-1"
+                "Elevation" => 0
                 ecomp<ChatSettingsView,_,_> (chat,model) dispatch {attr.empty()}
                 ecomp<SystemMessageShortView,_,_> (chat,model) dispatch {attr.empty()}
-                comp<MudPaper> {
-                    "Class" => "d-block d-flex flex-1 ma-2"
-                    ecomp<DocSelectorView,_,_> (docCntnt,chat,model) dispatch {attr.empty()}
-                }
+                ecomp<DocSelectorView,_,_> (docCntnt,chat,model) dispatch {attr.empty()}
+                //comp<MudPaper> {
+                //    "Class" => "d-block d-flex flex-1 ma-2"
+                //}
             }
         }
