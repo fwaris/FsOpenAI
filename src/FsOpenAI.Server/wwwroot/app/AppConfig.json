@@ -32,7 +32,7 @@
       "FsOpenAI Chat"
     ]
   },
-  "RequireLogin": false,
+  "RequireLogin": true,
   "PaletteDark": null,
   "PaletteLight": null,
   "LogoUrl": "https:/github.com/fwaris/FsOpenAI",
@@ -122,5 +122,5 @@
   },
   "DatabaseName": "fsopenai",
   "DiagTableName": "log1",
-  "SessionTableName": "sessios"
+  "SessionTableName": "sessions"
 }

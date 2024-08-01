@@ -52,7 +52,7 @@ let defaultSysMessage = """You are a helpful AI assistant"
 let docDesc =
     [
         //index name, tag, description, isVirtual, parents
-        "sample-index", "sample-index", "AI Document Collection Index",false,[]   //virtual index = true means its not a real index; only use for grouping other indexes
+        "sample-index", "ai-docs", "AI Document Collection Index",false,[]   //virtual index = true means its not a real index; only use for grouping other indexes
     ]
 
 let docs =
@@ -76,10 +76,10 @@ let acctAppCfg =
         EnabledChatModes = [CM_Plain,defaultSysMessage; CM_QnADoc, defaultSysMessage; CM_IndexQnA, defaultSysMessage] //list of chat modes that may be enabled in the app
         DatabaseName = C.DFLT_COSMOSDB_NAME //name of the CosmosDB database
         DiagTableName = Some "log1" // CosmosDB container name where to store chat submission logs
-        SessionTableName = Some "sessios" // Some "sessions" persist sessions to CosmosDB
+        SessionTableName = Some "sessions" // Some "sessions" persist sessions to CosmosDB
         AppBarType = Some (AppB_Base "FsOpenAI Chat") //Header bar style and title text
         Roles = [] //if not empty app will only allow users that have the listed roles (from AD)
-        RequireLogin = false //if true, requires AD login (via MSAL); needs valid appSettings.json (see above)
+        RequireLogin = true //if true, requires AD login (via MSAL); needs valid appSettings.json (see above)
         PaletteDark = None // Some {AppPalette.Default with Primary=Some "#FF1E92"; AppBar = Some "#e20074"}
         PaletteLight = None //Some {AppPalette.Default with Primary=Some "#e20074"; AppBar = Some "#e20074"}
         LogoUrl = Some "https:/github.com/fwaris/FsOpenAI" //url associated with app logo (shown in the header)
@@ -102,7 +102,7 @@ let SamplesPath = templatesPath @@ "default" @@ "Samples.json"
 let samples =
     [
         {
-            SampleChatType = SM_IndexQnA "sample-index"
+            SampleChatType = SM_IndexQnA "ai-docs"
             SampleMode = ExplorationMode.Factual
             MaxDocs     = 5
             SampleSysMsg  = defaultSysMessage

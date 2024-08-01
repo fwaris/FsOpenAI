@@ -3,6 +3,7 @@ open System.Net.Http
 open Microsoft.AspNetCore.Components
 open Microsoft.Extensions.Logging
 open Microsoft.AspNetCore.Components.Authorization
+open Microsoft.AspNetCore.Components.WebAssembly.Authentication
 open Microsoft.AspNetCore.SignalR.Client
 open Elmish
 open Bolero
@@ -38,6 +39,9 @@ module App =
         [<Inject>]
         member val HttpFac : IHttpClientFactory = Unchecked.defaultof<_> with get, set
 
+        [<Inject>]
+        member val TokenProvider : IAccessTokenProvider = Unchecked.defaultof<_> with get, set
+
         member val hubConn : HubConnection = Unchecked.defaultof<_> with get, set
 
         override this.Program =
@@ -45,13 +49,14 @@ module App =
             //authentication 
             let handler = new AuthenticationStateChangedHandler(fun t -> 
                 task {
-                    let! s = t              
+                    let! s = t
+                    ClientHub.reconnect this.hubConn
                     this.Dispatch (SetAuth (Some s.User)) 
                 } |> ignore)
             this.Auth.add_AuthenticationStateChanged(handler)
 
             //hub connection
-            this.hubConn <- ClientHub.connection this.logger this.NavigationManager 
+            this.hubConn <- ClientHub.connection this.TokenProvider this.logger this.NavigationManager 
             let clientDispatch msg = this.Dispatch (FromServer msg) 
             let serverDispatch = ClientHub.send this.Dispatch this.hubConn
             let serverCall = ClientHub.call this.hubConn

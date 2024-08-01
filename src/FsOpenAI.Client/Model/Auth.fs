@@ -41,9 +41,9 @@ module Auth =
         | None                                        -> {model with user=Unauthenticated}, Cmd.none
         | Some p when  not p.Identity.IsAuthenticated -> {model with user=Unauthenticated}, Cmd.none
         | Some p ->      
-            printfn $"Claims: %O{p.Identity.Name}"
-            p.Identities |> Seq.iter(fun x -> printfn $"{x.Name}")
-            p.Claims |> Seq.iter(fun x -> printfn $"{x.Type}={x.Value}")
+            //printfn $"Claims: %O{p.Identity.Name}"
+            //p.Identities |> Seq.iter(fun x -> printfn $"{x.Name}")
+            //p.Claims |> Seq.iter(fun x -> printfn $"{x.Type}={x.Value}")
             let claims = 
                 p.Claims 
                 |> Seq.tryFind(fun x ->x.Type="roles")

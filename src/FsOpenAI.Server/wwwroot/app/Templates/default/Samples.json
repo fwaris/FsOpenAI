@@ -3,7 +3,7 @@
     "SampleChatType": {
       "Case": "SM_IndexQnA",
       "Fields": [
-        "sample-index"
+        "ai-docs"
       ]
     },
     "SampleSysMsg": "You are a helpful AI assistant\u0022\n",
