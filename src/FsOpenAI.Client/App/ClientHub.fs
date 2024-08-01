@@ -3,10 +3,10 @@ open System
 open System.Text.Json
 open System.Text.Json.Serialization
 open Microsoft.AspNetCore.Components
+open Microsoft.AspNetCore.Components.WebAssembly.Authentication
 open Microsoft.Extensions.Logging
 open Microsoft.AspNetCore.SignalR.Client
 open Microsoft.Extensions.DependencyInjection
-open Microsoft.AspNetCore.Components.WebAssembly.Authentication
 open System.Text.Json.Serialization
 open System.Text.Json
 open FSharp.Control
@@ -29,6 +29,8 @@ module ClientHub =
             | true, token -> printfn $"have token {token.Value}"; return token.Value
             | _ -> printfn "don't have token"; return null
         }
+
+    let retryPolicy = [| TimeSpan(0,0,5); TimeSpan(0,0,10); TimeSpan(0,0,30); TimeSpan(0,0,30) |]
         
     //signalr hub connection that can send/receive messages to/from server
     let connection 
@@ -42,22 +44,14 @@ module ClientHub =
                 .WithUrl(
                         navMgr.ToAbsoluteUri(C.ClientHub.urlPath),
                         (fun w ->
-                            w.Transports <- Microsoft.AspNetCore.Http.Connections.HttpTransportType.LongPolling
-                            //w.CloseTimeout <- TimeSpan.FromSeconds(5.0)
+                            w.AccessTokenProvider <- (getToken tokenProvider)
                         )
                     )
                 .WithAutomaticReconnect(retryPolicy)
-                .WithUrl(
-                    navMgr.ToAbsoluteUri(C.ClientHub.urlPath)
-                    ,fun o -> 
-                        o.AccessTokenProvider <- (getToken tokenProvider)
-                    )
-                .WithAutomaticReconnect()           
                 .ConfigureLogging(fun logging ->
                     logging.AddProvider(loggerProvider) |> ignore
                 )
                 .Build()
-        hubConnection.KeepAliveInterval <- TimeSpan.FromSeconds(10.0)
         (hubConnection.StartAsync()) |> Async.AwaitTask |> Async.Start
         hubConnection
 
@@ -81,11 +75,14 @@ module ClientHub =
                 return ()
             }
 
-    let send clientDispatch (conn:HubConnection) (msg:ClientInitiatedMessages) =
     let reconnect (conn:HubConnection) = 
         task {
-            do! conn.StopAsync()
-            do! conn.StartAsync()
+            try
+                do! conn.StopAsync()
+                do! conn.StartAsync()
+                printfn "reconnected"
+            with ex ->
+                printfn $"reconnect failed {ex.Message}" 
         } |> ignore
 
 
