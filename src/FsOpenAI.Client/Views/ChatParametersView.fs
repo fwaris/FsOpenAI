@@ -20,19 +20,19 @@ type ChatParametersView() =
 
         let buttonSytle isSelected =
             if isSelected then
-                let c = 
+                let c =
                     if model.darkTheme then
                         model.theme.PaletteDark.Primary.Value
                     else
                         model.theme.PaletteLight.Primary.Value
-                $"color:{c}; text-decoration: underline;"                                             
-            else 
+                $"color:{c}; text-decoration: underline;"
+            else
                 ""
 
         let searchTooltip = function
             | SearchMode.Semantic -> "Search with meaning, e.g. 'small' should match 'tiny', 'little', 'not big', etc."
-            | SearchMode.Keyword -> "Search using exact keyword matches. Useful for product codes, acronyms, etc."
-            | SearchMode.Hybrid -> "A mix of Semantic and Keyword (default)"
+            | SearchMode.Keyword -> "Search using exact keyword matches. Useful for product codes, acronyms, etc. USE only if other modes not effective."
+            | SearchMode.Hybrid -> "A mix of Semantic and Keyword (default, generally best)"
 
         concat {
             comp<MudPopover> {
