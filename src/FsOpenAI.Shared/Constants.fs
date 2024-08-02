@@ -39,8 +39,9 @@ module C =
 
     module ClientHub =
         open System.Threading.Channels
-        let fromServer = "FromServer"
-        let fromClient = "FromClient"
-        let uploadStream = "UploadStream"
-        let urlPath = "/fsopenaihub"
+        let fromServer       = "FromServer"
+        let fromClient       = "FromClient"
+        let fromClientUnAuth = "FromClientUnAuth"
+        let uploadStream     = "UploadStream"
+        let urlPath          = "/fsopenaihub"
 

@@ -13,12 +13,13 @@ open FsOpenAI.Shared.Interactions
 
 type UpdateParms =
     {
-        localStore          : ILocalStorageService
-        snkbar              : ISnackbar
-        navMgr              : NavigationManager
-        httpFac             : IHttpClientFactory
-        serverDispatch      : ClientInitiatedMessages -> unit
-        serverCall          : ClientInitiatedMessages -> Task
+        localStore           : ILocalStorageService
+        snkbar               : ISnackbar
+        navMgr               : NavigationManager
+        httpFac              : IHttpClientFactory
+        serverDispatch       : ClientInitiatedMessages -> unit
+        serverDispatchUnAuth : ClientInitiatedMessages -> unit
+        serverCall           : ClientInitiatedMessages -> Task
     }
 
 module Init =

@@ -33,10 +33,10 @@ module Program =
         builder.Services.AddMsalAuthentication(fun o -> 
                 //read configuration to reference the AD-app
                 builder.Configuration.Bind("AzureAd", o.ProviderOptions.Authentication)
-                printfn "adding msal authentication"
 
                 //NOTE: EntraID app registration should have a scope called API.Access in 'expose an api' section
                 let defScope = $"api://{o.ProviderOptions.Authentication.ClientId}/API.Access"
+                printfn $"adding msal authentication with default scope {defScope}"
 
                 o.ProviderOptions.DefaultAccessTokenScopes.Add(defScope)
                 ) |> ignore

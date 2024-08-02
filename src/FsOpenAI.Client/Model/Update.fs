@@ -26,7 +26,7 @@ module Update =
     let update (uparms:UpdateParms) message model =
         //printfn "%A" message
         match message with
-        | StartInit -> Init.pingServer uparms.serverDispatch; {model with busy=true},Cmd.ofMsg LoadUIState
+        | StartInit -> Init.pingServer uparms.serverDispatchUnAuth; {model with busy=true},Cmd.ofMsg LoadUIState
 
         (*
             Initalization Flow:

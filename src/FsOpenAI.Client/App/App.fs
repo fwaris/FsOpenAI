@@ -59,6 +59,7 @@ module App =
             this.hubConn <- ClientHub.connection this.TokenProvider this.logger this.NavigationManager 
             let clientDispatch msg = this.Dispatch (FromServer msg) 
             let serverDispatch = ClientHub.send this.Dispatch this.hubConn
+            let serverDispatchUnAuth = ClientHub.sendUnAuth this.Dispatch this.hubConn
             let serverCall = ClientHub.call this.hubConn
             this.hubConn.On<ServerInitiatedMessages>(C.ClientHub.fromServer,clientDispatch) |> ignore
 
@@ -67,6 +68,7 @@ module App =
                     localStore = this.LocalStore
                     snkbar = this.Snackbar
                     serverDispatch = serverDispatch
+                    serverDispatchUnAuth = serverDispatchUnAuth
                     serverCall = serverCall
                     navMgr = this.NavigationManager
                     httpFac = this.HttpFac

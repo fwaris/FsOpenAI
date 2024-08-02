@@ -7,6 +7,12 @@ open FsOpenAI.Server.Templates
 open FsOpenAI.GenAI
 open Microsoft.AspNetCore.SignalR
 open System.Threading.Channels
+open Microsoft.AspNetCore.Authorization
+open Microsoft.AspNetCore.Connections.Features
+open Microsoft.AspNetCore.Http.Connections.Features
+open System.Security.Claims
+open Microsoft.AspNetCore.Http
+open Microsoft.Extensions.Primitives
 
 module Inititalizaiton =
 
@@ -63,6 +69,19 @@ module Inititalizaiton =
                 dispatch (Srv_Info "No service configuration information found. Initialized with default OpenAI config.")
         }
 
+///For websocket connection, token is passed as query parameter. This handler copies it to header
+/// so that it can be used for authorization
+type TokenHandler(next:RequestDelegate) =
+    member this.Invoke(context:HttpContext) =
+        match context.Request.Query.TryGetValue("access_token") with 
+        | true, tokens -> 
+            if tokens.Count > 0 then 
+                let token = tokens.[0]
+                let hdr = StringValues("Bearer " + token)
+                context.Request.Headers.Add("Authorization", hdr)
+        | _ -> ()
+        next.Invoke(context)    
+    
 type ServerHub() =
     inherit Hub()
 
@@ -71,11 +90,12 @@ type ServerHub() =
             return! client.SendAsync(C.ClientHub.fromServer,msg)
         }
 
-    member this.FromClient(msg:ClientInitiatedMessages) : Task =
+    //allows unauthenticated users access to initial settings
+    member this.FromClientUnAuth(msg:ClientInitiatedMessages) : Task =
         let cnnId = this.Context.ConnectionId
         let client = this.Clients.Client(cnnId)
         let dispatch msg = ServerHub.SendMessage(client,msg) |> ignore
-        task{
+        task {
             try
                 match msg with
 
@@ -84,6 +104,21 @@ type ServerHub() =
                     try Monitoring.ensureConnection() with ex -> dispatch (Srv_Error ex.Message)
                     try Sessions.ensureConnection() with ex ->  dispatch (Srv_Error ex.Message)
                     do! Inititalizaiton.initClient (Settings.getSettings().Value) dispatch
+                | _ -> dispatch (Srv_Error "Unauthorized access")
+            with ex -> 
+                Env.logError ex.Message
+        }
+
+    member private this.ProcessClientMessage(msg:ClientInitiatedMessages) : Task = 
+        let cnnId = this.Context.ConnectionId
+        let client = this.Clients.Client(cnnId)
+        let dispatch msg = ServerHub.SendMessage(client,msg) |> ignore
+        task{
+            try
+                match msg with
+
+                | Clnt_Connected _ ->
+                    () //do nothing as we are already connected
 
                 | Clnt_Run_Plain (settings,invCtx,chat) ->
                     let settings = Settings.updateKey settings
@@ -164,6 +199,12 @@ type ServerHub() =
                 Env.logError ex.Message
         }
 
+    //[<Authorize>] 
+    member this.FromClient(msg:ClientInitiatedMessages) : Task =
+        match Env.appConfig.Value, this.Context.User.Identity.IsAuthenticated with
+        | Some v, false when v.RequireLogin  -> task {return raise (HubException("Unauthorized access"))}
+        | _                                  -> this.ProcessClientMessage msg
+                
     member this.UploadStream(stream:ChannelReader<byte[]>) : Task =
         task  {
             let mutable i = 0
