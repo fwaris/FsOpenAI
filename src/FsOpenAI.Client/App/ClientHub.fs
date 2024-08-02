@@ -24,8 +24,7 @@ module ClientHub =
 
     let getToken (accessTokenProvider:IAccessTokenProvider) () = 
         task {
-            let opts = AccessTokenRequestOptions(Scopes=["api://e6f10f3b-cbb4-44e5-b5b6-27dd3217e9bb/read"])
-            let! token = accessTokenProvider.RequestAccessToken(opts)
+            let! token = accessTokenProvider.RequestAccessToken()
             match token.TryGetToken() with 
             | true, token -> printfn $"have token {token.Value}"; return token.Value
             | _ -> printfn "don't have token"; return null

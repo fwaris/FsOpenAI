@@ -35,10 +35,10 @@ module Program =
                 builder.Configuration.Bind("AzureAd", o.ProviderOptions.Authentication)
                 printfn "adding msal authentication"
 
-                //Add any access token scopes needed by the WASM app here.
-                //The requested scopes have to be first granted in the AD-app.
-                //The token scopes will allow the WASM app to access protected APIs 
-                o.ProviderOptions.DefaultAccessTokenScopes.Add("User.Read")
+                //NOTE: EntraID app registration should have a scope called API.Access in 'expose an api' section
+                let defScope = $"api://{o.ProviderOptions.Authentication.ClientId}/API.Access"
+
+                o.ProviderOptions.DefaultAccessTokenScopes.Add(defScope)
                 ) |> ignore
 
         builder.Build().RunAsync() |> ignore
