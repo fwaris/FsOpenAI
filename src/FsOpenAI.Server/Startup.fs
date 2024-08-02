@@ -1,4 +1,6 @@
 namespace FsOpenAI.Server
+open System
+open System.Threading.Tasks
 open Microsoft.AspNetCore
 open Microsoft.AspNetCore.Authentication.Cookies
 open Microsoft.AspNetCore.Builder
@@ -16,19 +18,54 @@ open Microsoft.Extensions.Logging
 open Microsoft.Extensions.Logging.AzureAppServices
 open Blazored.LocalStorage
 open FsOpenAI.GenAI
+open FsOpenAI.Shared
 
 module Startup =
     let inline (!>) (x:^a) : ^b = ((^a or ^b) : (static member op_Implicit : ^a -> ^b) x)
+
+    let jwtBearerEvents() =
+        let evts = JwtBearerEvents()
+
+        evts.OnMessageReceived <-
+            (fun (context:MessageReceivedContext) -> 
+                let accessToken = context.Request.Query.["access_token"]
+                let path = context.HttpContext.Request.Path
+                if not(String.IsNullOrEmpty(accessToken)) && path.StartsWithSegments(C.ClientHub.urlPath) then
+                    context.Token <- accessToken       
+                    printfn "token found"                             
+                Task.CompletedTask)
+
+        evts.OnAuthenticationFailed <-
+            (fun (context:AuthenticationFailedContext) ->
+                printfn "Token validation failed: %s" context.Exception.Message
+                Task.CompletedTask)
+        evts
 
     // This method gets called by the runtime. Use this method to add services to the container.
     // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
     let configureServices (builder:WebApplicationBuilder) =
         let services = builder.Services
 
-        // services
-        //     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-        //     .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd")) 
-        //     |> ignore
+        services
+            .AddMicrosoftIdentityWebApiAuthentication(builder.Configuration, "AzureAd")
+            // .AddAuthentication(fun o ->
+            //     o.DefaultAuthenticateScheme <- JwtBearerDefaults.AuthenticationScheme
+            //     o.DefaultChallengeScheme <- JwtBearerDefaults.AuthenticationScheme)
+            // .AddJwtBearer(fun o -> 
+            //     o.Authority <- "https://login.microsoftonline.com/62f00f93-abe4-444c-a2f4-02b2de127943"
+            //     //o.Audience <- "e6f10f3b-cbb4-44e5-b5b6-27dd3217e9bb"
+            //     o.UseSecurityTokenValidators <- true
+            //     o.Events <- jwtBearerEvents()
+            //     o.TokenValidationParameters <- new Microsoft.IdentityModel.Tokens.TokenValidationParameters(
+            //         ValidateIssuer = true,
+            //         ValidIssuer = "https://login.microsoftonline.com/62f00f93-abe4-444c-a2f4-02b2de127943/v2.0",
+            //         ValidateAudience = true,
+            //         ValidAudience = "e6f10f3b-cbb4-44e5-b5b6-27dd3217e9bb",
+
+            //         ValidateLifetime = true,
+            //         ClockSkew = TimeSpan.Zero)
+            // )
+            |> ignore
 
         services.AddMvc() |> ignore
         services.AddServerSideBlazor() |> ignore

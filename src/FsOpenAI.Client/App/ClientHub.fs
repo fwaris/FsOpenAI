@@ -24,7 +24,8 @@ module ClientHub =
 
     let getToken (accessTokenProvider:IAccessTokenProvider) () = 
         task {
-            let! token = accessTokenProvider.RequestAccessToken()
+            let opts = AccessTokenRequestOptions(Scopes=["api://e6f10f3b-cbb4-44e5-b5b6-27dd3217e9bb/read"])
+            let! token = accessTokenProvider.RequestAccessToken(opts)
             match token.TryGetToken() with 
             | true, token -> printfn $"have token {token.Value}"; return token.Value
             | _ -> printfn "don't have token"; return null
@@ -43,10 +44,7 @@ module ClientHub =
                 .AddJsonProtocol(fun o -> configureSer o.PayloadSerializerOptions |> ignore)
                 .WithUrl(
                         navMgr.ToAbsoluteUri(C.ClientHub.urlPath),
-                        (fun w ->
-                            w.AccessTokenProvider <- (getToken tokenProvider)
-                        )
-                    )
+                        fun w -> w.AccessTokenProvider <- (getToken tokenProvider))
                 .WithAutomaticReconnect(retryPolicy)
                 .ConfigureLogging(fun logging ->
                     logging.AddProvider(loggerProvider) |> ignore
@@ -89,8 +87,7 @@ module ClientHub =
     let send clientDispatch (conn:HubConnection) (msg:ClientInitiatedMessages) = 
         task {
             try
-                if conn.State = HubConnectionState.Connected then
-                    printfn "sending message"
+                if conn.State = HubConnectionState.Connected then                    
                     do! conn.SendAsync(C.ClientHub.fromClient,msg)
                 else
                     retrySend 0 conn msg |> Async.Start
