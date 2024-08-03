@@ -25,16 +25,14 @@
     ]
   ],
   "DefaultMaxDocs": 10,
-  "Roles": [
-    "User"
-  ],
+  "Roles": [],
   "AppBarType": {
     "Case": "AppB_Base",
     "Fields": [
       "FsOpenAI Chat"
     ]
   },
-  "RequireLogin": true,
+  "RequireLogin": false,
   "PaletteDark": null,
   "PaletteLight": null,
   "LogoUrl": "https:/github.com/fwaris/FsOpenAI",
