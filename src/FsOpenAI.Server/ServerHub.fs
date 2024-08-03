@@ -6,11 +6,6 @@ open FsOpenAI.Shared.Interactions
 open FsOpenAI.Server.Templates
 open FsOpenAI.GenAI
 open Microsoft.AspNetCore.SignalR
-open System.Threading.Channels
-open Microsoft.AspNetCore.Authorization
-open Microsoft.AspNetCore.Connections.Features
-open Microsoft.AspNetCore.Http.Connections.Features
-open System.Security.Claims
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.Primitives
 
@@ -201,20 +196,18 @@ type ServerHub() =
 
     //[<Authorize>] 
     member this.FromClient(msg:ClientInitiatedMessages) : Task =
-        match Env.appConfig.Value, this.Context.User.Identity.IsAuthenticated with
-        | Some v, false when v.RequireLogin  -> task {return raise (HubException("Unauthorized access"))}
-        | _                                  -> this.ProcessClientMessage msg
+        let cfg =   Env.appConfig.Value
+        match cfg with
+        | Some v when v.RequireLogin ->
+            let isAuthenticated = this.Context.User.Identity.IsAuthenticated
+            let hasRole = 
+                match v.Roles with
+                | [] -> true  // app does not require any role
+                | xs -> xs |> List.exists (fun r -> this.Context.User.IsInRole(r))
+            if isAuthenticated && hasRole then
+                this.ProcessClientMessage msg
+            else
+                task {return raise (HubException("Unauthorized access"))}
+        | _ -> 
+            this.ProcessClientMessage msg
                 
-    member this.UploadStream(stream:ChannelReader<byte[]>) : Task =
-        task  {
-            let mutable i = 0
-            do!
-                asyncSeq {
-                    let! d  = task {return! stream.ReadAsync()} |> Async.AwaitTask
-                    yield d
-
-                }
-                |> AsyncSeq.iter (fun t -> i <- i + t.Length; printfn "%A" t)
-            printfn $"Updloaded {i} bytes"
-        }
-

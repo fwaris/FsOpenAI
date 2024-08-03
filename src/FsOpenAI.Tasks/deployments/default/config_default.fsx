@@ -13,14 +13,17 @@ open ScriptEnv
 
 //Optional name of the meta index. Meta index points to real indexes that contain doc collections
 //If defined, the app will read the meta index first and list the indexes in the QnA chat mode
-let metaIndexName = None // Some $"{C.DEFAULT_META_INDEX}"
+let metaIndexName = Some $"{C.DEFAULT_META_INDEX}"
 
 //The keyvault key where the settings file will be stored
 //The settings file is base64 encoded and stored in the keyvault under this key
 //For Azure deployments, its preferrable to store the settings file in a keyvault
 let keyVaultKey = "fsopenai"
 
-//The location of the default settings file for this config.
+//The Azure keyvault where the settings file will be stored with the key above
+let keyVault = "your-keyvault-name"
+
+//The location of the settings file for this config.
 //It will be copied to %USERPROFILE%/.fsopenai/ServiceSettings.json so that it is 'in-effect'
 //for local development.
 let baseSettingsFile = @"%USERPROFILE%/.fsopenai/poc/ServiceSettings.json"
@@ -29,6 +32,10 @@ let baseSettingsFile = @"%USERPROFILE%/.fsopenai/poc/ServiceSettings.json"
 //- appSettings.json - this may contain Azure Entra ID config for authentication
 //- app/imgs/{favicon.ico|logo.png|persona.png (opt.)} - branding images for the app
 let clientFiles = "client"
+
+//The root folder for server files. These will be copied to server wwwroot. 
+//Contains: appSettings.json with server side configuration
+let serverFiles = "server"
 
 (*
 The root folder for templates and samples. These will be copied to server wwwroot/app/Templates.
@@ -82,13 +89,13 @@ let docs =
 let acctAppCfg =
     {
         EnabledBackends = [OpenAI] // [AzureOpenAI; OpenAI] //list of 'backends' that the user may select from (can be expanded in the future)
-        EnabledChatModes = [CM_Plain,defaultSysMessage; CM_QnADoc, defaultSysMessage] //list of chat modes that may be enabled in the app
-        DiagTableName = Some "log1" // CosmosDB container name where to store chat submission logs
+        EnabledChatModes = [CM_Plain,defaultSysMessage; CM_QnADoc, defaultSysMessage; CM_IndexQnA, defaultSysMessage] //list of chat modes that may be enabled in the app
         DatabaseName = C.DFLT_COSMOSDB_NAME //name of the CosmosDB database
-        SessionTableName = Some "sessios" // Some "sessions" persist sessions to CosmosDB
+        DiagTableName = Some "log1" // CosmosDB container name where to store chat submission logs
+        SessionTableName = Some "sessions" // Some "sessions" persist sessions to CosmosDB
         AppBarType = Some (AppB_Base "FsOpenAI Chat") //Header bar style and title text
         Roles = [] //if not empty app will only allow users that have the listed roles (from AD)
-        RequireLogin = false //if true, requires AD login (via MSAL); needs valid appSettings.json (see above)
+        RequireLogin = true //if true, requires AD login (via MSAL); needs valid appSettings.json (see above)
         PaletteDark = None // Some {AppPalette.Default with Primary=Some "#FF1E92"; AppBar = Some "#e20074"}
         PaletteLight = None //Some {AppPalette.Default with Primary=Some "#e20074"; AppBar = Some "#e20074"}
         LogoUrl = Some "https:/github.com/fwaris/FsOpenAI" //url associated with app logo (shown in the header)
@@ -111,6 +118,13 @@ let SamplesPath = templatesPath @@ "default" @@ "Samples.json"
 let samples =
     [
         {
+            SampleChatType = SM_IndexQnA "ai-docs"
+            SampleMode = ExplorationMode.Factual
+            MaxDocs     = 5
+            SampleSysMsg  = defaultSysMessage
+            SampleQuestion = "What is RAG?"
+        }
+        {
             SampleChatType = SM_Plain false
             SampleMode = ExplorationMode.Factual
             MaxDocs     = 5
@@ -130,7 +144,7 @@ Note: This function will only work if your identity has access to the keyvault -
 *)
 let setCredsPoc() =
     ScriptEnv.Secrets.setCreds
-        ScriptEnv.Secrets.KeyVault
+        keyVault
         keyVaultKey
         settings
 
@@ -153,29 +167,31 @@ let run() =
     let clientPath = Path.GetFullPath(__SOURCE_DIRECTORY__ + @$"/{clientFiles}")
     ScriptEnv.Config.installClientFiles clientPath
 
+    let serverPath = Path.GetFullPath(__SOURCE_DIRECTORY__ + @$"/{serverFiles}")
+    ScriptEnv.Config.installServerAppSettings serverPath
+
     ScriptEnv.Config.installTemplates templatesPath
 
 
 (* uncomment to copy baseSettings file to default location so the running app can find it
-
 *)
 File.Copy(
     ScriptEnv.expandEnv baseSettingsFile,
     ScriptEnv.expandEnv settings,true )
 
-
 (*
-//run this line to actually deploy, configuration, samples and templates to under wwwroot
+//run this line to actually deploy, configuration, samples and templates to under wwwroots
 run()
 
 //run only if needed
-ScriptEnv.installSettings settings
+ScriptEnv.installSettings settings //'install' settings so script can use the api keys, etc.
 installMetaIndex()
 
 setCredsPoc() // run only if settings have changed
-ScriptEnv.Secrets.getCreds ScriptEnv.Secrets.KeyVault keyVaultKey
+
+ScriptEnv.Secrets.getCreds keyVault keyVaultKey
 
 //check to see if the meta index is installed correctly
-let indexTree,ls = Indexes.fetch ScriptEnv.settings.Value [] metaIndexName |> runA
+ScriptEnv.Indexes.printMetaIndex [] metaIndexName.Value
 *)
 

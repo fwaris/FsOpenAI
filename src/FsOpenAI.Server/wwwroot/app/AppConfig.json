@@ -25,7 +25,9 @@
     ]
   ],
   "DefaultMaxDocs": 10,
-  "Roles": [],
+  "Roles": [
+    "User"
+  ],
   "AppBarType": {
     "Case": "AppB_Base",
     "Fields": [

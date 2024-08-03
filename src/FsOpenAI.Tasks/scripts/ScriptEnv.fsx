@@ -108,7 +108,9 @@ module Secrets =
 
 
 module Config =
-    let CONFIG_PATH = Path.GetFullPath(__SOURCE_DIRECTORY__ + @"../../../FsOpenAI.Server/wwwroot/" + C.APP_CONFIG_PATH)
+    let SERVER_ROOT = Path.GetFullPath(__SOURCE_DIRECTORY__ + @"../../../FsOpenAI.Server/wwwroot/")
+    let CLIENT_ROOT = Path.GetFullPath(__SOURCE_DIRECTORY__ + @"../../../FsOpenAI.Client/wwwroot/")
+    let CONFIG_PATH = Path.Combine(SERVER_ROOT, C.APP_CONFIG_PATH)
 
     let saveConfig (config:AppConfig) (path:string) =
         let folder = Path.GetDirectoryName(path)
@@ -123,18 +125,23 @@ module Config =
         System.IO.File.WriteAllText(file,json)
         printfn $"saved samples {Path.GetFullPath(file)}"
 
-    let installClientFiles sourcePath =
-        let dest = Path.GetFullPath(__SOURCE_DIRECTORY__ + @"../../../FsOpenAI.Client/wwwroot")
-        let destAppSettings = dest @@ "appSettings.json"
+    let installClientFiles sourcePath =        
+        let destAppSettings = CLIENT_ROOT @@ "appSettings.json"
         File.Copy(sourcePath @@ "appSettings.json", destAppSettings,true)
         printfn $"Copied {destAppSettings}"
-        let destImgsPath = dest @@ "app" @@ "imgs"
+        let destImgsPath = CLIENT_ROOT @@ "app" @@ "imgs"
         Directory.GetFiles destImgsPath |> Seq.iter File.Delete
         Directory.GetFiles(sourcePath @@ "app" @@ "imgs")
         |> Seq.iter(fun f ->
             let dst = destImgsPath @@ (Path.GetFileName(f))
             File.Copy(f,dst,true)
             printfn $"Copied {dst}")
+
+    let installServerAppSettings sourcePath = 
+        let serverProjPath = Path.GetFullPath(SERVER_ROOT @@ "..")       
+        let destAppSettings = serverProjPath @@ "appSettings.json"
+        File.Copy(sourcePath @@ "appSettings.json", destAppSettings,true)
+        printfn $"Copied {destAppSettings}"
 
     let rec copyDir sourceDir destDir =
         if Directory.Exists sourceDir |> not then failwith $"{sourceDir} does  not exist"
@@ -147,8 +154,7 @@ module Config =
         |> Seq.iter(fun sdir -> copyDir sdir (destDir @@ Path.GetFileName(sdir)))
 
     let installTemplates sourcePath =
-        let dest = Path.GetFullPath(__SOURCE_DIRECTORY__ + @"../../../FsOpenAI.Server/wwwroot")
-        let destTemplatesPath = dest @@ "app" @@ "Templates"
+        let destTemplatesPath = SERVER_ROOT @@ "app" @@ "Templates"
         if Directory.Exists destTemplatesPath then Directory.Delete(destTemplatesPath,true)
         copyDir sourcePath destTemplatesPath
 
