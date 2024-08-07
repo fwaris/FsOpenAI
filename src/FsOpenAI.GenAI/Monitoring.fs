@@ -71,7 +71,7 @@ module Monitoring =
     let mutable private _cnctnInfo = lazy None
 
     let init (ccstr,database,container) =
-        match Connection.tryCreate(ccstr,database,container) with
+        match Connection.tryCreate<DiagEntry>(ccstr,database,container) with
         | Some x -> _cnctnInfo <- lazy(Some x)
         | None -> ()
 
