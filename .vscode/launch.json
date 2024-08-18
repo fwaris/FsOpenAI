@@ -48,21 +48,6 @@
             "sourceFileMap": {
                 "/Views": "${workspaceFolder}/Views"
             }
-        },
-        {
-            "name": "UISandbox",
-            "dotNetConfig": {
-                //need to build first otherwise the app hangs
-                "preLaunchTask": "Build: UISandbox.Client",
-            },
-            "type": "blazorwasm",
-            "hosted": false,
-            "request": "launch",
-            "program": "${workspaceFolder}/src/UISandbox/src/UISandbox.Client/bin/Debug/net8.0/UISandbox.Client.dll",
-            "cwd": "${workspaceFolder}/src/UISandbox/src/UISandbox.Client",
-
-            "launchSettingsFilePath": "${workspaceFolder}/src/UISandbox/src/UISandbox.Client/Properties/launchSettings.json",
-            "launchSettingsProfile": "UISandbox.Client",
         }
     ]
 }

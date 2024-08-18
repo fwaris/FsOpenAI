@@ -12,17 +12,6 @@
 			},
 			"label": "Build: solution",
 			"detail": "Build the FsOpenAI.sln solution using dotnet build"
-		},
-		{
-			"label": "Build: UISandbox.Client",
-			"detail": "Build the UISandbox.Client project using dotnet build",
-            "command": "dotnet",
-            "type": "process",
-            "args": [
-                "build",
-                "${workspaceFolder}/src/UISandbox/src/UISandbox.Client/UISandbox.Client.fsproj"
-            ],
-            "problemMatcher": "$msCompile"
-        }
+		}
 	]
 }

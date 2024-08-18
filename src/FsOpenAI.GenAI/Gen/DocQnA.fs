@@ -6,40 +6,7 @@ open Microsoft.SemanticKernel
 open FsOpenAI.Shared
 open FsOpenAI.Shared.Interactions
 open Microsoft.SemanticKernel.Text
-
-module Async =
-   let map f a = async.Bind(a, f >> async.Return)
-
-module AsyncSeq =
-    open System.Threading
-    open System.Threading.Tasks
-    let mapAsyncParallelThrottled (parallelism:int) (f:'a -> Async<'b>) (s:AsyncSeq<'a>) : AsyncSeq<'b> = asyncSeq {
-        use mb = MailboxProcessor.Start (ignore >> async.Return)
-        use sm = new SemaphoreSlim(parallelism)
-        let! err =
-            s
-            |> AsyncSeq.iterAsync (fun a -> async {
-            let! _ = sm.WaitAsync () |> Async.AwaitTask
-            let! b = Async.StartChild (async {
-                try return! f a
-                finally sm.Release () |> ignore })
-            mb.Post (Some b) })
-            |> Async.map (fun _ -> mb.Post None)
-            |> Async.StartChildAsTask
-        yield!
-            AsyncSeq.unfoldAsync (fun (t:Task) -> async{
-            if t.IsFaulted then 
-                return None
-            else 
-                let! d = mb.Receive()
-                match d with
-                | Some c -> 
-                    let! d' = c
-                    return Some (d',t)
-                | None -> return None
-            })
-            err
-    }
+open AsyncExts
 
 module DocQnA =
     open System.Data
@@ -51,7 +18,6 @@ module DocQnA =
     open DocumentFormat.OpenXml.Spreadsheet
     open ExcelDataReader
     
-
     let saveChunk (id,bytes:byte[]) =
         task {
             let fn = Path.Combine(Path.GetTempPath(),id)
