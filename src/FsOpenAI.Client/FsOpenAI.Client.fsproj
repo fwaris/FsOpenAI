@@ -19,13 +19,13 @@
     <Compile Include="Views\SearchResultsView.fs" />
     <Compile Include="Views\SystemMessageView.fs" />
     <Compile Include="Views\MessageView.fs" />
+    <Compile Include="Views\QuestionView.fs" />
     <Compile Include="Views\ChatHistoryView.fs" />
     <Compile Include="Views\IndexTreeView.fs" />
     <Compile Include="Views\PromptSelectorView.fs" />
     <Compile Include="Views\DocSelectorView.fs" />
     <Compile Include="Views\DocBagView.fs" />
     <Compile Include="Views\AuthenticationViews.fs" />
-    <Compile Include="Views\QuestionView.fs" />
     <Compile Include="Views\PlainView.fs" />
     <Compile Include="Views\IndexQnAView.fs" />
     <Compile Include="Views\IndexQnADocView.fs" />
@@ -37,7 +37,6 @@
     <Compile Include="Views\MainContent.fs" />
     <Compile Include="Views\SidebarView.fs" />
     <Compile Include="Views\HeaderView.fs" />
-    <Compile Include="Views\ChatHistory.fs" />
     <Compile Include="Views\Comps.fs" />
     <Compile Include="Views\MainLayout.fs" />
     <Compile Include="App\Subscription.fs" />
@@ -51,16 +50,16 @@
     <PackageReference Include="Bolero.Build" Version="0.*" />
     <PackageReference Include="Bolero.HotReload" Version="0.*" />
     <PackageReference Include="MudBlazor" Version="7.6.0" />
-    <PackageReference Include="Radzen.Blazor" Version="5.0.9" />
+    <PackageReference Include="Radzen.Blazor" Version="5.1.1" />
     <PackageReference Include="System.Threading.Channels" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.7" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.7" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.Authentication.WebAssembly.Msal" Version="8.0.7" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.8" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.8" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Authentication.WebAssembly.Msal" Version="8.0.8" />
     <PackageReference Include="FSharp.Control.AsyncSeq" Version="3.2.1" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Update="FSharp.Core" Version="8.0.301" />
+    <PackageReference Update="FSharp.Core" Version="8.0.400" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />

@@ -19,6 +19,8 @@ type QuestionView() =
     [<Inject>] member val TooltipService : TooltipService = Unchecked.defaultof<_> with get, set
 
     override this.View model dispatch = 
+        let selChat = Model.selectedChat model        
+        let question = selChat |> Option.map (fun c -> c.Question) |> Option.defaultValue null
         comp<RadzenCard> {
             attr.``class`` "rz-shadow-2 rz-border-radius-5 rz-p-2"
             "Variant" => Variant.Outlined
@@ -42,7 +44,8 @@ type QuestionView() =
                         "Rows" => 3 
                         "Placeholder" => "Type your question here"
                         "Style" => "resize: none; width: 100%; outline: none; border: none;border-bottom: 2px solid var(--rz-secondary);"
-                        input
+                        "Value" => question
+                        input                        
                     }                    
                 }
                 comp<RadzenColumn> {
@@ -50,9 +53,8 @@ type QuestionView() =
                     comp<RadzenSpeechToTextButton> {
                         "Title" => "Start recording"                     
                         attr.callback "Change" (fun (e:string) ->
-                            input.Value |> Option.iter (fun i -> 
-                                printfn "Speech to text: %s" e
-                                i.Value <- e))   
+                            selChat
+                            |> Option.iter (fun c -> dispatch (Ia_SetQuestion (c.Id,e))))        
                     }
                 }
                 comp<RadzenColumn> {
@@ -63,7 +65,12 @@ type QuestionView() =
                         comp<RadzenMenuItem> {
                             "Icon" => "send"
                             attr.title "Send"
-                            attr.callback "Click" (fun (e:MenuItemEventArgs) -> dispatch ToggleSideBar)
+                            attr.callback "Click" (fun (e:MenuItemEventArgs) -> 
+                                input.Value
+                                |> Option.map(fun i -> i.Value)
+                                |> Option.bind (fun v -> selChat |> Option.map (fun c -> c.Id,v))
+                                |> Option.iter (fun (id,v) -> dispatch (Ia_Submit (id,v)))
+                                )
                         }
                     }
                     comp<RadzenMenu> {

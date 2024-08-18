@@ -53,7 +53,7 @@ type MainContent() =
                             for c in model.interactions do
                                 comp<MudTabPanel> {
                                     "Id" => c.Id
-                                    "Text" => Interaction.name c
+                                    "Text" => Interaction.label c
                                     "tag" => c
                                     "BadgeColor" => Init.badgeColorChat c
                                     "BadgeDot" => true

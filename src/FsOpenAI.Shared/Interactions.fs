@@ -20,8 +20,8 @@ module Interaction =
     let genName name msg question =
         match Utils.isEmpty msg, Utils.isEmpty question with
         | true,true   -> name
-        | true,false  -> Utils.shorten 14 question
-        | _,_         -> Utils.shorten 14 msg
+        | true,false  -> Utils.shorten 18 question
+        | _,_         -> Utils.shorten 18 msg
 
     let tag (ch:Interaction) =
         let cType =
@@ -70,7 +70,7 @@ module Interaction =
         | Some msg -> msg.Message
         | None     -> ""
 
-    let name (ch:Interaction) =
+    let label (ch:Interaction) =
         match ch.Name with
         | Some n -> n
         | None   -> genName (tag ch) (lastNonEmptyUserMessageText ch) ch.Question

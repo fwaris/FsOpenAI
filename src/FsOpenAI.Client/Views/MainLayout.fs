@@ -43,7 +43,7 @@ type MainLayout() =
                             "Orientation" => Orientation.Horizontal                    
                             comp<RadzenSplitterPane> {            
                                 "Size" => "75%"
-                                Chats.history model dispatch
+                                ecomp<ChatHistoryView,_,_> model dispatch {attr.empty()}
                             }
                             comp<RadzenSplitterPane> {
                                 "Size" => "25%"    
