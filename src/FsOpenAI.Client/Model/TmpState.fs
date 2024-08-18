@@ -3,6 +3,19 @@ open FsOpenAI.Shared
 
 //manage temporary state for chat UI settings
 module TmpState = 
+    let isOpen key model = 
+        model.settingsOpen 
+        |> Map.tryFind key 
+        |> Option.defaultValue false
+
+    let toggle key model = 
+        {model with 
+            settingsOpen = 
+                model.settingsOpen 
+                |> Map.tryFind key 
+                |> Option.map(fun b -> model.settingsOpen |> Map.add key (not b))
+                |> Option.defaultWith(fun _ -> model.settingsOpen |> Map.add key true)}
+
     let openClose id model =  
         {model with 
             settingsOpen = 

@@ -9,6 +9,8 @@ open Bolero
 open Microsoft.AspNetCore.Components.Web
 open Microsoft.AspNetCore.Components
 open Microsoft.JSInterop
+open Radzen
+open Radzen.Blazor
 
 type MainLayout() =
     inherit ElmishComponent<Model,Message>()    
@@ -26,9 +28,35 @@ type MainLayout() =
             ecomp<LoginRedirectView,_,_> (action,model) dispatch {attr.empty()}
 
         | Page.Home -> 
-            let qwidth,qmargin = if model.tabsUp then "70rem","" else "60rem;","padding-left: 10rem;"
             concat {
                 comp<PageTitle> { text (model.appConfig.AppName |> Option.defaultValue "") }
+                comp<RadzenTheme> {
+                    "Theme" => "Software-Dark"
+                }
+                comp<RadzenLayout> {
+                    ecomp<HeaderView,_,_> model dispatch {attr.empty()}
+                    ecomp<SidebarView,_,_> model dispatch {attr.empty()}
+                    comp<RadzenBody> {
+                        comp<RadzenSplitter> {
+                            //"Style" => "height: calc(100vh - 1.0rem);"
+                            "Style" => "height: 100%;"
+                            "Orientation" => Orientation.Horizontal                    
+                            comp<RadzenSplitterPane> {            
+                                "Size" => "75%"
+                                Chats.history model dispatch
+                            }
+                            comp<RadzenSplitterPane> {
+                                "Size" => "25%"    
+                                attr.``class`` "rz-p-0 rz-p-lg-12"
+                                "Style" => "overflow:auto;"
+                                Comps.indexTree model dispatch
+                            }
+                        }
+                    }
+                    Comps.footer model dispatch
+                }
+
+(*
                 comp<MudThemeProvider> { "isDarkMode" => model.darkTheme; "Theme" => model.theme }
                 comp<MudPopoverProvider>
                 comp<MudScrollToTop> {comp<MudFab> { "Icon" => Icons.Material.Filled.ArrowUpward; "Color" => Color.Primary; "Size" => Size.Small }}
@@ -51,4 +79,5 @@ type MainLayout() =
                     }
                     FooterBar.footer this.JSRuntime model dispatch
                 }         
+*)
             }

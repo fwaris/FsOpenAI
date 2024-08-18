@@ -11,6 +11,7 @@ open MudBlazor.Services
 open Microsoft.Extensions.Logging
 open Blazored.LocalStorage
 open FsOpenAI.GenAI
+open Radzen
 
 module Startup =
     let inline (!>) (x:^a) : ^b = ((^a or ^b) : (static member op_Implicit : ^a -> ^b) x)
@@ -29,6 +30,7 @@ module Startup =
         services.AddMvc() |> ignore
         services.AddServerSideBlazor() |> ignore
         services.AddMudServices() |> ignore
+        services.AddRadzenComponents() |> ignore
         services.AddBlazoredLocalStorage() |> ignore
         services.AddControllersWithViews() |> ignore
         services.AddRazorPages() |> ignore

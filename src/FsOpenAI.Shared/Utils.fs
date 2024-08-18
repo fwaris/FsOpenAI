@@ -19,6 +19,7 @@ module Utils =
 
     let notEmpty (s:string) = String.IsNullOrWhiteSpace s |> not
     let isEmpty (s:string) = String.IsNullOrWhiteSpace s 
+    let contains (s:string) (ptrn:string) = s.Contains(ptrn,StringComparison.CurrentCultureIgnoreCase)
 
     let isOpen key map = map |> Map.tryFind key |> Option.defaultValue false
 

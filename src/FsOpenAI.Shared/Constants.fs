@@ -14,6 +14,7 @@ module C =
 
     let DARK_THEME = "DARK_THEME"
     let TABS_UP = "TABS_UP"
+    let SIDE_BAR_EXPANDED = "SIDE_BAR_EXPANDED"
 
     let MAX_UPLOAD_FILE_SIZE = 1024L * 1024L * 14L    
     let defaultSystemMessage = "You are a helpful AI Assistant"

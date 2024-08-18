@@ -35,6 +35,10 @@
     <Compile Include="Views\AltAppBar.fs" />
     <Compile Include="Views\FooterBar.fs" />
     <Compile Include="Views\MainContent.fs" />
+    <Compile Include="Views\SidebarView.fs" />
+    <Compile Include="Views\HeaderView.fs" />
+    <Compile Include="Views\ChatHistory.fs" />
+    <Compile Include="Views\Comps.fs" />
     <Compile Include="Views\MainLayout.fs" />
     <Compile Include="App\Subscription.fs" />
     <Compile Include="App\ClientHub.fs" />
@@ -47,13 +51,13 @@
     <PackageReference Include="Bolero.Build" Version="0.*" />
     <PackageReference Include="Bolero.HotReload" Version="0.*" />
     <PackageReference Include="MudBlazor" Version="7.6.0" />
+    <PackageReference Include="Radzen.Blazor" Version="5.0.9" />
     <PackageReference Include="System.Threading.Channels" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.7" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.7" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Authentication.WebAssembly.Msal" Version="8.0.7" />
     <PackageReference Include="FSharp.Control.AsyncSeq" Version="3.2.1" />
-    <PackageReference Include="Plotly.Blazor" Version="5.1.1" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Update="FSharp.Core" Version="8.0.301" />

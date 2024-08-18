@@ -7,6 +7,7 @@ open Microsoft.AspNetCore.Components.WebAssembly.Hosting
 open MudBlazor.Services
 open Blazored.LocalStorage
 open Bolero.Remoting.Client
+open Radzen
 
 module Program =
     open Microsoft.AspNetCore.Components.Web
@@ -18,6 +19,7 @@ module Program =
         builder.RootComponents.Add<HeadOutlet>("head::after")
         builder.Services.AddBoleroRemoting(builder.HostEnvironment) |> ignore
         builder.Services.AddMudServices() |> ignore
+        builder.Services.AddRadzenComponents() |> ignore
         builder.Services.AddBlazoredLocalStorage(fun o -> o.JsonSerializerOptions <- ClientHub.configureSer o.JsonSerializerOptions) |> ignore
 
         //http factory to create clients to call Microsoft graph api
@@ -47,4 +49,3 @@ module Program =
 
         builder.Build().RunAsync() |> ignore
         0
-

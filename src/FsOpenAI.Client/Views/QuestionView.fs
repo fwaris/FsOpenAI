@@ -1,14 +1,85 @@
 namespace FsOpenAI.Client.Views
 open System
-open Bolero
-open Bolero.Html
-open MudBlazor
+open Microsoft.AspNetCore.Components
 open Microsoft.AspNetCore.Components.Web
 open Microsoft.JSInterop
-open Microsoft.AspNetCore.Components
+open Bolero
+open Bolero.Html
 open FsOpenAI.Client
 open FsOpenAI.Shared
 open FsOpenAI.Shared.Interactions
+open MudBlazor
+open Radzen
+open Radzen.Blazor
+
+type QuestionView() = 
+    inherit ElmishComponent<Model, Message>()
+    let input = Ref<RadzenTextArea>()
+
+    [<Inject>] member val TooltipService : TooltipService = Unchecked.defaultof<_> with get, set
+
+    override this.View model dispatch = 
+        comp<RadzenCard> {
+            attr.``class`` "rz-shadow-2 rz-border-radius-5 rz-p-2"
+            "Variant" => Variant.Outlined
+            "Style" => "width: 100%;"
+            comp<RadzenRow> {                
+                comp<RadzenColumn> {
+                    "Size" => 1
+                    comp<RadzenMenu> {
+                        "Style" => "background-color: transparent;"
+                        "Responsive" => false                        
+                        comp<RadzenMenuItem> {
+                            "Icon" => "delete_sweep"
+                            attr.title "Clear chat for new topic"
+                            attr.callback "Click" (fun (e:MenuItemEventArgs) -> dispatch ToggleSideBar)
+                        }
+                    }
+                }
+                comp<RadzenColumn> {                        
+                    "Size" => 9
+                    comp<RadzenTextArea> {                            
+                        "Rows" => 3 
+                        "Placeholder" => "Type your question here"
+                        "Style" => "resize: none; width: 100%; outline: none; border: none;border-bottom: 2px solid var(--rz-secondary);"
+                        input
+                    }                    
+                }
+                comp<RadzenColumn> {
+                    "Size" => 1
+                    comp<RadzenSpeechToTextButton> {
+                        "Title" => "Start recording"                     
+                        attr.callback "Change" (fun (e:string) ->
+                            input.Value |> Option.iter (fun i -> 
+                                printfn "Speech to text: %s" e
+                                i.Value <- e))   
+                    }
+                }
+                comp<RadzenColumn> {
+                    "Size" => 1
+                    comp<RadzenMenu> {
+                        "Responsive" => false
+                        "Style" => "background-color: transparent;"
+                        comp<RadzenMenuItem> {
+                            "Icon" => "send"
+                            attr.title "Send"
+                            attr.callback "Click" (fun (e:MenuItemEventArgs) -> dispatch ToggleSideBar)
+                        }
+                    }
+                    comp<RadzenMenu> {
+                        "Responsive" => false
+                        "Style" => "background-color: transparent;"
+                        comp<RadzenMenuItem> {
+                            "Icon" => "attach_file"
+                            attr.title "Attach file"
+                            attr.callback "Click" (fun (e:MenuItemEventArgs) -> dispatch ToggleSideBar)
+                        }
+                    }
+                }
+            }
+        }
+    
+(*
 
 type QuestionView() =
     inherit ElmishComponent<Model,Message>()
@@ -94,3 +165,5 @@ type QuestionView() =
                     }
                 }
         }
+
+*)
