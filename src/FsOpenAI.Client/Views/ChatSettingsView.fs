@@ -37,24 +37,34 @@ type ChatSettingsView() =
     let button = Ref<RadzenButton>()
     let popup = Ref<Popup>()
 
+    let mutable initMaxDocs = 0
+    let mutable initMaxTokens = 0
+
     //Note: dispatch re-renders the page and changes are lost - 
     //*dispatch should be the very last step(s) at popup close*
     member this.Close() =         
-        let messages = [
-                Ia_UpdateParms (this.Model.ChatId, this.Model.Parms)
-                Ia_SystemMessage (this.Model.ChatId, this.Model.SystemMessage)                
-            ]
-        let messages = 
+        [
+            Ia_UpdateParms (this.Model.ChatId, this.Model.Parms)
+            Ia_SystemMessage (this.Model.ChatId, this.Model.SystemMessage)                
             match this.Model.QaBag with
-            | None -> messages
-            | Some bag -> (Ia_UpdateQaBag (this.Model.ChatId, bag))::messages
-        messages |> List.iter (fun m -> this.Dispatch m)
+            | Some bag -> (Ia_UpdateQaBag (this.Model.ChatId, bag))
+            | None -> ()
+        ]
+        |> List.iter this.Dispatch
+
+    override this.OnParametersSet() = 
+        initMaxDocs <- this.Model.QaBag |> Option.map (fun b -> b.MaxDocs) |> Option.defaultValue 0
+        initMaxTokens <- this.Model.Parms.MaxTokens
             
+    //need to re-render if changes made to these so locally linked fields are updated
     override this.ShouldRender() = 
-        true
+        this.Model.QaBag |> Option.map (fun b -> b.MaxDocs) |> Option.defaultValue 0 <> initMaxDocs ||
+        this.Model.Parms.MaxTokens <> initMaxTokens
+        || base.ShouldRender()
 
     override this.View mdl (dispatch:Message -> unit) =
         let backends = this.Model.Model.appConfig.EnabledBackends
+        let height = if this.Model.QaBag.IsSome then "32rem" else "23rem"
     
         let searchTooltip = function
             | SearchMode.Semantic -> "Search with meaning, e.g. 'small' should match 'tiny', 'little', 'not big', etc."
@@ -70,7 +80,7 @@ type ChatSettingsView() =
                 button
             }
             comp<Popup> {
-                "Style" => "display:none;position:absolute;max-height:90vh;max-width:90vw;height:32rem;width:25rem;padding:5px;border:var(--rz-panel-border);background-color:var(--rz-panel-background-color); overflow: auto;"
+                "Style" => $"display:none;position:absolute;max-height:90vh;max-width:90vw;height:{height};width:25rem;padding:5px;border:var(--rz-panel-border);background-color:var(--rz-panel-background-color); overflow: auto;"
                 "Lazy" => false
                 attrext.callback "Close" this.Close 
                 popup

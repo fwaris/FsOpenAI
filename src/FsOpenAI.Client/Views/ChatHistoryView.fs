@@ -113,6 +113,7 @@ type ChatHistoryView() =
             comp<RadzenColumn> { 
                 comp<RadzenRow> {
                     comp<RadzenColumn> {
+                        "Sytle" => "height: 1rem;"
                         //"Size" => 1
                         match Model.selectedChat model with
                         | Some chat ->
@@ -129,7 +130,7 @@ type ChatHistoryView() =
                     }
                 }
                 comp<RadzenRow> {
-                    "Style" => "max-height: calc(100vh - 17rem);overflow:auto;"
+                    "Style" => "max-height: calc(100vh - 17.5rem);overflow-y:auto;overflow-x:hidden;"
                     comp<RadzenColumn> {
                         match Model.selectedChat model with
                         | Some chat ->                             

@@ -25,7 +25,10 @@ type SidebarView() =
                         comp<RadzenColumn> {
                             "Size" => 10
                             comp<RadzenButton> {
-                                //"Style" => "background-color: transparent; width: 100%;"
+                                if x.Id = selChatId then                            
+                                    "Style" => "outline: 1px solid var(--rz-primary); background-color: transparent; width: 100%;"
+                                else 
+                                    "Style" => "background-color: transparent; width: 100%;"
                                 attr.callback "Click" (fun (e:MouseEventArgs) -> dispatch (Ia_Selected x.Id))
                                 Interaction.label x
                             }                    
