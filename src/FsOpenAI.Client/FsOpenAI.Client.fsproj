@@ -13,7 +13,8 @@
     <Compile Include="Model\TmpState.fs" />
     <Compile Include="Model\Submission.fs" />
     <Compile Include="Model\Update.fs" />
-    <Compile Include="Views\ChatParametersView.fs" />
+    <Compile Include="Views\Binding.fs" />
+    <Compile Include="Views\ChatSettingsView.fs" />
     <Compile Include="Views\MainSettingsView.fs" />
     <Compile Include="Views\ChatCreateView.fs" />
     <Compile Include="Views\SearchResultsView.fs" />
