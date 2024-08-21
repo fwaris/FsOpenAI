@@ -51,7 +51,8 @@ type IndexRef =
             | Virtual _ -> true
 
 type IndexTree = {Idx:IndexRef; IndexName:string option; Description:string; Tag:string; Children: IndexTree list}
-    with member this.isVirtual = this.Idx.isVirtual
+    with 
+        member this.isVirtual = this.Idx.isVirtual
 
 type QABag =
     {

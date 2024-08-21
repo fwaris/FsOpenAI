@@ -30,9 +30,7 @@ type MainLayout() =
         | Page.Home -> 
             concat {
                 comp<PageTitle> { text (model.appConfig.AppName |> Option.defaultValue "") }
-                comp<RadzenTheme> {
-                    "Theme" => "Software-Dark"
-                }
+                comp<RadzenTheme> {"Theme" => "Software-Dark"}
                 comp<RadzenLayout> {
                     ecomp<HeaderView,_,_> model dispatch {attr.empty()}
                     ecomp<SidebarView,_,_> model dispatch {attr.empty()}
@@ -46,15 +44,32 @@ type MainLayout() =
                                 ecomp<ChatHistoryView,_,_> model dispatch {attr.empty()}
                             }
                             comp<RadzenSplitterPane> {
+                                let state = 
+                                    Model.selectedChat model 
+                                    |> Option.bind (fun chat -> Interaction.qaBag chat |> Option.map (fun bag -> (bag,chat)))
+                                match state with
+                                | None -> "Collapsed" => true
+                                | Some _ -> "Collapsed" => false                               
                                 "Size" => "25%"    
                                 attr.``class`` "rz-p-0 rz-p-lg-12"
                                 "Style" => "overflow:auto;"
-                                Comps.indexTree model dispatch
+                                state
+                                |> Option.map (fun (bag,chat) -> ecomp<IndexTreeView,_,_> (bag,chat,model) dispatch {attr.empty()})
+                                |> Option.defaultWith (fun () -> 
+                                    comp<RadzenStack> {
+                                        attr.``class`` "rz-p-8"
+                                        comp<RadzenText> {
+                                            attr.``class`` "rz-color-info-light"
+                                            "TextStyle" => TextStyle.Caption
+                                            "Text" => "Index selection not required for chat type" 
+                                        }
+                                    })
                             }
                         }
                     }
                     Comps.footer model dispatch
                 }
+            }
 
 (*
                 comp<MudThemeProvider> { "isDarkMode" => model.darkTheme; "Theme" => model.theme }
@@ -79,5 +94,5 @@ type MainLayout() =
                     }
                     FooterBar.footer this.JSRuntime model dispatch
                 }         
-*)
             }
+*)

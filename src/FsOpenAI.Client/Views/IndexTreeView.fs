@@ -1,11 +1,42 @@
 ﻿namespace FsOpenAI.Client.Views
+open System
 open Bolero
 open Bolero.Html
 open MudBlazor
+open Radzen
+open Radzen.Blazor
 open FsOpenAI.Client
 open FsOpenAI.Shared
 open System.Collections.Generic
 open FsOpenAI.Shared
+
+type IndexTreeView() =
+    inherit ElmishComponent<QABag*Interaction*Model,Message>()
+
+    override this.View mdl dispatch =
+        let bag,chat,model = mdl
+        let idxSet = bag.Indexes |> Set.ofList
+        comp<RadzenRow> {
+            comp<RadzenColumn> {
+                comp<RadzenCard> {                                    
+                    comp<RadzenTree> {
+                        "AllowCheckBoxes" => true
+                        "Data" => model.indexTrees
+                        "CheckedValues" => (model.indexTrees |> List.filter (fun x -> idxSet.Contains x.Idx))
+                        attr.callback "CheckedValuesChanged" (fun (xs:obj seq) -> 
+                            let idxRefs = xs |> Seq.cast<IndexTree> |> Seq.map (fun x -> x.Idx) |> List.ofSeq
+                            dispatch (Ia_SetIndex (chat.Id, idxRefs)))
+                        comp<RadzenTreeLevel> {
+                            "TextProperty" => "Description"
+                            "ChildrenProperty" => "Children"
+                            "Expanded" => Func<_,_>(fun (t:obj) -> true) 
+                        }                                            
+                    }
+                }
+            }
+        }
+
+(*
 
 type IndexTreePopup() =
     inherit ElmishComponent<QABag*Interaction*Model,Message>()
@@ -103,3 +134,5 @@ type IndexTreeView() =
             }
             ecomp<IndexTreePopup,_,_> mdl dispatch {attr.empty()}
         }
+
+*)
