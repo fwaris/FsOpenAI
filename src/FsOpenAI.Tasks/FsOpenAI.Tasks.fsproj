@@ -7,7 +7,8 @@
 
   <ItemGroup>
     <None Include="deployments\default\client\appSettings.json" />
-    <None Include="deployments\default\templates" />
+    <None Include="deployments\default\server\appSettings.json" />
+	<None Include="deployments\default\templates" />
 	<None Include="deployments\default\config_default.fsx" />
 	<None Include="deployments\default\indexed_config.fsx" />
 	<None Include="deployments\default\indexed_create.fsx" />

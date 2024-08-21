@@ -39,8 +39,8 @@ let serverFiles = "server"
 
 (*
 The root folder for templates and samples. These will be copied to server wwwroot/app/Templates.
-
 The structure is as follows:
+
 - <sub folder 1>/Samples.json
 - <sub folder 1>/<SemanticKernel 'plugin' files> - templates for the chat
 

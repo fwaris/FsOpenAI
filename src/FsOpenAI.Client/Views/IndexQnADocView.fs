@@ -23,7 +23,7 @@ type IndexQnADocView() =
             "Class" => "d-flex flex-column ma-2"
             comp<MudPaper> {
                 "Class" => "d-flex flex-row flex-grow-1 ma-2"
-                ecomp<ChatSettingsView,_,_> (chat,model) dispatch {attr.empty()}
+                //ecomp<ChatSettingsView,_,_> (chat,model) dispatch {attr.empty()}
                 ecomp<SystemMessageShortView,_,_> (chat,model) dispatch {attr.empty()}
                 comp<MudPaper> {
                     "Class" => "d-flex flex-1 ma-2"

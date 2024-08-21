@@ -9,6 +9,7 @@ open FsOpenAI.Client
 open Microsoft.AspNetCore.Components
 open Microsoft.JSInterop
 open FsOpenAI.Shared
+open FsOpenAI.Shared.Interactions
 
 module MessageViews = 
     let userMessage (m:InteractionMessage) (chat:Interaction) model dispatch = 
@@ -39,18 +40,10 @@ module MessageViews =
                 }
             }
         }
-
-    let tm = """<svg version="1.1" viewBox="0 0 76.728 91.282" xmlns="http://www.w3.org/2000/svg">
- <g transform="matrix(.2857 0 0 .2857 71.408 28.262)" fill="#e20074">
-  <path d="m-33.599 218.73v-22.192h-15.256c-26.315 0-38.393-15.643-38.393-38.665v-232.6h4.5246c49.283 0 80.582 32.707 80.582 80.797v4.3092h18.745v-107.3h-264.58v107.3h18.745v-4.3092c0-48.09 31.298-80.797 80.582-80.797h4.5246v232.6c0 23.022-12.078 38.665-38.393 38.665h-15.256v22.192z"/>
-  <path d="m16.603 111.43h-62.914v-63.129h62.914z"/>
-  <path d="m-185.07 111.43h-62.914v-63.129h62.914z"/>
- </g>
-</svg>"""
     
     let systemMessage (m:InteractionMessage) (chat:Interaction) lastMsg model dispatch =         
         let icon = "assistant"
-        let background = "rz-border-danger-dark" 
+        let background = "rz-border-danger-dark"
         let icnstyl = IconStyle.Warning
         comp<RadzenCard> {
             attr.``class`` $"rz-mt-1 rz-border-radius-3"
@@ -58,9 +51,7 @@ module MessageViews =
                 comp<RadzenColumn> {
                     "Size" => 1
                     comp<RadzenIcon> {
-                        "Icon" => tm
-                        "IconStyle" => icnstyl
-                        on.click (fun _ -> dispatch ToggleSideBar)
+                        "Icon" => C.DFLT_ASST_ICON
                     }
                 }
                 comp<RadzenColumn> {
@@ -94,8 +85,6 @@ module MessageViews =
             }
         }
 
-
-
 type ChatHistoryView() =
     inherit ElmishComponent<Model,Message>()
 
@@ -122,6 +111,23 @@ type ChatHistoryView() =
         comp<RadzenRow> {
             attr.``class`` "rz-mr-1"
             comp<RadzenColumn> { 
+                comp<RadzenRow> {
+                    comp<RadzenColumn> {
+                        //"Size" => 1
+                        match Model.selectedChat model with
+                        | Some chat ->
+                            let m = 
+                                {
+                                    ChatId = chat.Id
+                                    Model = model
+                                    Parms = chat.Parameters
+                                    QaBag = Interaction.qaBag chat
+                                    SystemMessage = Interaction.systemMessage chat
+                                }
+                            ecomp<ChatSettingsView,_,_> m dispatch {attr.empty()}
+                        | None ->   ()
+                    }
+                }
                 comp<RadzenRow> {
                     "Style" => "max-height: calc(100vh - 17rem);overflow:auto;"
                     comp<RadzenColumn> {
@@ -165,6 +171,7 @@ type ChatHistoryView() =
                 }
             }
         }
+
 
 (*
 type ChatHistoryView() =

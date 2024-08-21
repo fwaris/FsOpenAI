@@ -6,17 +6,38 @@
 			"type": "process",
 			"args": [
 				"build",
-				"${workspaceFolder}/FsOpenAI.sln"
+				"FsOpenAI.sln"
 			],
 			"problemMatcher": [
 				"$msCompile"
 			],
 			"group": {
 				"kind": "build",
-				"isDefault": true
+				"isDefault": false
 			},
 			"label": "Build: solution",
 			"detail": "Build the FsOpenAI.sln solution using dotnet build"
+		},
+		{			
+			"command": "dotnet",
+			"type": "process",
+			"args": [
+				"clean",				
+				"FsOpenAI.Client.fsproj"
+			],
+			"options" : {
+				"cwd": "${workspaceFolder}/src/FsOpenAI.Client"
+			},
+			"problemMatcher": [
+				"$msCompile"
+			],
+            "dependsOn": ["Clean FsOpenAI.Client"],
+			"group": {
+				"kind": "build",
+				"isDefault": false
+			},
+			"label": "Clean FsOpenAI.Client",
+			"detail": "clean FsOpenAI.Client project to capture any source changes"
 		}
 	]	
 }

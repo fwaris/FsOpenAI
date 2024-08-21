@@ -16,7 +16,7 @@ type IndexQnAView() =
         comp<MudPaper> {
             "Elevation" => 3
             "Class" => "d-flex ma-2"
-            ecomp<ChatSettingsView,_,_> (chat,model) dispatch {attr.empty()}
+            //ecomp<ChatSettingsView,_,_> (chat,model) dispatch {attr.empty()}
             ecomp<SystemMessageShortView,_,_> (chat,model) dispatch {attr.empty()}
             comp<MudPaper> {
                 "Class" => "d-flex flex-1 ma-2"

@@ -23,7 +23,7 @@ type QnADocView() =
             comp<MudPaper> {
                 "Class" => "d-flex flex-row flex-grow-1"
                 "Elevation" => 0
-                ecomp<ChatSettingsView,_,_> (chat,model) dispatch {attr.empty()}
+                //ecomp<ChatSettingsView,_,_> (chat,model) dispatch {attr.empty()}
                 ecomp<SystemMessageShortView,_,_> (chat,model) dispatch {attr.empty()}
                 ecomp<DocSelectorView,_,_> (docCntnt,chat,model) dispatch {attr.empty()}
                 //comp<MudPaper> {

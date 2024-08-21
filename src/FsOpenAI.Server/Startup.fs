@@ -34,6 +34,7 @@ module Startup =
         services.AddBlazoredLocalStorage() |> ignore
         services.AddControllersWithViews() |> ignore
         services.AddRazorPages() |> ignore
+        services.AddMsalAuthentication(fun o -> ()) |> ignore
         
         services
             .AddSignalR(fun o -> o.MaximumReceiveMessageSize <- 5_000_000)
@@ -43,6 +44,7 @@ module Startup =
             .AddAuthorization()            
             .AddLogging(fun logging -> logging.AddConsole().AddDebug().AddAzureWebAppDiagnostics() |> ignore)
             .AddBoleroHost(prerendered=false) //**** NOTE: MSAL authenication works on client side only so set prerendered=false 
+            //.AddBoleroHost() //**** for debugging only
 #if DEBUG
             .AddHotReload(templateDir = __SOURCE_DIRECTORY__ + "/../FsOpenAI.Client")
 #endif

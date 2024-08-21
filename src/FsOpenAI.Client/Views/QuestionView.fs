@@ -34,7 +34,9 @@ type QuestionView() =
                         comp<RadzenMenuItem> {
                             "Icon" => "delete_sweep"
                             attr.title "Clear chat for new topic"
-                            attr.callback "Click" (fun (e:MenuItemEventArgs) -> dispatch ToggleSideBar)
+                            attr.callback "Click" (fun (e:MenuItemEventArgs) -> 
+                                selChat 
+                                |> Option.iter (fun c -> dispatch (Ia_ResetChat (c.Id,""))))
                         }
                     }
                 }

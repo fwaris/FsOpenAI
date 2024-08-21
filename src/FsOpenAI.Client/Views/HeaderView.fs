@@ -7,6 +7,7 @@ open FsOpenAI.Shared
 open Radzen
 open Radzen.Blazor
 open Microsoft.AspNetCore.Components
+open Microsoft.AspNetCore.Components.Web
 
 type HeaderView() =
     inherit ElmishComponent<Model,Message>()
@@ -53,7 +54,7 @@ type HeaderView() =
                         if not isAuthenticated then 
                             comp<RadzenButton> {
                                 "Text" => "Login"                        
-                                attr.callback "Click" (fun (e:EventArgs) -> dispatch LoginLogout)
+                                attr.callback "Click" (fun (e:MouseEventArgs) -> dispatch LoginLogout)
                             }
                         else 
                             comp<RadzenProfileMenu> {

@@ -17,7 +17,7 @@ type PlainView() =
         comp<MudPaper> {
             "Elevation" => 3
             "class" => "d-flex ma-2"
-            ecomp<ChatSettingsView,_,_> (chat,model) dispatch {attr.empty()}
+            //ecomp<ChatSettingsView,_,_> (chat,model) dispatch {attr.empty()}
             comp<MudPaper> {
                 "Class" => "d-flex flex-1 ma-2 align-self-center "
                 ecomp<SystemMessageView,_,_> chat dispatch {attr.empty()}

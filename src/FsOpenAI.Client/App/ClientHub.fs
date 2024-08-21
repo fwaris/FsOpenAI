@@ -21,10 +21,14 @@ module ClientHub =
 
     let getToken (accessTokenProvider:IAccessTokenProvider) () = 
         task {
-            let! token = accessTokenProvider.RequestAccessToken()
-            match token.TryGetToken() with 
-            | true, token -> printfn $"have access token; expires: {token.Expires}"; return token.Value
-            | _ -> printfn "don't have access token"; return null
+            if accessTokenProvider = null then 
+                printfn "access token provider not set"
+                return null
+            else
+                let! token = accessTokenProvider.RequestAccessToken()
+                match token.TryGetToken() with 
+                | true, token -> printfn $"have access token; expires: {token.Expires}"; return token.Value
+                | _ -> printfn "don't have access token"; return null
         }
 
     let retryPolicy = [| TimeSpan(0,0,5); TimeSpan(0,0,10); TimeSpan(0,0,30); TimeSpan(0,0,30) |]
