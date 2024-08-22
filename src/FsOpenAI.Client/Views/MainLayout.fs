@@ -30,7 +30,7 @@ type MainLayout() =
         | Page.Home -> 
             concat {
                 comp<PageTitle> { text (model.appConfig.AppName |> Option.defaultValue "") }
-                comp<RadzenTheme> {"Theme" => "Material-Dark"}
+                comp<RadzenTheme> {"Theme" => "Standard-Dark"}
                 comp<RadzenLayout> {
                     ecomp<HeaderView,_,_> model dispatch {attr.empty()}
                     ecomp<SidebarView,_,_> model dispatch {attr.empty()}

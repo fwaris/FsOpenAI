@@ -16,6 +16,7 @@ type SidebarView() =
     override this.View model dispatch =        
         let selChatId = Model.selectedChat model |> Option.map (fun x -> x.Id) |> Option.defaultValue ""
         comp<RadzenSidebar> {
+            "Style" => "background-color: var(--rz-surface);"
             "Expanded" => TmpState.isOpen C.SIDE_BAR_EXPANDED model
             attr.callback "ExpandedChanged" (fun (b:bool) -> dispatch ToggleSideBar)
             comp<RadzenColumn> {
@@ -24,11 +25,9 @@ type SidebarView() =
                     attr.``class`` "rz-p-2"
                     "AlignItems" => AlignItems.Center
                     "Orientation" => Orientation.Horizontal
-                    comp<RadzenRow> {
-                        comp<RadzenText> {
-                            "Text" => "Chats"
-                            "TextStyle" => TextStyle.H6
-                        }
+                    comp<RadzenText> {
+                        "Text" => "Chats"
+                        "TextStyle" => TextStyle.H6
                     }
                     comp<RadzenButton> {
                         "ButtonStyle" => ButtonStyle.Primary
@@ -45,16 +44,20 @@ type SidebarView() =
                             "Orientation" => Orientation.Horizontal
                             "AlignItems" => AlignItems.Center
                             comp<RadzenButton> {
+                                "Size" => ButtonSize.Small
+                                "ButtonStyle" => ButtonStyle.Base
                                 if x.Id = selChatId then                            
                                     "Style" => "outline: 1px solid var(--rz-primary); width: 100%;"
                                 else 
                                     "Style" => "width: 100%;"
-                                "ButtonStyle" => ButtonStyle.Base                                        
+                                "ButtonStyle" => ButtonStyle.Base   
+
                                 attr.callback "Click" (fun (e:MouseEventArgs) -> dispatch (Ia_Selected x.Id))
                                 Interaction.label x
                             }                    
                             comp<RadzenButton> {
-                                "ButtonStyle" => ButtonStyle.Secondary
+                                "ButtonStyle" => ButtonStyle.Base
+                                "Size" => ButtonSize.Small
                                 "Icon" => "close"
                                 attr.callback "Click" (fun (e:MouseEventArgs) -> dispatch (Ia_Remove x.Id))
                             }

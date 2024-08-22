@@ -49,7 +49,8 @@ module MessageViews =
                 comp<RadzenColumn> {
                     "Size" => 1
                     comp<RadzenIcon> {
-                        "Icon" => C.DFLT_ASST_ICON
+                        "Icon" => "robot_2" // C.DFLT_ASST_ICON
+                        "IconStyle" => IconStyle.Info
                     }
                 }
                 comp<RadzenColumn> {
