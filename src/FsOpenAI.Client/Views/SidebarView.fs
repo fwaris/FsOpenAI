@@ -17,7 +17,7 @@ type SidebarView() =
         let selChatId = Model.selectedChat model |> Option.map (fun x -> x.Id) |> Option.defaultValue ""
         comp<RadzenSidebar> {
             "Style" => "background-color: var(--rz-surface);"
-            "Expanded" => TmpState.isOpen C.SIDE_BAR_EXPANDED model
+            "Expanded" => TmpState.isOpenDef true C.SIDE_BAR_EXPANDED model
             attr.callback "ExpandedChanged" (fun (b:bool) -> dispatch ToggleSideBar)
             comp<RadzenColumn> {
                 comp<RadzenStack> {
@@ -37,17 +37,19 @@ type SidebarView() =
                         attr.callback "Click" (fun (e:MouseEventArgs) -> dispatch (Ia_Add InteractionCreateType.Crt_IndexQnA))
                     }
                 }
-                comp<RadzenDataList<Interaction>> {
-                    "Data" => model.interactions
-                    attr.fragmentWith "Template" (fun (x:Interaction) ->
+                comp<RadzenStack> {
+                    "Gap" => "0"
+                    for x in model.interactions do
                         comp<RadzenStack> {
+                            "Gap" => "0"
+                            attr.``class`` "rz-p-2"
                             "Orientation" => Orientation.Horizontal
                             "AlignItems" => AlignItems.Center
                             comp<RadzenButton> {
                                 "Size" => ButtonSize.Small
                                 "ButtonStyle" => ButtonStyle.Base
                                 if x.Id = selChatId then                            
-                                    "Style" => "outline: 1px solid var(--rz-primary); width: 100%;"
+                                    "Style" => "outline: 2px solid var(--rz-primary); width: 100%;"
                                 else 
                                     "Style" => "width: 100%;"
                                 "ButtonStyle" => ButtonStyle.Base   
@@ -57,12 +59,45 @@ type SidebarView() =
                             }                    
                             comp<RadzenButton> {
                                 "ButtonStyle" => ButtonStyle.Base
+                                attr.``class`` "rz-ml-2"
                                 "Size" => ButtonSize.Small
                                 "Icon" => "close"
                                 attr.callback "Click" (fun (e:MouseEventArgs) -> dispatch (Ia_Remove x.Id))
                             }
                         }
-                    )
                 }
+                //comp<RadzenDataList<Interaction>> {
+                //    "Data" => model.interactions
+                //    "AllowVirtualization" => true
+                //    "AllowPaging" => false
+                //    "WrapItems" => false
+                //    attr.fragmentWith "Template" (fun (x:Interaction) ->
+                //        comp<RadzenStack> {
+                //            "Gap" => "0"
+                //            attr.``class`` "rz-p-2"
+                //            "Orientation" => Orientation.Horizontal
+                //            "AlignItems" => AlignItems.Center
+                //            comp<RadzenButton> {
+                //                "Size" => ButtonSize.Small
+                //                "ButtonStyle" => ButtonStyle.Base
+                //                if x.Id = selChatId then                            
+                //                    "Style" => "outline: 2px solid var(--rz-primary); width: 100%;"
+                //                else 
+                //                    "Style" => "width: 100%;"
+                //                "ButtonStyle" => ButtonStyle.Base   
+
+                //                attr.callback "Click" (fun (e:MouseEventArgs) -> dispatch (Ia_Selected x.Id))
+                //                Interaction.label x
+                //            }                    
+                //            comp<RadzenButton> {
+                //                "ButtonStyle" => ButtonStyle.Base
+                //                attr.``class`` "rz-ml-2"
+                //                "Size" => ButtonSize.Small
+                //                "Icon" => "close"
+                //                attr.callback "Click" (fun (e:MouseEventArgs) -> dispatch (Ia_Remove x.Id))
+                //            }
+                //        }
+                //    )
+                //}
             }
         }

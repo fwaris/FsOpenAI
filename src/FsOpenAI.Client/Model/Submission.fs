@@ -13,11 +13,14 @@ module Submission =
     let docType id cs = (Interactions.docContent id cs).DocType
 
     let isReady ch =
-        not ch.IsBuffering &&
-        match ch.InteractionType with
-        | IndexQnADoc dbag -> dbag.Document.Status = Ready
-        | QnADoc dc -> dc.Status = Ready
-        | _ -> true
+        match ch with 
+        | Some ch -> 
+            not ch.IsBuffering &&
+            match ch.InteractionType with
+            | IndexQnADoc dbag -> dbag.Document.Status = Ready
+            | QnADoc dc -> dc.Status = Ready
+            | _ -> true
+        | None -> false
 
     let saveSession serviceDispatch id model =
         if Model.isChatPeristenceConfigured model then

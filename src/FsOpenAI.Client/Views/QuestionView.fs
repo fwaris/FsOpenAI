@@ -16,16 +16,94 @@ type QuestionView() =
     inherit ElmishComponent<Model, Message>()
     let input = Ref<RadzenTextArea>()
 
+    [<Inject>] member val JSRuntime : IJSRuntime = Unchecked.defaultof<_> with get, set
+
     [<Inject>] member val TooltipService : TooltipService = Unchecked.defaultof<_> with get, set
 
     override this.View model dispatch = 
         let selChat = Model.selectedChat model        
         let question = selChat |> Option.map (fun c -> c.Question) |> Option.defaultValue null
         comp<RadzenCard> {
-            attr.``class`` "rz-shadow-2 rz-border-radius-5 rz-p-2"
+            attr.``class`` "rz-shadow-5 rz-border-radius-5 rz-p-2"            
             "Variant" => Variant.Outlined
             "Style" => "width: 100%;"
-            comp<RadzenRow> {                
+            comp<RadzenStack> { 
+                "Orientation" => Orientation.Horizontal
+                "Gap" => "0.1rem"
+                comp<RadzenMenu> {
+                    "Style" => "background-color: transparent;"
+                    "Responsive" => false                        
+                    comp<RadzenMenuItem> {
+                        "Icon" => "delete_sweep"
+                        attr.title "Clear chat for new topic"
+                        attr.callback "Click" (fun (e:MenuItemEventArgs) -> 
+                            selChat 
+                            |> Option.iter (fun c -> dispatch (Ia_ResetChat (c.Id,""))))
+                    }
+                }
+                comp<RadzenTextArea> {                            
+                    "Rows" => 3 
+                    attr.id "idQuestion"
+                    on.keypress (fun e -> 
+                        if not e.ShiftKey && e.Key = "Enter" && Submission.isReady selChat then  
+                            task{
+                                let! text = this.JSRuntime.InvokeAsync<string>("eval", """document.getElementById("idQuestion").value""")
+                                dispatch (Ia_Submit (selChat.Value.Id,text))
+                            } |> ignore)
+                    "Placeholder" => match selChat with Some _ -> "Type your question here" | _ -> "Select or add a chat to start"
+                    attr.disabled selChat.IsNone
+                    "Style" => "resize: none; width: 100%; outline: none; border: none;border-bottom: 2px solid var(--rz-primary);"
+                    "Value" => question
+                    input                        
+                }                    
+                comp<RadzenStack> {
+                    "Orientation" => Orientation.Horizontal
+                    "AlignItems" => AlignItems.End
+                    comp<RadzenSpeechToTextButton> {
+                        "Title" => "Start recording"
+                        "Enabled" => Submission.isReady selChat 
+                        attr.``class`` "rz-ml-1"
+                        attr.callback "Change" (fun (e:string) ->
+                            selChat
+                            |> Option.iter (fun c -> dispatch (Ia_SetQuestion (c.Id,e))))        
+                    }
+                    comp<RadzenStack> {
+                        "Orientation" => Orientation.Vertical
+                        comp<RadzenMenu> {
+                            "Responsive" => false
+                            "Style" => "background-color: transparent;"
+                            comp<RadzenMenuItem> {
+                                "Icon" => "send"
+                                "Enabled" => Submission.isReady selChat 
+                                attr.title "Send"
+                                attr.callback "Click" (fun (e:MenuItemEventArgs) -> 
+                                    input.Value
+                                    |> Option.map(fun i -> i.Value)
+                                    |> Option.bind (fun v -> selChat |> Option.map (fun c -> c.Id,v))
+                                    |> Option.iter (fun (id,v) -> dispatch (Ia_Submit (id,v)))
+                                    )
+                            }
+                        }
+                        comp<RadzenMenu> {
+                            "Responsive" => false
+                            "Style" => "background-color: transparent;"
+                            comp<RadzenMenuItem> {
+                                "Icon" => "attach_file"
+                                attr.title "Attach file"
+                                attr.callback "Click" (fun (e:MenuItemEventArgs) -> dispatch ToggleSideBar)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+(*
+        comp<RadzenCard> {
+            attr.``class`` "rz-shadow-5 rz-border-radius-5 rz-p-2"            
+            "Variant" => Variant.Outlined
+            "Style" => "width: 100%;"
+            comp<RadzenRow> { 
+                "Gap" => "0"
                 comp<RadzenColumn> {
                     "Size" => 1
                     comp<RadzenMenu> {
@@ -42,6 +120,7 @@ type QuestionView() =
                 }
                 comp<RadzenColumn> {                        
                     "Size" => 9
+                    "SizeSM"=> 8
                     comp<RadzenTextArea> {                            
                         "Rows" => 3 
                         "Placeholder" => "Type your question here"
@@ -61,6 +140,7 @@ type QuestionView() =
                 }
                 comp<RadzenColumn> {
                     "Size" => 1
+
                     comp<RadzenMenu> {
                         "Responsive" => false
                         "Style" => "background-color: transparent;"
@@ -87,7 +167,8 @@ type QuestionView() =
                 }
             }
         }
-    
+*)
+
 (*
 
 type QuestionView() =

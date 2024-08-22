@@ -10,11 +10,13 @@ open Blazored.LocalStorage
 open MudBlazor
 open FsOpenAI.Shared
 open FsOpenAI.Shared.Interactions
+open Radzen
 
 type UpdateParms =
     {
         localStore           : ILocalStorageService
         snkbar               : ISnackbar
+        notificationService  : NotificationService
         navMgr               : NavigationManager
         httpFac              : IHttpClientFactory
         serverDispatch       : ClientInitiatedMessages -> unit

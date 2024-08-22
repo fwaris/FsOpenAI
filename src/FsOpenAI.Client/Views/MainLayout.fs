@@ -18,8 +18,15 @@ type MainLayout() =
     [<Inject>]
     member val JSRuntime = Unchecked.defaultof<IJSRuntime> with get, set
 
+    [<Inject>]
+    member val ThemeService = Unchecked.defaultof<ThemeService> with get, set
+
     member this.CopyToClipboard(text:string) =
         this.JSRuntime.InvokeVoidAsync ("navigator.clipboard.writeText", text) |> ignore
+
+    override this.OnParametersSet() = 
+        if this.ThemeService.Theme = null then
+            this.ThemeService.SetTheme "Default"
 
     override this.View model dispatch =        
 
@@ -30,8 +37,9 @@ type MainLayout() =
         | Page.Home -> 
             concat {
                 comp<PageTitle> { text (model.appConfig.AppName |> Option.defaultValue "") }
-                comp<RadzenTheme> {"Theme" => "Standard-Dark"}
+                comp<RadzenTheme> { "Theme" => this.ThemeService.Theme }
                 comp<RadzenLayout> {
+                    comp<RadzenNotification> { attr.empty() }
                     ecomp<HeaderView,_,_> model dispatch {attr.empty()}
                     ecomp<SidebarView,_,_> model dispatch {attr.empty()}
                     comp<RadzenBody> {

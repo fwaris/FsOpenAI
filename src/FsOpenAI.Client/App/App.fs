@@ -15,6 +15,7 @@ open FsOpenAI.Client.Views
 open FsOpenAI.Shared
 
 module App =
+    open Radzen
     let router = Router.infer SetPage (fun model -> model.page)
 
     let view model dispatch =
@@ -42,6 +43,9 @@ module App =
         [<Inject>]
         member val TokenProvider : IAccessTokenProvider = Unchecked.defaultof<_> with get, set
 
+        [<Inject>]
+        member val NotificationService : NotificationService = Unchecked.defaultof<_> with get, set
+
         member val hubConn : HubConnection = Unchecked.defaultof<_> with get, set
 
         override this.Program =
@@ -66,6 +70,7 @@ module App =
             let uparms =
                 {
                     localStore = this.LocalStore
+                    notificationService = this.NotificationService
                     snkbar = this.Snackbar
                     serverDispatch = serverDispatch
                     serverDispatchUnAuth = serverDispatchUnAuth

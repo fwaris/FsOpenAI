@@ -4,10 +4,28 @@ open Elmish
 open FsOpenAI.Shared
 open FsOpenAI.Shared.Interactions
 open MudBlazor
+open Radzen
 
 module Update =
+(*
+    let flashMessage uparms model msg =
+        let model =
+            if model.flashBanner && model.appConfig.PersonaText.IsSome then
+                Init.flashBanner uparms model msg
+                {model with flashBanner = false}
+            else
+                uparms.snkbar.Add(
+                        msg,
+                        configure = fun o ->
+                            o.VisibleStateDuration<-500
+                            o.HideTransitionDuration<-100
+                        ) |> ignore
+                model
+        model,Cmd.none
+*)
 
     let flashMessage uparms model msg =
+        uparms.notificationService.Notify(detail=msg, severity=NotificationSeverity.Info, duration=1000.) |> ignore
         let model =
             if model.flashBanner && model.appConfig.PersonaText.IsSome then
                 Init.flashBanner uparms model msg
@@ -92,8 +110,8 @@ module Update =
         | Ia_Feedback_Cancel id -> let fb = Interactions.feedback id model.interactions |> Option.map(fun x -> Feedback.Default x.LogId) in {model with interactions = Interactions.setFeedback id fb model.interactions},Cmd.none
         //session and state
         | Error exn -> model,Cmd.ofMsg (ShowError exn.Message)
-        | ShowError str -> uparms.snkbar.Add(str,severity=Severity.Error) |> ignore;model,Cmd.none
-        | ShowInfo str -> uparms.snkbar.Add(str) |> ignore; model,Cmd.none
+        | ShowError str -> uparms.notificationService.Notify(detail=str, severity=NotificationSeverity.Error) |> ignore; model,Cmd.none
+        | ShowInfo str -> uparms.notificationService.Notify(detail=str) |> ignore; model,Cmd.none
         | FlashInfo str -> flashMessage uparms model str
         | Nop () -> model,Cmd.none
         | ClearError -> {model with error = None},Cmd.none
