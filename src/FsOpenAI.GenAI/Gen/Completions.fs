@@ -50,8 +50,6 @@ module Completions =
                 |> AsyncSeq.ofAsyncEnum
                 |> AsyncSeq.map(fun cs -> cs.ChoiceIndex, cs.ContentUpdate)
                 |> AsyncSeq.filter(fun (i,x) -> i.HasValue &&  x <> null)
-                |> AsyncSeq.bufferByCountAndTime 1 C.CHAT_RESPONSE_TIMEOUT
-                |> AsyncSeq.collect(fun xs -> if xs.Length > 0 then AsyncSeq.ofSeq xs else failwith C.TIMEOUT_MSG)
             return (de,xs)
         }
 
@@ -86,7 +84,10 @@ module Completions =
                         resps
                         |> AsyncSeq.bufferByCountAndTime 1 C.CHAT_RESPONSE_TIMEOUT
                         |> AsyncSeq.collect(fun xs -> if xs.Length > 0 then AsyncSeq.ofSeq xs else failwith C.TIMEOUT_MSG)
-                        |> AsyncSeq.iter(fun(i,x) -> rs<-x::rs; dispatch(Srv_Ia_Delta(ch.Id, i.Value, x)))
+                        |> AsyncSeq.bufferByCountAndTime 10 1000
+                        |> AsyncSeq.filter(fun xs -> xs.Length > 0)                        
+                        |> AsyncSeq.map(fun xs -> xs |> Seq.last |> fst, xs |> Seq.map snd |> String.concat "")
+                        |> AsyncSeq.iter (fun (i,x) -> rs<-x::rs; dispatch(Srv_Ia_Delta(ch.Id, i.Value, x)))
                     match! Async.Catch comp with
                     | Choice1Of2 _ ->
                         let resp = String.Join("",rs |> List.rev)

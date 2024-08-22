@@ -18,34 +18,48 @@ type SidebarView() =
         comp<RadzenSidebar> {
             "Expanded" => TmpState.isOpen C.SIDE_BAR_EXPANDED model
             attr.callback "ExpandedChanged" (fun (b:bool) -> dispatch ToggleSideBar)
-            comp<RadzenDataList<Interaction>> {
-                "Data" => model.interactions
-                attr.fragmentWith "Template" (fun (x:Interaction) ->
+            comp<RadzenColumn> {
+                comp<RadzenStack> {
+                    "Style" => "width: 100%;"
+                    attr.``class`` "rz-p-2"
+                    "AlignItems" => AlignItems.Center
+                    "Orientation" => Orientation.Horizontal
                     comp<RadzenRow> {
-                        comp<RadzenColumn> {
-                            "Size" => 10
+                        comp<RadzenText> {
+                            "Text" => "Chats"
+                            "TextStyle" => TextStyle.H6
+                        }
+                    }
+                    comp<RadzenButton> {
+                        "ButtonStyle" => ButtonStyle.Primary
+                        attr.``class`` "rz-border-radius-10 rz-shadow-10"
+                        attr.title "Add chat"
+                        "Icon" => "add"
+                        attr.callback "Click" (fun (e:MouseEventArgs) -> dispatch (Ia_Add InteractionCreateType.Crt_IndexQnA))
+                    }
+                }
+                comp<RadzenDataList<Interaction>> {
+                    "Data" => model.interactions
+                    attr.fragmentWith "Template" (fun (x:Interaction) ->
+                        comp<RadzenStack> {
+                            "Orientation" => Orientation.Horizontal
+                            "AlignItems" => AlignItems.Center
                             comp<RadzenButton> {
                                 if x.Id = selChatId then                            
-                                    "Style" => "outline: 1px solid var(--rz-primary); background-color: transparent; width: 100%;"
+                                    "Style" => "outline: 1px solid var(--rz-primary); width: 100%;"
                                 else 
-                                    "Style" => "background-color: transparent; width: 100%;"
+                                    "Style" => "width: 100%;"
+                                "ButtonStyle" => ButtonStyle.Base                                        
                                 attr.callback "Click" (fun (e:MouseEventArgs) -> dispatch (Ia_Selected x.Id))
                                 Interaction.label x
                             }                    
-                        }
-                        comp<RadzenColumn> {
-                            "Size" => 1
-                            comp<RadzenMenu> {
-                                "Responsive" => false
-                                comp<RadzenMenuItem> {
-                                    "Icon" => "close"
-                                    "Title" => "Delete chat"
-                                    attr.callback "Click" (fun (e:MenuItemEventArgs) -> dispatch (Ia_Remove x.Id))
-
-                                }
+                            comp<RadzenButton> {
+                                "ButtonStyle" => ButtonStyle.Secondary
+                                "Icon" => "close"
+                                attr.callback "Click" (fun (e:MouseEventArgs) -> dispatch (Ia_Remove x.Id))
                             }
                         }
-                    }
-                )
+                    )
+                }
             }
         }

@@ -16,7 +16,7 @@ module MessageViews =
         let bg = "background-color: transparent;"
         comp<RadzenRow> {                                        
             "Style" => bg
-            attr.``class`` "rz-mt-1"
+            attr.``class`` "rz-mt-1 rz-mr-2"
             comp<RadzenColumn> {
                 "Size" => 12
                 attr.style "display: flex; justify-content: flex-end;"
@@ -41,10 +41,8 @@ module MessageViews =
             }
         }
     
-    let systemMessage (m:InteractionMessage) (chat:Interaction) lastMsg model dispatch =         
-        let icon = "assistant"
-        let background = "rz-border-danger-dark"
-        let icnstyl = IconStyle.Warning
+    let systemMessage (msg:InteractionMessage) (chat:Interaction) lastMsg model dispatch =
+        let docs = match msg.Role with Assistant r -> r.Docs | _ -> []
         comp<RadzenCard> {
             attr.``class`` $"rz-mt-1 rz-border-radius-3"
             comp<RadzenRow> {
@@ -58,7 +56,43 @@ module MessageViews =
                     "Size" => 10
                     div {
                         attr.style "white-space: pre-line;"
-                        if Utils.isEmpty m.Message then "..." else m.Message
+                        if Utils.isEmpty msg.Message then "..." else msg.Message
+                    }
+                    table {
+                        attr.``class`` "rz-background-color-info-lighter"
+                        if not docs.IsEmpty && not chat.IsBuffering then
+                            tr {
+                                attr.``class`` "rz-mt-1"
+                                td {
+                                    attr.style "width: 1.5rem;"
+                                    comp<RadzenMenu> {
+                                        "Style" => "background-color: transparent;"
+                                        "Responsive" => false
+                                        comp<RadzenMenuItem> {
+                                            "Icon" => "snippet_folder"
+                                            attr.title "Show search results"
+                                            attr.callback "Click" (fun (e:MenuItemEventArgs) -> dispatch (Ia_ToggleDocs (chat.Id, Some msg.MsgId)))
+                                        }
+                                    }                                                                   
+                                }
+                                td {
+                                    comp<RadzenStack> {
+                                        attr.``class`` "rz-p-2"
+                                        "Style" => "height: 3.5rem; overflow: auto;"
+                                        "Orientation" => Orientation.Horizontal
+                                        "Wrap" => Wrap.Wrap
+                                        for d in docs do
+                                            comp<RadzenLink> {
+                                                attr.title (Utils.shorten 40 d.Text)
+                                                attr.``class`` "rz-ml-2"                                                
+                                                "Style" => "max-width: 140px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;"
+                                                "Path" => d.Ref
+                                                "Target" => "_blank"
+                                                d.Title
+                                            }
+                                    }
+                                }
+                            }
                     }
                 }
                 comp<RadzenColumn> {
@@ -130,7 +164,7 @@ type ChatHistoryView() =
                     }
                 }
                 comp<RadzenRow> {
-                    "Style" => "max-height: calc(100vh - 17.5rem);overflow-y:auto;overflow-x:hidden;"
+                    "Style" => "max-height: calc(100vh - 19rem);overflow-y:auto;overflow-x:hidden;"
                     comp<RadzenColumn> {
                         match Model.selectedChat model with
                         | Some chat ->                             
@@ -141,6 +175,7 @@ type ChatHistoryView() =
                                 if m.IsUser then
                                     yield MessageViews.userMessage m chat model dispatch
                                 else
+
                                     yield MessageViews.systemMessage m chat  (m.MsgId=lastMsgId) model dispatch
                             if chat.IsBuffering then
                                 yield 

@@ -43,6 +43,16 @@ module IO =
         let acc = Set.add t acc
         (acc,t.Children) ||> List.fold subTree
 
+    //select all nodes in the tree that have the given indexRefs
+    let selectIndexTrees idxRefs indexTrees = 
+        let rec loop idx acc idxTree = 
+            if idx = idxTree.Idx then
+                Set.add idxTree acc                
+            else
+                (acc,idxTree.Children) ||> List.fold (loop idx)
+        (Set.empty,idxRefs) 
+        ||> Set.fold (fun acc idx -> (acc,indexTrees) ||> List.fold (loop idx))
+
     ///try to map any tags in the index refs to the actual index names
     let remapIndexRefs treeMap (idxs:Set<IndexRef>) =
         idxs
@@ -172,7 +182,7 @@ module IO =
             let doc = browserFile docCntnt.DocumentRef
             let file = match doc with
                        | Some f -> f
-                       | None   -> failwith "select file no accessible"
+                       | None   -> failwith "select file not accessible"
             use str = file.OpenReadStream(maxAllowedSize = C.MAX_UPLOAD_FILE_SIZE)
             let buff = Array.zeroCreate 1024
             let mutable read = 0

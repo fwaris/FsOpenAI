@@ -3,11 +3,11 @@
     "SampleChatType": {
       "Case": "SM_IndexQnA",
       "Fields": [
-        "ai-docs"
+        "ml-docs"
       ]
     },
     "SampleSysMsg": "You are a helpful AI assistant\u0022\n",
-    "SampleQuestion": "What is RAG?",
+    "SampleQuestion": "How to prevent overfitting?",
     "SampleMode": {
       "Case": "Factual"
     },

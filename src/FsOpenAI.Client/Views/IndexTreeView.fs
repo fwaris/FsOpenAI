@@ -15,14 +15,21 @@ type IndexTreeView() =
 
     override this.View mdl dispatch =
         let bag,chat,model = mdl
-        let idxSet = bag.Indexes |> Set.ofList
-        comp<RadzenRow> {
-            comp<RadzenColumn> {
+        let checkedVals = IO.selectIndexTrees (set bag.Indexes) model.indexTrees
+        comp<RadzenColumn> {
+            attr.``class`` "rz-p-1 rz-ml-2"
+            comp<RadzenRow> {
+                comp<RadzenText> {
+                    "Text" => "Indexes"
+                    "TextStyle" => TextStyle.H6
+                }
+            }
+            comp<RadzenRow> {
                 comp<RadzenCard> {                                    
                     comp<RadzenTree> {
                         "AllowCheckBoxes" => true
                         "Data" => model.indexTrees
-                        "CheckedValues" => (model.indexTrees |> List.filter (fun x -> idxSet.Contains x.Idx))
+                        "CheckedValues" => checkedVals
                         attr.callback "CheckedValuesChanged" (fun (xs:obj seq) -> 
                             let idxRefs = xs |> Seq.cast<IndexTree> |> Seq.map (fun x -> x.Idx) |> List.ofSeq
                             dispatch (Ia_SetIndex (chat.Id, idxRefs)))

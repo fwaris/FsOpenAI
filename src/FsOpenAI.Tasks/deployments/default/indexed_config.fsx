@@ -59,7 +59,9 @@ let defaultSysMessage = """You are a helpful AI assistant"
 let docDesc =
     [
         //index name, tag, description, isVirtual, parents
-        "sample-index", "ai-docs", "AI Document Collection Index",false,[]   //virtual index = true means its not a real index; only use for grouping other indexes
+        "ml-docs", "ml-docs", "ML Document Collection",true,[] // parent index (virtual)
+        "ml-math","ml-math","Mathematics for ML",false,["ml-docs"] //child index 1
+        "pattern-recognition","pattern-recognition","Pattern Recognition",false,["ml-docs"] //child index 2
     ]
 
 let docs =
@@ -109,11 +111,11 @@ let SamplesPath = templatesPath @@ "default" @@ "Samples.json"
 let samples =
     [
         {
-            SampleChatType = SM_IndexQnA "ai-docs"
+            SampleChatType = SM_IndexQnA "ml-docs"
             SampleMode = ExplorationMode.Factual
             MaxDocs     = 5
             SampleSysMsg  = defaultSysMessage
-            SampleQuestion = "What is RAG?"
+            SampleQuestion = "How to prevent overfitting?"
         }
         {
             SampleChatType = SM_Plain false
