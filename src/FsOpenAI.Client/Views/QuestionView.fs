@@ -21,7 +21,8 @@ type QuestionView() =
     [<Inject>] member val TooltipService : TooltipService = Unchecked.defaultof<_> with get, set
 
     override this.View model dispatch = 
-        let selChat = Model.selectedChat model        
+        let selChat = Model.selectedChat model
+        let isNotReady = not (Submission.isReady selChat)
         let question = selChat |> Option.map (fun c -> c.Question) |> Option.defaultValue null
         comp<RadzenCard> {
             attr.``class`` "rz-shadow-5 rz-border-radius-5 rz-p-2"            
@@ -44,7 +45,7 @@ type QuestionView() =
                 comp<RadzenTextArea> {                            
                     "Rows" => 3 
                     attr.id "idQuestion"
-                    on.keypress (fun e -> 
+                    on.keydown (fun e -> 
                         if not e.ShiftKey && e.Key = "Enter" && Submission.isReady selChat then  
                             task{
                                 let! text = this.JSRuntime.InvokeAsync<string>("eval", """document.getElementById("idQuestion").value""")
@@ -61,7 +62,7 @@ type QuestionView() =
                     "AlignItems" => AlignItems.End
                     comp<RadzenSpeechToTextButton> {
                         "Title" => "Start recording"
-                        "Enabled" => Submission.isReady selChat 
+                        attr.disabled selChat.IsNone
                         attr.``class`` "rz-ml-1"
                         attr.callback "Change" (fun (e:string) ->
                             selChat
@@ -74,7 +75,7 @@ type QuestionView() =
                             "Style" => "background-color: transparent;"
                             comp<RadzenMenuItem> {
                                 "Icon" => "send"
-                                "Enabled" => Submission.isReady selChat 
+                                attr.disabled  isNotReady
                                 attr.title "Send"
                                 attr.callback "Click" (fun (e:MenuItemEventArgs) -> 
                                     input.Value
@@ -88,6 +89,7 @@ type QuestionView() =
                             "Responsive" => false
                             "Style" => "background-color: transparent;"
                             comp<RadzenMenuItem> {
+                                attr.disabled  isNotReady
                                 "Icon" => "attach_file"
                                 attr.title "Attach file"
                                 attr.callback "Click" (fun (e:MenuItemEventArgs) -> dispatch ToggleSideBar)
