@@ -2,7 +2,6 @@
 open System
 open Bolero
 open Bolero.Html
-open MudBlazor
 open Radzen
 open Radzen.Blazor
 open FsOpenAI.Client
@@ -10,115 +9,6 @@ open Microsoft.AspNetCore.Components
 open Microsoft.JSInterop
 open FsOpenAI.Shared
 open FsOpenAI.Shared.Interactions
-
-module MessageViews = 
-    let userMessage (m:InteractionMessage) (chat:Interaction) model dispatch = 
-        let bg = "background-color: transparent;"
-        comp<RadzenRow> {                                        
-            "Style" => bg
-            attr.``class`` "rz-mt-1 rz-mr-2"
-            comp<RadzenColumn> {
-                "Size" => 12
-                attr.style "display: flex; justify-content: flex-end;"
-                comp<RadzenStack> {
-                    "Orientation" => Orientation.Horizontal
-                    attr.``class`` $"rz-border-radius-5 rz-p-8; rz-background-color-info-lighter"
-                    div {
-                        attr.style "white-space: pre-line;"
-                        attr.``class`` "rz-p-2"
-                        text m.Message
-                    }
-                    comp<RadzenMenu> {
-                        "Style" => bg
-                        "Responsive" => false
-                        comp<RadzenMenuItem> {
-                            "Icon" => "refresh"
-                            attr.title "Edit and resubmit this message"
-                            attr.callback "Click" (fun (e:MenuItemEventArgs) -> dispatch (Ia_Restart (chat.Id, m)))
-                        }
-                    }                
-                }
-            }
-        }
-    
-    let systemMessage (msg:InteractionMessage) (chat:Interaction) lastMsg model dispatch =
-        let docs = match msg.Role with Assistant r -> r.Docs | _ -> []
-        comp<RadzenCard> {
-            attr.``class`` $"rz-mt-1 rz-border-radius-3"
-            comp<RadzenRow> {
-                comp<RadzenColumn> {
-                    "Size" => 1
-                    comp<RadzenIcon> {
-                        "Icon" => "robot_2" // C.DFLT_ASST_ICON
-                        "IconStyle" => IconStyle.Info
-                    }
-                }
-                comp<RadzenColumn> {
-                    "Size" => 10
-                    div {
-                        attr.style "white-space: pre-line;"
-                        if Utils.isEmpty msg.Message then "..." else msg.Message
-                    }
-                    table {
-                        attr.``class`` "rz-background-color-info-lighter"
-                        if not docs.IsEmpty && not chat.IsBuffering then
-                            tr {
-                                attr.``class`` "rz-mt-1"
-                                td {
-                                    attr.style "width: 1.5rem;"
-                                    comp<RadzenMenu> {
-                                        "Style" => "background-color: transparent;"
-                                        "Responsive" => false
-                                        comp<RadzenMenuItem> {
-                                            "Icon" => "snippet_folder"
-                                            attr.title "Show search results"
-                                            attr.callback "Click" (fun (e:MenuItemEventArgs) -> dispatch (Ia_ToggleDocs (chat.Id, Some msg.MsgId)))
-                                        }
-                                    }                                                                   
-                                }
-                                td {
-                                    comp<RadzenStack> {
-                                        attr.``class`` "rz-p-2"
-                                        "Style" => "height: 3.5rem; overflow: auto;"
-                                        "Orientation" => Orientation.Horizontal
-                                        "Wrap" => Wrap.Wrap
-                                        for d in docs do
-                                            comp<RadzenLink> {
-                                                attr.title (Utils.shorten 40 d.Text)
-                                                attr.``class`` "rz-ml-2"                                                
-                                                "Style" => "max-width: 140px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;"
-                                                "Path" => d.Ref
-                                                "Target" => "_blank"
-                                                d.Title
-                                            }
-                                    }
-                                }
-                            }
-                    }
-                }
-                comp<RadzenColumn> {
-                    "Size" => 1
-                    "Style" => "display:flex; flex-direction: column; justify-content: space-between;"
-                    comp<RadzenMenu> {
-                        "Responsive" => false
-                        comp<RadzenMenuItem> {
-                            "Disabled" => true
-                            "Icon" => ""
-                            attr.callback "Click" (fun (e:MenuItemEventArgs) -> dispatch ToggleSideBar)
-                        }
-                    }
-                    if lastMsg && chat.Feedback.IsSome && not chat.IsBuffering then
-                        comp<RadzenMenu> {
-                            "Responsive" => false
-                            comp<RadzenMenuItem> {
-                                "Icon" => "thumbs_up_down"
-                                attr.title "Feedback"
-                                attr.callback "Click" (fun (e:MenuItemEventArgs) -> dispatch ToggleSideBar)
-                            }
-                        }
-                }
-            }
-        }
 
 type ChatHistoryView() =
     inherit ElmishComponent<Model,Message>()
@@ -174,24 +64,18 @@ type ChatHistoryView() =
                             this.IsBuffering <- chat.IsBuffering
                             for m in chat.Messages do
                                 if m.IsUser then
-                                    yield MessageViews.userMessage m chat model dispatch
+                                    yield UserMessage.view m chat model dispatch
                                 else
-
-                                    yield MessageViews.systemMessage m chat  (m.MsgId=lastMsgId) model dispatch
+                                    yield AssistantMessage.view m chat  (m.MsgId=lastMsgId) model dispatch
                             if chat.IsBuffering then
                                 yield 
                                     div {
-                                        attr.id this.markerId
+                                        attr.``class`` "rz-color-on-color-secondary-lighter rz-background-color-secondary-lighter rz-mt-1 rz-p-2"
                                         concat {
                                             yield ul {attr.empty() }
                                             for t in chat.Notifications do
                                                 yield 
-                                                    li {                                                        
-                                                        comp<RadzenLabel> {
-                                                            attr.``class`` "rz-color-info-light"
-                                                            "Text" => t
-                                                        }
-                                                    }
+                                                    li { text t }
                                         }
                                         div {
                                             attr.id this.markerId
@@ -203,7 +87,8 @@ type ChatHistoryView() =
                     }
                 }
                 comp<RadzenRow> {
-                    "Style" => "height: auto; margin-right: 1rem; margin-top: 1rem;" 
+                    "Style" => "height: auto; margin-top: 1rem;" 
+                    attr.``class`` "rz-mt-1"
                     ecomp<QuestionView,_,_> model dispatch {attr.empty()}
                 }
             }

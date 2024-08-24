@@ -102,8 +102,10 @@ type Message =
     | Ia_Feedback_Set of string*Feedback
     | Ia_Feedback_Submit of string
     | Ia_Feedback_Cancel of string
+    | Ia_Feedback_Show of string
     //common
     | ToggleSideBar
+    | CloseDialog
     | SaveUIState
     | LoadUIState
     | LoadedUIState of bool*bool //darkTheme,tabsUp

@@ -7,7 +7,7 @@ open MudBlazor
 open FsOpenAI.Client
 open FsOpenAI.Shared
 
-type FeedbackView() =
+type FeedbackViewB() =
     inherit ElmishComponent<Feedback*Interaction*Model,Message>()
     let commentRef = Ref<MudTextField<string>>()
     override this.View m dispatch =
@@ -65,6 +65,8 @@ type FeedbackView() =
             }
     }
 
+(*
+*)
 type MessageView() =
     inherit ElmishComponent<bool*Interaction*InteractionMessage*Model,Message>()
 
@@ -193,5 +195,5 @@ type MessageView() =
                         }
                 }
                 if isLastAsst && chat.Feedback.IsSome then
-                    ecomp<FeedbackView,_,_> (chat.Feedback.Value,chat,model) dispatch {attr.empty()}
+                    ecomp<FeedbackViewB,_,_> (chat.Feedback.Value,chat,model) dispatch {attr.empty()}
         }

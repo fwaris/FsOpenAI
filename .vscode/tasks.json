@@ -13,7 +13,7 @@
 			],
 			"group": {
 				"kind": "build",
-				"isDefault": false
+				"isDefault": true
 			},
 			"label": "Build: solution",
 			"detail": "Build the FsOpenAI.sln solution using dotnet build"

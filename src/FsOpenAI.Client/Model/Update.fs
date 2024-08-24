@@ -48,14 +48,14 @@ module Update =
 
         (*
             Initalization Flow:
-                Client <---->  Server
+                Client   <---------->  Server
                 Clnt_Connected --->
-                <--- Srv_Parameters
-                <--- Srv_SetConfig
-                <--- Srv_IndexesRefreshed
-                <--- Srv_SetTemplates
-                <--- Srv_LoadSamples
-                <--- Srv_DoneInit
+                                <--- Srv_Parameters
+                                <--- Srv_SetConfig
+                                <--- Srv_IndexesRefreshed
+                                <--- Srv_SetTemplates
+                                <--- Srv_LoadSamples
+                                <--- Srv_DoneInit
         *)
 
         //interactions
@@ -109,6 +109,7 @@ module Update =
         | Ia_Feedback_Submit id -> Submission.submitFeedback uparms.serverDispatch id model; model,Cmd.none
         | Ia_Feedback_Cancel id -> let fb = Interactions.feedback id model.interactions |> Option.map(fun x -> Feedback.Default x.LogId) in {model with interactions = Interactions.setFeedback id fb model.interactions},Cmd.none
         //session and state
+        | CloseDialog -> uparms.dialogService.Close(); model,Cmd.none
         | Error exn -> model,Cmd.ofMsg (ShowError exn.Message)
         | ShowError str -> uparms.notificationService.Notify(detail=str, severity=NotificationSeverity.Error) |> ignore; model,Cmd.none
         | ShowInfo str -> uparms.notificationService.Notify(detail=str) |> ignore; model,Cmd.none

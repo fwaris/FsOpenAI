@@ -19,6 +19,9 @@
     <Compile Include="Views\ChatCreateView.fs" />
     <Compile Include="Views\SearchResultsView.fs" />
     <Compile Include="Views\SystemMessageView.fs" />
+    <Compile Include="Views\FeedbackView.fs" />
+    <Compile Include="Views\UserMessageView.fs" />
+    <Compile Include="Views\AssistantMessageView.fs" />
     <Compile Include="Views\MessageView.fs" />
     <Compile Include="Views\QuestionView.fs" />
     <Compile Include="Views\ChatHistoryView.fs" />

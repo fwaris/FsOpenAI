@@ -46,6 +46,10 @@ module App =
         [<Inject>]
         member val NotificationService : NotificationService = Unchecked.defaultof<_> with get, set
 
+        [<Inject>]
+        member val DialogService : DialogService = Unchecked.defaultof<_> with get, set
+
+
         member val hubConn : HubConnection = Unchecked.defaultof<_> with get, set
 
         override this.Program =
@@ -71,6 +75,7 @@ module App =
                 {
                     localStore = this.LocalStore
                     notificationService = this.NotificationService
+                    dialogService = this.DialogService
                     snkbar = this.Snackbar
                     serverDispatch = serverDispatch
                     serverDispatchUnAuth = serverDispatchUnAuth
@@ -79,7 +84,7 @@ module App =
                     httpFac = this.HttpFac
                 }
 
-            let update = Update.update uparms
+            let update = Update.update uparms            
 
             Program.mkProgram (fun _ -> Model.initModel, Cmd.ofMsg StartInit) update view 
             |> Program.withSubscription Subscription.asyncMessages

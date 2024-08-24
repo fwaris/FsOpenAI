@@ -26,7 +26,7 @@ type MainLayout() =
 
     override this.OnParametersSet() = 
         if this.ThemeService.Theme = null then
-            this.ThemeService.SetTheme "Default"
+            this.ThemeService.SetTheme "Humanistic"
 
     override this.View model dispatch =        
 
@@ -38,6 +38,7 @@ type MainLayout() =
             concat {
                 comp<PageTitle> { text (model.appConfig.AppName |> Option.defaultValue "") }
                 comp<RadzenTheme> { "Theme" => this.ThemeService.Theme }
+                comp<RadzenDialog>{attr.empty()}
                 comp<RadzenLayout> {
                     comp<RadzenNotification> { attr.empty() }
                     ecomp<HeaderView,_,_> model dispatch {attr.empty()}

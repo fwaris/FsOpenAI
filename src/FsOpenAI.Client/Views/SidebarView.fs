@@ -25,10 +25,10 @@ type SidebarView() =
                     attr.``class`` "rz-p-2"
                     "AlignItems" => AlignItems.Center
                     "Orientation" => Orientation.Horizontal
-                    comp<RadzenText> {
-                        "Text" => "Chats"
-                        "TextStyle" => TextStyle.H6
-                    }
+                    // comp<RadzenText> {
+                    //     "Text" => "Chats"
+                    //     "TextStyle" => TextStyle.H6
+                    // }
                     comp<RadzenButton> {
                         "ButtonStyle" => ButtonStyle.Primary
                         attr.``class`` "rz-border-radius-10 rz-shadow-10"
@@ -60,44 +60,13 @@ type SidebarView() =
                             comp<RadzenButton> {
                                 "ButtonStyle" => ButtonStyle.Base
                                 attr.``class`` "rz-ml-2"
+                                "Style" => "background-color: var(--rz-surface);"
+                                
                                 "Size" => ButtonSize.Small
                                 "Icon" => "close"
                                 attr.callback "Click" (fun (e:MouseEventArgs) -> dispatch (Ia_Remove x.Id))
                             }
                         }
                 }
-                //comp<RadzenDataList<Interaction>> {
-                //    "Data" => model.interactions
-                //    "AllowVirtualization" => true
-                //    "AllowPaging" => false
-                //    "WrapItems" => false
-                //    attr.fragmentWith "Template" (fun (x:Interaction) ->
-                //        comp<RadzenStack> {
-                //            "Gap" => "0"
-                //            attr.``class`` "rz-p-2"
-                //            "Orientation" => Orientation.Horizontal
-                //            "AlignItems" => AlignItems.Center
-                //            comp<RadzenButton> {
-                //                "Size" => ButtonSize.Small
-                //                "ButtonStyle" => ButtonStyle.Base
-                //                if x.Id = selChatId then                            
-                //                    "Style" => "outline: 2px solid var(--rz-primary); width: 100%;"
-                //                else 
-                //                    "Style" => "width: 100%;"
-                //                "ButtonStyle" => ButtonStyle.Base   
-
-                //                attr.callback "Click" (fun (e:MouseEventArgs) -> dispatch (Ia_Selected x.Id))
-                //                Interaction.label x
-                //            }                    
-                //            comp<RadzenButton> {
-                //                "ButtonStyle" => ButtonStyle.Base
-                //                attr.``class`` "rz-ml-2"
-                //                "Size" => ButtonSize.Small
-                //                "Icon" => "close"
-                //                attr.callback "Click" (fun (e:MouseEventArgs) -> dispatch (Ia_Remove x.Id))
-                //            }
-                //        }
-                //    )
-                //}
             }
         }

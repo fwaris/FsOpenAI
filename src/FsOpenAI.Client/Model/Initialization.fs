@@ -17,6 +17,7 @@ type UpdateParms =
         localStore           : ILocalStorageService
         snkbar               : ISnackbar
         notificationService  : NotificationService
+        dialogService        : DialogService
         navMgr               : NavigationManager
         httpFac              : IHttpClientFactory
         serverDispatch       : ClientInitiatedMessages -> unit
