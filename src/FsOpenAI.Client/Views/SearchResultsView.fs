@@ -34,11 +34,12 @@ type SearchResultsView() =
             comp<Popup> {
                 "Style" => $"display:none;position:absolute;max-height:90vh;max-width:90vw;height:20rem;width:30rem;padding:5px;background:transparent;"
                 "Lazy" => false
+                "PreventDefault" => false
                 popup
                 comp<RadzenCard> {
                     "Style" => "height:100%;width:100%;overflow:none;background-color:var(--rz-panel-background-color);"
-                    "Variant" => Variant.Outlined
-                    attr.``class`` "rz-shadow-5 rz-p-2 rz-border-radius-5"
+                    "Variant" => Variant.Filled
+                    attr.``class`` "rz-shadow-5 rz-p-2 rz-border-radius-5 rz-border-danger-light"
                     comp<RadzenDataList<Document>> {
                         "Style" => "height:100%;width:100%;overflow:none;"
                         attr.``class`` "rz-mb-2"
@@ -57,11 +58,14 @@ type SearchResultsView() =
                                         "Target" => "_blank"
                                         o.Title
                                     }
-                                    div {
+                                    comp<RadzenRow> {
                                         attr.style "max-height:10rem; overflow:auto; white-space: pre-line;"
-                                        text o.Text
+                                        div {
+                                            attr.style "white-space: pre-line;"
+                                            text o.Text
+                                        }
                                     }
-                            })                    
+                                })                    
                     }
                 }
             }

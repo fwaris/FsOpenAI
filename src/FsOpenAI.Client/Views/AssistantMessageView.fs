@@ -29,8 +29,8 @@ module AssistantMessage =
                         attr.style "width: 100%;"
                         if not docs.IsEmpty && not chat.IsBuffering then
                             tr {
-                                attr.``class`` "rz-mt-1"
-                                attr.style "rz-color-on-primary-darker rz-background-color-primary-darker"
+                                attr.``class`` "rz-mt-1"// rz-color-on-primary-darker rz-background-color-primary-darker"
+                                attr.style "background-color: var(--rz-primary-lighter);"
                                 td {
                                     attr.style "width: 1.5rem;"
                                     ecomp<SearchResultsView,_,_> (Some chat.Id,docs) dispatch { attr.empty() }
@@ -41,15 +41,16 @@ module AssistantMessage =
                                         "Style" => "height: 3.5rem; overflow: auto;"
                                         "Orientation" => Orientation.Horizontal
                                         "Wrap" => FlexWrap.Wrap
-                                        for d in docs do
+                                        for d in docs do                                            
                                             comp<RadzenLink> {
                                                 attr.title (Utils.shorten 40 d.Text)
-                                                attr.``class`` "rz-ml-2"                                                
-                                                "Style" => "max-width: 140px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;"
+                                                attr.``class`` "rz-ml-2 "                                                
+                                                "Style" => "max-width: 140px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; color: var(--rz-danger-light);"
                                                 "Path" => d.Ref
                                                 "Target" => "_blank"
                                                 d.Title
                                             }
+
                                     }
                                 }
                             }

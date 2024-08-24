@@ -61,7 +61,7 @@ type ChatSettingsView() =
 
     override this.View mdl (dispatch:Message -> unit) =
         let backends = this.Model.Model.appConfig.EnabledBackends
-        let height = if this.Model.QaBag.IsSome then "35rem" else "27rem"
+        let height = if this.Model.QaBag.IsSome then "36rem" else "28rem"
         let width = "30rem"
     
         let searchTooltip = function
@@ -73,119 +73,126 @@ type ChatSettingsView() =
             comp<RadzenButton> {
                 "Style" => "background:transparent;height:2rem;"
                 "Icon" => "more_horiz"
+                attr.title "Settings"
                 "ButtonStyle" => ButtonStyle.Base
                 attr.callback "Click" (fun (e:MouseEventArgs) -> popup.Value |> Option.iter (fun p -> p.ToggleAsync(button.Value.Value.Element) |> ignore))
                 button
             }
             comp<Popup> {
-                "Style" => $"display:none;position:absolute;max-height:90vh;max-width:90vw;height:{height};width:{width};padding:5px;border:var(--rz-panel-border);background-color:var(--rz-panel-background-color);"
+                "Style" => $"display:none;position:absolute;max-height:90vh;max-width:90vw;height:{height};width:{width};padding:5px;background:transparent;"
                 "Lazy" => false
                 attrext.callback "Close" this.Close 
                 popup
-                comp<RadzenStack> { 
-                    attr.``class`` "rz-shadow-5 rz-p-5"
-                    "Style" => "height:100%;width:100%;overflow:auto;"
-                    "AlignItems" => AlignItems.Center
-                    comp<RadzenFieldset> {
-                        "AllowCollapse" => false
-                        "Text" => "Exploration Mode"
-                        comp<RadzenRadioButtonList<ExplorationMode>> {
-                            "Value" => this.Model.Parms.Mode
-                            attr.callback "ValueChanged" (fun v -> this.Model.Parms <- {this.Model.Parms with Mode = v})
-                            attr.fragment "Items" (
-                                concat {
-                                    for m in Interaction.getExplorationModeCases() do
-                                        let uc,vs = Interaction.getExplorationModeCase this.Model.Parms.Mode
-                                        let c = FSharpValue.MakeUnion (m,vs) :?> ExplorationMode
-                                        comp<RadzenRadioButtonListItem<ExplorationMode>> {
-                                            "Value" => c
-                                            "Text" => m.Name                            
-                                        }
-                                })
-                        }
-                    }
-                    comp<RadzenStack> {
-                        "Orientation" => Orientation.Horizontal
+                comp<RadzenCard> {
+                    "Style" => "height:100%;width:100%;overflow:none;background-color:var(--rz-panel-background-color);"
+                    //"Style" => "height:100%;width:100%;overflow:none;"
+                    "Variant" => Variant.Filled
+                    attr.``class`` "rz-shadow-5 rz-p-2 rz-border-radius-5 rz-border-danger-light"
+                    comp<RadzenStack> { 
+                        attr.``class`` "rz-p-5"
+                        "Style" => "height:100%;width:100%;overflow:auto;background-color: var(--rz-panel-background-color);"
                         "AlignItems" => AlignItems.Center
-                        comp<RadzenLabel> {"Text" => "Backend"}
-                        comp<RadzenDropDown<Backend>> {
-                            "Data" => backends
-                            "Value" => this.Model.Parms.Backend
-                            attr.callback "ValueChanged"  (fun b -> this.Model.Parms <- {this.Model.Parms with Backend = b})
-                        }
-                    }
-                    comp<RadzenStack> {
-                        "Orientation" => Orientation.Horizontal
-                        "AlignItems" => AlignItems.Center
-                        comp<RadzenLabel> {"Text" => "Max Tokens"}
-                        comp<RadzenSlider<int>> {
-                            "Min" => 600m
-                            "Max" => 4096m
-                            "Step" => "300"
-                            "Value" => this.Model.Parms.MaxTokens
-                            Bind.InputExpression.intRaw 
-                                <@ Func<_>(fun () -> this.Model.Parms.MaxTokens) @> 
-                                (fun v -> this.Model.Parms <- {this.Model.Parms with MaxTokens = v })
-                        }
-                        comp<RadzenNumeric<int>> {     
-                            "ReadOnly" => true
-                            "ShowUpDown" => false
-                            "Style" => "width: 4rem; background-color:var(--rz-panel-background-color);"
-                            Bind.InputExpression.intRaw <@ Func<_>(fun () -> this.Model.Parms.MaxTokens) @> (fun v -> ())                                                                   
-                        }
-                        // }
-                    }
-                    match this.Model.QaBag with
-                    | None -> ()
-                    | Some _ -> 
                         comp<RadzenFieldset> {
-                            "Text" => "Search Mode"
-                            comp<RadzenRadioButtonList<SearchMode>> {
-                                "Value" => this.Model.QaBag.Value.SearchMode
-                                attr.callback "ValueChanged" (fun v -> this.Model.QaBag <- Some {this.Model.QaBag.Value with SearchMode = v})   
+                            "AllowCollapse" => false
+                            "Text" => "Exploration Mode"
+                            comp<RadzenRadioButtonList<ExplorationMode>> {
+                                "Value" => this.Model.Parms.Mode
+                                attr.callback "ValueChanged" (fun v -> this.Model.Parms <- {this.Model.Parms with Mode = v})
                                 attr.fragment "Items" (
                                     concat {
-                                        for m in Interaction.getSearchModeCases() do
-                                            let uc,vs = Interaction.getSearchModeCase this.Model.QaBag.Value.SearchMode
-                                            let c = FSharpValue.MakeUnion (m,vs) :?> SearchMode
-                                            comp<RadzenRadioButtonListItem<SearchMode>> {
-                                                    attr.title (searchTooltip c)
-                                                    "Value" => c
-                                                    "Text" => m.Name                            
-                                                }
+                                        for m in Interaction.getExplorationModeCases() do
+                                            let uc,vs = Interaction.getExplorationModeCase this.Model.Parms.Mode
+                                            let c = FSharpValue.MakeUnion (m,vs) :?> ExplorationMode
+                                            comp<RadzenRadioButtonListItem<ExplorationMode>> {
+                                                "Value" => c
+                                                "Text" => m.Name                            
+                                            }
                                     })
                             }
                         }
                         comp<RadzenStack> {
                             "Orientation" => Orientation.Horizontal
                             "AlignItems" => AlignItems.Center
-                            comp<RadzenLabel> {"Text" => "Max Documents"}
+                            comp<RadzenLabel> {"Text" => "Backend"}
+                            comp<RadzenDropDown<Backend>> {
+                                "Data" => backends
+                                "Value" => this.Model.Parms.Backend
+                                attr.callback "ValueChanged"  (fun b -> this.Model.Parms <- {this.Model.Parms with Backend = b})
+                            }
+                        }
+                        comp<RadzenStack> {
+                            "Orientation" => Orientation.Horizontal
+                            "AlignItems" => AlignItems.Center
+                            comp<RadzenLabel> {"Text" => "Max Tokens"}
                             comp<RadzenSlider<int>> {
-                                "Min" => 1m
-                                "Max" => 30m
-                                "Step" => "1"
+                                "Min" => 600m
+                                "Max" => 4096m
+                                "Step" => "300"
+                                "Value" => this.Model.Parms.MaxTokens
                                 Bind.InputExpression.intRaw 
-                                    <@ Func<_>(fun () -> this.Model.QaBag.Value.MaxDocs) @> 
-                                    (fun v -> this.Model.QaBag <- Some {this.Model.QaBag.Value with MaxDocs = v })
+                                    <@ Func<_>(fun () -> this.Model.Parms.MaxTokens) @> 
+                                    (fun v -> this.Model.Parms <- {this.Model.Parms with MaxTokens = v })
                             }
                             comp<RadzenNumeric<int>> {     
                                 "ReadOnly" => true
                                 "ShowUpDown" => false
-                                "Style" => "width: 3rem; background-color:var(--rz-panel-background-color);"
-                                Bind.InputExpression.intRaw <@ Func<_>(fun () -> this.Model.QaBag.Value.MaxDocs) @> (fun v -> ())                                                                   
+                                "Style" => "width: 4rem; background-color:var(--rz-panel-background-color);"
+                                Bind.InputExpression.intRaw <@ Func<_>(fun () -> this.Model.Parms.MaxTokens) @> (fun v -> ())                                                                   
                             }
-                    }
-                    comp<RadzenFieldset> {
-                        "Text" => "System Message"
-                        comp<RadzenTextArea> {
-                            "Rows" => 3
-                            "Cols" => 50
-                            "MaxLength" => 3000L
-                            Bind.InputExpression.string 
-                                <@ Func<_>(fun () -> this.Model.SystemMessage) @> 
-                                (fun v -> this.Model.SystemMessage <- v)
+                            // }
                         }
-                    }                    
-                }
-            }        
+                        match this.Model.QaBag with
+                        | None -> ()
+                        | Some _ -> 
+                            comp<RadzenFieldset> {
+                                "Text" => "Search Mode"
+                                comp<RadzenRadioButtonList<SearchMode>> {
+                                    "Value" => this.Model.QaBag.Value.SearchMode
+                                    attr.callback "ValueChanged" (fun v -> this.Model.QaBag <- Some {this.Model.QaBag.Value with SearchMode = v})   
+                                    attr.fragment "Items" (
+                                        concat {
+                                            for m in Interaction.getSearchModeCases() do
+                                                let uc,vs = Interaction.getSearchModeCase this.Model.QaBag.Value.SearchMode
+                                                let c = FSharpValue.MakeUnion (m,vs) :?> SearchMode
+                                                comp<RadzenRadioButtonListItem<SearchMode>> {
+                                                        attr.title (searchTooltip c)
+                                                        "Value" => c
+                                                        "Text" => m.Name                            
+                                                    }
+                                        })
+                                }
+                            }
+                            comp<RadzenStack> {
+                                "Orientation" => Orientation.Horizontal
+                                "AlignItems" => AlignItems.Center
+                                comp<RadzenLabel> {"Text" => "Max Documents"}
+                                comp<RadzenSlider<int>> {
+                                    "Min" => 1m
+                                    "Max" => 30m
+                                    "Step" => "1"
+                                    Bind.InputExpression.intRaw 
+                                        <@ Func<_>(fun () -> this.Model.QaBag.Value.MaxDocs) @> 
+                                        (fun v -> this.Model.QaBag <- Some {this.Model.QaBag.Value with MaxDocs = v })
+                                }
+                                comp<RadzenNumeric<int>> {     
+                                    "ReadOnly" => true
+                                    "ShowUpDown" => false
+                                    "Style" => "width: 3rem; background-color:var(--rz-panel-background-color);"
+                                    Bind.InputExpression.intRaw <@ Func<_>(fun () -> this.Model.QaBag.Value.MaxDocs) @> (fun v -> ())                                                                   
+                                }
+                        }
+                        comp<RadzenFieldset> {
+                            "Text" => "System Message"
+                            comp<RadzenTextArea> {
+                                "Rows" => 3
+                                "Cols" => 50
+                                "MaxLength" => 3000L
+                                Bind.InputExpression.string 
+                                    <@ Func<_>(fun () -> this.Model.SystemMessage) @> 
+                                    (fun v -> this.Model.SystemMessage <- v)
+                            }
+                        }                    
+                    }
+                }        
+            }
         }
