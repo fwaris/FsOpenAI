@@ -165,8 +165,10 @@ type ChatSettingsView() =
                             comp<RadzenStack> {
                                 "Orientation" => Orientation.Horizontal
                                 "AlignItems" => AlignItems.Center
-                                comp<RadzenLabel> {"Text" => "Max Documents"}
+                                comp<RadzenLabel> {"Text" => "Max Documents"; "Component" => "MaxDocs"}
                                 comp<RadzenSlider<int>> {
+                                    "Style" => "width: 9rem;"
+                                    "Name" => "MaxDocs"
                                     "Min" => 1m
                                     "Max" => 30m
                                     "Step" => "1"
@@ -185,7 +187,7 @@ type ChatSettingsView() =
                             "Text" => "System Message"
                             comp<RadzenTextArea> {
                                 "Rows" => 3
-                                "Cols" => 50
+                                "Cols" => 30
                                 "MaxLength" => 3000L
                                 Bind.InputExpression.string 
                                     <@ Func<_>(fun () -> this.Model.SystemMessage) @> 

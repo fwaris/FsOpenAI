@@ -41,7 +41,7 @@
     <Compile Include="Views\MainContent.fs" />
     <Compile Include="Views\SidebarView.fs" />
     <Compile Include="Views\HeaderView.fs" />
-    <Compile Include="Views\Comps.fs" />
+    <Compile Include="Views\FooterView.fs" />
     <Compile Include="Views\MainLayout.fs" />
     <Compile Include="App\Subscription.fs" />
     <Compile Include="App\ClientHub.fs" />

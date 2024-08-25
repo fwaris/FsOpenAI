@@ -105,6 +105,7 @@ type Message =
     | Ia_Feedback_Show of string
     //common
     | ToggleSideBar
+    | SidebarExpanded of bool
     | CloseDialog
     | SaveUIState
     | LoadUIState

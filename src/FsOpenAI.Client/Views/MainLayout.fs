@@ -76,7 +76,7 @@ type MainLayout() =
                             }
                         }
                     }
-                    Comps.footer model dispatch
+                    Footer.view this.JSRuntime model dispatch
                 }
             }
 

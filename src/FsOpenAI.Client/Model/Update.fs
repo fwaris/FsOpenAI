@@ -125,6 +125,7 @@ module Update =
         | ToggleTheme -> {model with darkTheme = not model.darkTheme},Cmd.ofMsg SaveUIState
         | ToggleTabs -> {model with tabsUp = not model.tabsUp},Cmd.ofMsg SaveUIState
         | ToggleSideBar -> TmpState.toggle C.SIDE_BAR_EXPANDED model,Cmd.none
+        | SidebarExpanded isExpanded -> TmpState.setState C.SIDE_BAR_EXPANDED isExpanded model,Cmd.none
         | SaveUIState -> model, Cmd.batch [Cmd.ofMsg (SaveToLocal(C.DARK_THEME,model.darkTheme)); Cmd.ofMsg(SaveToLocal(C.TABS_UP,model.tabsUp))]
         | LoadUIState -> model,Cmd.OfTask.either IO.loadUIState uparms.localStore LoadedUIState Error
         | LoadedUIState (darkTheme,tabsUp) -> {model with darkTheme = darkTheme; tabsUp = tabsUp},Cmd.none

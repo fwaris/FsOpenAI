@@ -18,7 +18,7 @@ type SidebarView() =
         comp<RadzenSidebar> {
             "Style" => "background-color: var(--rz-surface);"
             "Expanded" => TmpState.isOpenDef true C.SIDE_BAR_EXPANDED model
-            attr.callback "ExpandedChanged" (fun (b:bool) -> dispatch ToggleSideBar)
+            attr.callback "ExpandedChanged" (fun (b:bool) -> dispatch (SidebarExpanded b))
             comp<RadzenColumn> {
                 comp<RadzenStack> {
                     "Style" => "width: 100%;"

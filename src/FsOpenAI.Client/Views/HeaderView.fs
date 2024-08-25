@@ -16,7 +16,7 @@ type HeaderView() =
     [<Inject>] member val ThemeService:ThemeService = Unchecked.defaultof<_> with get,set
 
     override this.View model dispatch = 
-        let sidebarExpanded = TmpState.isOpen C.SIDE_BAR_EXPANDED model
+        let sidebarExpanded = TmpState.isOpenDef true C.SIDE_BAR_EXPANDED model
         comp<RadzenHeader> {
             //attr.``class`` "rz-background-color-danger-dark"
             comp<RadzenRow> {

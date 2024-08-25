@@ -18,6 +18,9 @@ module TmpState =
                 |> Option.map(fun b -> model.settingsOpen |> Map.add key (not b))
                 |> Option.defaultWith(fun _ -> model.settingsOpen |> Map.add key true)}
 
+    let setState key value model = 
+        {model with settingsOpen = model.settingsOpen |> Map.add key value}    
+
     let openClose id model =  
         {model with 
             settingsOpen = 
