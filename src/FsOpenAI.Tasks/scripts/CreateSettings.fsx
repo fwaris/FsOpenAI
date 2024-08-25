@@ -19,7 +19,7 @@ let settings =
 let str = JsonSerializer.Serialize(settings,serOpts)
 printfn $"{str}"
 
-let str2 = File.ReadAllText (Environment.ExpandEnvironmentVariables(@"%USERPROFILE%\.fsopenai/ServiceSettings.json"))
+let str2 = File.ReadAllText (Environment.ExpandEnvironmentVariables(@"%USERPROFILE%\.fsopenai/fsopenai1server/ServiceSettings.json"))
 let str3 = str2 |> Text.Encoding.UTF8.GetBytes |> Convert.ToBase64String
 printfn $"{str3}"
 let settings' = JsonSerializer.Deserialize<ServiceSettings>(str2, serOpts)

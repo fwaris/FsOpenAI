@@ -30,7 +30,7 @@ type HeaderView() =
                     }
                 }
                 comp<RadzenColumn> {
-                    "Size" => 1
+                    "Size" => 2
                     if model.busy then
                         comp<RadzenProgressBarCircular> {
                             "ShowValue" => false
@@ -40,7 +40,7 @@ type HeaderView() =
                         }
                 }
                 comp<RadzenColumn>{
-                    "Size" => 8
+                    "Size" => 5
                     comp<RadzenText> {
                         "Style" => "text-align: center; width: 100%; align-self: center;"
                         "Text" => (model.appConfig.AppName |> Option.defaultValue "FsOpenAI")
@@ -72,10 +72,11 @@ type HeaderView() =
                 }
                 comp<RadzenColumn> {
                     "Size" => 1
-                    comp<RadzenMenu> { 
-                        //"Style" => transparentBg
-                        comp<RadzenAppearanceToggle> {attr.empty()}                    
-                    }
+                    comp<RadzenAppearanceToggle > {attr.empty()}
+                }
+                comp<RadzenColumn> {
+                    "Size" => 2
+                    ecomp<MainSettingsView,_,_> model dispatch {attr.empty()}
                 }
             }
         }

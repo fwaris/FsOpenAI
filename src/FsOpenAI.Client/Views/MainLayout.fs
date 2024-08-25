@@ -39,6 +39,7 @@ type MainLayout() =
                 comp<PageTitle> { text (model.appConfig.AppName |> Option.defaultValue "") }
                 comp<RadzenTheme> { "Theme" => this.ThemeService.Theme }
                 comp<RadzenDialog>{attr.empty()}
+                comp<RadzenComponents>{attr.empty()}
                 comp<RadzenLayout> {
                     comp<RadzenNotification> { attr.empty() }
                     ecomp<HeaderView,_,_> model dispatch {attr.empty()}
