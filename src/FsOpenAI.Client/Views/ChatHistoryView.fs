@@ -69,19 +69,24 @@ type ChatHistoryView() =
                                     yield AssistantMessage.view m chat  (m.MsgId=lastMsgId) model dispatch
                             if chat.IsBuffering then
                                 yield 
-                                    div {
-                                        attr.``class`` "rz-color-on-color-secondary-lighter rz-background-color-secondary-lighter rz-mt-1 rz-p-2"
-                                        concat {
-                                            yield ul {attr.empty() }
-                                            for t in chat.Notifications do
-                                                yield 
-                                                    li { text t }
-                                        }
-                                        div {
-                                            attr.id this.markerId
-                                            marker
-                                            "..."
-                                        }
+                                    comp<RadzenTimeline> {                                
+                                        //attr.``class`` "rz-color-on-color-secondary-lighter rz-background-color-secondary-lighter rz-mt-1 rz-p-2"                                
+                                        attr.``class`` "rz-mt-1 rz-p-2" 
+                                        "LinePosition" => LinePosition.Left
+                                        attr.fragment "Items" (
+                                            concat {
+                                                yield
+                                                    comp<RadzenTimelineItem> {
+                                                        div {
+                                                            attr.id this.markerId
+                                                            marker
+                                                            "..."
+                                                        }
+                                                    }
+                                                for t in List.rev chat.Notifications do
+                                                    yield 
+                                                        comp<RadzenTimelineItem>  { text t }
+                                            })
                                     }
                         | None -> ()
                     }
