@@ -96,6 +96,7 @@ type DocumentContent =
         DocType : DocType option
         DocumentText : string option
         Status : DocumentStatus
+        SearchTerms : string option
     }
     with
         static member Default =
@@ -104,30 +105,8 @@ type DocumentContent =
                             DocumentText = None
                             Status = No_Document
                             DocType = None
+                            SearchTerms = None
                         }
-
-type DocBag =
-    {
-        QABag : QABag
-        Label : string
-        Document : DocumentContent
-        SearchTerms : string option
-        ExtractTermsTemplate: string option
-        SearchWithOrigText: bool            //use raw document text instead of extracted search terms for index search
-        QueryTemplate : string option
-        DocOnlyQuery : bool                 //Q&A with document content only. Ignore indexes
-    }
-    with static member Default =
-            {
-                Label = "Default"
-                QABag = QABag.Default
-                Document = DocumentContent.Default
-                SearchTerms = None
-                ExtractTermsTemplate = None
-                SearchWithOrigText = false
-                QueryTemplate = None
-                DocOnlyQuery = false
-            }
 
 type ChatBag =
     {
@@ -148,7 +127,6 @@ type CodeEvalBag =
 type InteractionType =
     | Plain of ChatBag
     | IndexQnA of QABag
-    | IndexQnADoc of DocBag
     | QnADoc of DocumentContent
     | CodeEval of CodeEvalBag
 
@@ -156,7 +134,6 @@ type InteractionType =
 type InteractionCreateType =
     | Crt_Plain
     | Crt_IndexQnA
-    | Crt_IndexQnADoc of string //template
     | Crt_QnADoc
 
 ///Chat sample enum
@@ -164,7 +141,7 @@ type SampleChatType =
     | SM_Plain of bool
     | SM_QnADoc
     | SM_IndexQnA of string
-    | SM_IndexQnADoc of string
+
 
 type Feedback = {
     LogId : string
@@ -173,13 +150,21 @@ type Feedback = {
 }
     with static member Default id = {LogId=id; ThumbsUpDn=0; Comment=None}
 
+type InteractionMode = 
+    | M_Plain
+    | M_Index
+    | M_Doc
+    | M_Doc_Index
+    | M_CodeEval
+
 type Interaction = {
     Id : string
     Name: string option
     Feedback : Feedback option
     Question : string
     SystemMessage : string
-    InteractionType: InteractionType
+    Mode : InteractionMode
+    Types : InteractionType list
     Messages : InteractionMessage list
     Parameters : InteractionParameters
     Timestamp : DateTime

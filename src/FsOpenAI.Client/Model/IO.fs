@@ -179,7 +179,7 @@ module IO =
             let fileId = Utils.newId().Replace('/','-').Replace('\\','-')
             let ch = model.interactions |> List.find (fun c -> c.Id = id)
             let docCntnt = Interaction.docContent ch
-            let doc = browserFile docCntnt.DocumentRef
+            let doc = browserFile (match docCntnt with Some d -> d.DocumentRef | None -> None)
             let file = match doc with
                        | Some f -> f
                        | None   -> failwith "select file not accessible"

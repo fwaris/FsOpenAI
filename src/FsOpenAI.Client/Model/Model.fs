@@ -67,7 +67,6 @@ type Message =
     | Ia_Local_ClearAll
     | Ia_ClearChats
     | Ia_ResetChat of string * string
-    | Ia_ToggleDocOnly of string
     | Ia_AddMsg of string * InteractionMessage
     | Ia_SetQuestion of string * string
     | Ia_AddDelta of string * string
@@ -79,9 +78,7 @@ type Message =
     | Ia_Remove of string
     | Ia_Selected of string
     | Ia_UpdateQaBag of string * QABag
-    | Ia_UpdateDocBag of string * DocBag
     | Ia_Notification of string * string
-    | Ia_File_BeingLoad of string * DocBag
     | Ia_File_BeingLoad2 of string * DocumentContent
     | Ia_File_Load of string
     | Ia_File_Loaded of string*string

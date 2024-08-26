@@ -7,37 +7,138 @@ open Radzen
 open Radzen.Blazor
 open FsOpenAI.Client
 open FsOpenAI.Shared
+open FsOpenAI.Shared.Interactions
 open System.Collections.Generic
 open FsOpenAI.Shared
+
+type SourceTree = {
+    Id: string
+    Description: string
+    Children: SourceTree list
+}
+
+type DocView() = 
+    inherit ElmishComponent<DocumentContent*Interaction*Model,Message>()
+
+    override this.View mdl dispatch =
+        let bag,chat,model = mdl
+
+        let title = 
+            match bag.Status with 
+            | No_Document -> "No document selected"
+            | Uploading -> "Uploading document..."
+            | Receiving -> "Receiving document content ..."
+            | ExtractingTerms -> "Extracting search terms..."
+            | Ready -> "Document ready"
+
+        let icon = 
+            match bag.Status with 
+            | No_Document -> "upload_file" //Icons.Material.Outlined.UploadFile
+            | Uploading -> "upload" //Icons.Material.Outlined.Upload
+            | Receiving -> "download" //Icons.Material.Outlined.Download
+            | ExtractingTerms -> "content_paste_search" //Icons.Material.Outlined.ContentPasteSearch
+            | Ready -> "check" // Icons.Material.Outlined.Check
+        
+        let color = 
+            match bag.Status with 
+            | Ready       -> Colors.Success
+            | No_Document -> Colors.Info
+            | _           -> Colors.Warning
+        
+        comp<RadzenStack> {
+            "Orientation" => Orientation.Vertical
+            "AlignItems" => Align.Center
+            comp<RadzenButton> {
+                "Icon" => icon
+                attr.title title
+                "IconColor" => color
+            }
+            comp<RadzenStack> {
+                "Orientation" => Orientation.Horizontal
+                "AlignItems" => AlignItems.Center
+                comp<RadzenCheckBox<bool>> {
+                    "Value" => true
+                }
+                comp<RadzenLabel> {
+                    "Text" => (IO.browserFile bag.DocumentRef |> Option.map (fun x -> x.Name) |> Option.defaultValue "No document selected")
+                }
+            }
+        }
+
+
 
 type IndexTreeView() =
     inherit ElmishComponent<QABag*Interaction*Model,Message>()
 
     override this.View mdl dispatch =
         let bag,chat,model = mdl
+
+        let webSearch = 
+            model.serviceParameters
+            |> Option.bind (fun x -> x.BING_ENDPOINT)
+            |> Option.map (fun x -> [ {Id="1.1"; Description="With web search"; Children=[]} ])
+            |> Option.defaultValue []
+        
+        let modelSource = 
+            model.appConfig.EnabledChatModes 
+            |> List.tryFind (fun (x,_) -> x = ChatMode.CM_Plain)
+            |> Option.map (fun _ -> [ {Id="1.0"; Description="AI Model"; Children=webSearch} ])
+            |> Option.defaultValue []
+
+        let doc = Interaction.docContent chat
+
         let checkedVals = IO.selectIndexTrees (set bag.Indexes) model.indexTrees
         comp<RadzenColumn> {
             attr.``class`` "rz-p-1 rz-ml-2"
             comp<RadzenRow> {
                 comp<RadzenText> {
-                    "Text" => "Indexes"
+                    "Text" => "Sources"
                     "TextStyle" => TextStyle.H6
                 }
             }
             comp<RadzenRow> {
                 comp<RadzenCard> {                                    
-                    comp<RadzenTree> {
-                        "AllowCheckBoxes" => true
-                        "Data" => model.indexTrees
-                        "CheckedValues" => checkedVals
-                        attr.callback "CheckedValuesChanged" (fun (xs:obj seq) -> 
-                            let idxRefs = xs |> Seq.cast<IndexTree> |> Seq.map (fun x -> x.Idx) |> List.ofSeq
-                            dispatch (Ia_SetIndex (chat.Id, idxRefs)))
-                        comp<RadzenTreeLevel> {
-                            "TextProperty" => "Description"
-                            "ChildrenProperty" => "Children"
-                            "Expanded" => Func<_,_>(fun (t:obj) -> true) 
-                        }                                            
+                    comp<RadzenStack> {
+                        match modelSource with
+                        | [] -> ()
+                        | ts -> 
+                            comp<RadzenTree> {
+                                "AllowCheckBoxes" => true
+                                "Data" => ts
+                                //"CheckedValues" => checkedVals
+                                // attr.callback "CheckedValuesChanged" (fun (xs:obj seq) -> 
+                                //     let idxRefs = xs |> Seq.cast<IndexTree> |> Seq.map (fun x -> x.Idx) |> List.ofSeq
+                                //     dispatch (Ia_SetIndex (chat.Id, idxRefs)))
+                                comp<RadzenTreeLevel> {
+                                    "TextProperty" => "Description"
+                                    "ChildrenProperty" => "Children"
+                                    "Expanded" => Func<_,_>(fun (t:obj) -> true) 
+                                }                                            
+                            }
+                        match doc with 
+                        | None -> ()
+                        | Some doc -> 
+                            comp<RadzenFieldset> {
+                                "Text" => "Document"
+                                ecomp<DocView,_,_> (doc,chat,model) dispatch {attr.empty()}
+                            }
+                        comp<RadzenFieldset> {
+                            "Text" => "Indexes"
+                            comp<RadzenTree> {
+                                "AllowCheckBoxes" => true
+                                "Data" => model.indexTrees
+                                "CheckedValues" => checkedVals
+                                attr.callback "CheckedValuesChanged" (fun (xs:obj seq) -> 
+                                    let idxRefs = xs |> Seq.cast<IndexTree> |> Seq.map (fun x -> x.Idx) |> List.ofSeq
+                                    dispatch (Ia_SetIndex (chat.Id, idxRefs)))
+                                comp<RadzenTreeLevel> {
+                                    "TextProperty" => "Description"
+                                    "ChildrenProperty" => "Children"
+                                    "Expanded" => Func<_,_>(fun (t:obj) -> true) 
+                                }                                            
+                            }
+                        }
+
                     }
                 }
             }

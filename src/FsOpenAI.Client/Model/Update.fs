@@ -62,8 +62,8 @@ module Update =
         | Ia_Submit (id,lastMsg) -> Model.checkBusy model <| Auth.checkAuthFlip (Submission.submitChat uparms.serverDispatch lastMsg id)
         | Ia_SubmitOnKey (id,delay) -> Submission.submitOnKey model id delay
         | Ia_SystemMessage (id,msg) -> {model with interactions = Interactions.setSystemMessage id msg model.interactions},Cmd.none
-        | Ia_ApplyTemplate (id,tpType,tmplt) -> Submission.tryApplyTemplate (id,tpType,tmplt) model
-        | Ia_SetPrompt (id,tpType,prompt) -> {model with interactions = Interactions.setPrompt id (tpType,prompt) model.interactions}, Cmd.none
+        | Ia_ApplyTemplate (id,tpType,tmplt) -> printfn "TODO apply template"; model,Cmd.none //Submission.tryApplyTemplate (id,tpType,tmplt) model
+        | Ia_SetPrompt (id,tpType,prompt) ->  printfn "TODO set prompt"; model,Cmd.none //{model with interactions = Interactions.setPrompt id (tpType,prompt) model.interactions}, Cmd.none
         | Ia_Save id -> model, if Model.isChatPeristenceConfigured model then Cmd.ofMsg (Ia_Session_Save id) else Cmd.ofMsg Ia_Local_Save
         | Ia_Local_Save -> model, Cmd.OfTask.either IO.saveChats (model,uparms.localStore) ShowInfo Error
         | Ia_Local_Load -> model, Cmd.OfTask.either IO.loadChats uparms.localStore Ia_Local_Loaded Error
@@ -85,9 +85,7 @@ module Update =
         | Ia_Add ctype -> Submission.checkAddInteraction ctype model
         | Ia_Notification (id,note) -> {model with interactions = Interactions.addNotification id note model.interactions},Cmd.none
         | Ia_UpdateQaBag (id,bag) -> {model with interactions = Interactions.setQABag id bag model.interactions},Cmd.none
-        | Ia_UpdateDocBag (id,dbag) -> {model with interactions = Interactions.setDocBag id dbag model.interactions},Cmd.none
         | Ia_Feedback_Set (id,fb) -> {model with interactions = Interactions.setFeedback id (Some fb) model.interactions},Cmd.none
-        | Ia_File_BeingLoad (id,dbag) -> {model with interactions = Interactions.setDocBag id dbag model.interactions},Cmd.ofMsg (Ia_File_Load id)
         | Ia_File_BeingLoad2 (id,dc) -> {model with interactions = Interactions.setDocContent id dc model.interactions},Cmd.ofMsg (Ia_File_Load id)
         | Ia_File_Load id -> {model with interactions = Interactions.setDocumentStatus id Uploading model.interactions},Cmd.OfTask.either IO.loadFile (id,model,uparms.serverCall) Ia_File_Loaded Error
         | Ia_File_Loaded (id,fileId) -> uparms.serverDispatch (Clnt_ExtractContents (id,fileId,Submission.docType id model.interactions)); model,Cmd.none
@@ -98,7 +96,6 @@ module Update =
         | Ia_Selected id -> {model with selectedChatId = Some id},Cmd.none
         | Ia_UseWeb (id,useWeb) -> {model with interactions = Interactions.setUseWeb id useWeb model.interactions},Cmd.none
         | Ia_SetIndex (id,idxs) -> {TmpState.toggleIndex id model  with interactions = Interactions.setIndexes id idxs model.interactions},Cmd.none
-        | Ia_ToggleDocOnly id -> {model with interactions = Interactions.toggleDocOnly id model.interactions},Cmd.none
         | Ia_ToggleSettings id -> TmpState.toggleChatSettings id model,Cmd.none
         | Ia_ToggleDocs (id,msgId) -> TmpState.toggleChatDocs (id,msgId) model, Cmd.none
         | Ia_ToggleDocDetails id -> TmpState.toggleDocDetails id model, Cmd.none

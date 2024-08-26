@@ -31,7 +31,7 @@ module Init =
     let private (===) (a:string) (b:string) = a.Equals(b,StringComparison.InvariantCultureIgnoreCase)
     let private updateBag bag ch = match bag with Some b -> Interaction.setQABag b ch | None -> ch
     let private updateIndx idxs ch = (ch,idxs) ||> List.fold (fun ch i -> Interaction.addIndex i ch)
-    let private setUseWeb useWeb ch = match ch.InteractionType with Plain cbag -> Interaction.setUseWeb useWeb ch | _ -> ch
+    let private setUseWeb useWeb ch = Interaction.setUseWeb useWeb ch 
 
     let defaultBackend model = model.appConfig.EnabledBackends |> List.tryHead |> Option.defaultValue OpenAI
 
@@ -41,11 +41,7 @@ module Init =
                 Icons.Material.Outlined.QuestionAnswer, "New Index Q&A", Crt_IndexQnA
                 Icons.Material.Outlined.DocumentScanner, "New Doc. Q&A", Crt_QnADoc
             ]
-        let createsTemplates =
-            templates
-            |> List.map(fun t -> Icons.Material.Outlined.Book, $"New '{t.Label}' Document Query", Crt_IndexQnADoc t.Label)
         createsBase
-        @ createsTemplates
         @ [Icons.Material.Outlined.Chat, "New Chat with GPT", Crt_Plain ]
 
     let pingServer serverDispatch =
@@ -62,7 +58,6 @@ module Init =
             match m,ctype with
             | CM_Plain, Plain _
             | CM_IndexQnA,IndexQnA _
-            | CM_IndexQnADoc, IndexQnADoc _
             | CM_QnADoc, QnADoc _
             | CM_TravelSurvey, CodeEval _ -> true
             | _                           -> false)
@@ -70,7 +65,7 @@ module Init =
     let isAllowedSample appConfig ch =
         appConfig.EnabledBackends
         |> List.tryFind (fun b -> b = ch.Parameters.Backend)
-        |> Option.map(fun _ -> isAllowedChat appConfig ch.InteractionType)
+        |> Option.map(fun _ -> ch.Types |> List.exists (fun t -> isAllowedChat appConfig t))
         |> Option.defaultValue false
 
     let isAllowedCreate appConfig (ctype:InteractionCreateType) =
@@ -79,8 +74,7 @@ module Init =
             match m,ctype with
             | CM_Plain, Crt_Plain
             | CM_QnADoc, Crt_QnADoc
-            | CM_IndexQnA,Crt_IndexQnA
-            | CM_IndexQnADoc, Crt_IndexQnADoc _ -> true
+            | CM_IndexQnA,Crt_IndexQnA          -> true
             | _                                 -> false)
 
     ///Invoked after all init. data has been sent by server to a newly connected client.
@@ -110,14 +104,12 @@ module Init =
             | SM_Plain useWeb    -> Crt_Plain,useWeb
             | SM_QnADoc          -> Crt_QnADoc,false
             | SM_IndexQnA _      -> Crt_IndexQnA,false
-            | SM_IndexQnADoc _   -> (Crt_IndexQnADoc label),false
 
         let useWeb = searchAvailable && useWeb
 
         let idxRefs =
             match sample.SampleChatType with
             | SM_IndexQnA idxs         -> candidateIndexes idxs
-            | SM_IndexQnADoc idxs      -> candidateIndexes idxs
             | _                        -> []
 
         let idxRefs =
@@ -176,11 +168,10 @@ module Init =
 
         let chats =
             chats
-            |> List.choose (fun c ->
-                match c.InteractionType with
-                | Plain _ -> Some c
-                | _ when searchConfigured -> Some c
-                | _ -> None)
+            |> List.choose(fun c -> 
+                if searchConfigured then Some c 
+                elif c.Types |> List.exists (function Plain _ -> true | _ -> false) then Some c
+                else None)
             |> List.filter (isAllowedSample model.appConfig)
         chats
 
@@ -192,20 +183,6 @@ module Init =
         with ex ->
             model,Cmd.ofMsg(ShowError ex.Message)
 
-    let badgeColorChat c =
-        match c.InteractionType with
-        | IndexQnA _     -> Color.Info
-        | Plain _        -> Color.Warning
-        | IndexQnADoc _  -> Color.Tertiary
-        | QnADoc _       -> Color.Success
-        | CodeEval _     -> Color.Info
-
-    let badgeColorCreate createType =
-        match createType with
-        | Crt_IndexQnA      -> Color.Info
-        | Crt_Plain         -> Color.Warning
-        | Crt_IndexQnADoc _ -> Color.Tertiary
-        | Crt_QnADoc        -> Color.Success
 
     let createMenuGroup dispatch group  =
         concat {
@@ -218,7 +195,6 @@ module Init =
                         "Elevation" => 0
                         comp<MudBadge> {
                             "Class" => "d-flex flex-none mr-2"
-                            "Color" => badgeColorCreate createType
                             "Dot" => true
                         }
                         text name

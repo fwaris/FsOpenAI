@@ -4,22 +4,22 @@ open Elmish
 open FSharp.Control
 open FsOpenAI.Client
 open FsOpenAI.Shared
+open FsOpenAI.Shared.Interactions.Wholesale
 open FsOpenAI.Shared.Interactions
 
 
 //manage chat operations like submitting a chat, generating search, etc.
 module Submission =
 
-    let docType id cs = (Interactions.docContent id cs).DocType
+    let docType id cs = (Interactions.docContent id cs) |> Option.bind(fun d->d.DocType) 
 
     let isReady ch =
         match ch with 
         | Some ch -> 
-            not ch.IsBuffering &&
-            match ch.InteractionType with
-            | IndexQnADoc dbag -> dbag.Document.Status = Ready
-            | QnADoc dc -> dc.Status = Ready
-            | _ -> true
+            not ch.IsBuffering && 
+                (Interaction.docContent ch
+                |> Option.map(fun d -> d.Status = DocumentStatus.Ready)
+                |> Option.defaultValue true)
         | None -> false
 
     let saveSession serviceDispatch id model =
@@ -67,12 +67,12 @@ module Submission =
                         ch
                     else
                         ch |> Interaction.setIndexes (IO.expandIdxRefs model idxs |> Set.toList) //expand index list to include child indexes, if needed
-                match ch.InteractionType with
-                | IndexQnA _   -> serverDispatch (Clnt_Run_IndexQnA(sp,invCtx,ch))
-                | Plain _ -> serverDispatch (Clnt_Run_Plain(sp,invCtx,ch))
-                | QnADoc _ -> serverDispatch (Clnt_Run_IndexQnADoc(sp,invCtx,ch))
-                | IndexQnADoc _ -> serverDispatch (Clnt_Run_QnADoc(sp,invCtx,ch))
-                | CodeEval b -> serverDispatch (Clnt_Run_EvalCode(sp,invCtx,ch,b.CodeEvalParms))
+                match ch.Mode with
+                | M_Index   -> serverDispatch (Clnt_Run_IndexQnA(sp,invCtx,ch))
+                | M_Plain -> serverDispatch (Clnt_Run_Plain(sp,invCtx,ch))
+                | M_Doc -> serverDispatch (Clnt_Run_QnADoc(sp,invCtx,ch))
+                | M_Doc_Index -> serverDispatch (Clnt_Run_IndexQnADoc(sp,invCtx,ch))
+                | M_CodeEval -> serverDispatch (Clnt_Run_EvalCode(sp,invCtx,ch,(Interaction.code ch).CodeEvalParms))
                 model,Cmd.none
             | None -> model,Cmd.ofMsg(ShowInfo "Service configuration not yet received from server")
         else
@@ -89,18 +89,17 @@ module Submission =
                 model.interactions
                 |> List.find(fun x->x.Id=id)
                 |> Interaction.removeUIState
-            match ch.InteractionType with
-            | IndexQnADoc _ -> serverDispatch (Clnt_SearchQuery(sp,IO.invocationContext model,ch))
+            match Interaction.docContent ch with
+            | Some d -> serverDispatch (Clnt_SearchQuery(sp,IO.invocationContext model,ch))
             | _       -> failwith "unexptected chat type"
             model,Cmd.none
         | None -> model,Cmd.ofMsg(ShowInfo "Service configuration not yet received from server")
 
     let tryGenSearch dispatch id model =
         let ch = model.interactions |> List.find (fun c -> c.Id = id)
-        match ch.InteractionType with
-        | QnADoc _ -> model,Cmd.none
-        | IndexQnADoc _ -> genSearch dispatch id model
-        | _ -> failwith "unexpected chat type"
+        match ch.Mode with
+        | M_Doc_Index -> genSearch dispatch id model
+        | _ -> model,Cmd.none
 
     let completeChat id err model =
         let cs = Interactions.endBuffering id (Option.isSome err) model.interactions
@@ -116,7 +115,6 @@ module Submission =
         |> List.choose(fun (m,sysM) ->
             match m,createType with
             | CM_IndexQnA, Crt_IndexQnA
-            | CM_IndexQnADoc, Crt_IndexQnADoc _
             | CM_Plain, Crt_Plain         -> Some sysM
             | _                           -> None)
         |> List.tryHead
@@ -143,8 +141,8 @@ module Submission =
     let updateSearchTerms (id,srchQ) model =
         model.interactions
         |> List.tryFind(fun c -> c.Id = id)
-        |> Option.map Interaction.docBag
-        |> Option.map(fun bag -> Interactions.setDocBag id {bag with SearchTerms = Some srchQ;} model.interactions)
+        |> Option.bind Interaction.docContent
+        |> Option.map(fun d -> Interactions.setDocContent id {d with SearchTerms=Some srchQ} model.interactions)
         |> Option.map(fun cs -> Interactions.setDocumentStatus id Ready cs)
         |> Option.map(fun cs -> {model with interactions = cs})
         |> Option.defaultValue model
@@ -161,13 +159,6 @@ module Submission =
             else
                 Cmd.ofMsg (Ia_Local_Save)
         model,cmd
-
-    let tryApplyTemplate (id,tpType,template) model =
-        try
-            let ixs = Interactions.applyTemplate id (tpType,template) model.interactions
-            {model with interactions = ixs},Cmd.none
-        with ex ->
-            model,Cmd.ofMsg (ShowInfo ex.Message)
 
     let tryLoadSamples model =
         let model = {model with busy = false}

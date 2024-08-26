@@ -79,6 +79,7 @@ type DocSelectorView() =
                                 DocType = IO.docType e.File.Name
                                 DocumentText = None
                                 Status = DocumentStatus.No_Document 
+                                SearchTerms = None
                               }
                     dispatch (Ia_File_BeingLoad2 (chat.Id,doc)))
 

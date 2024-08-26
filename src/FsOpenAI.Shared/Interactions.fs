@@ -25,12 +25,12 @@ module Interaction =
 
     let tag (ch:Interaction) =
         let cType =
-            match ch.InteractionType with
-            | Plain _           -> "Chat"
-            | QnADoc _          -> "Doc."
-            | IndexQnA _        -> "Q&A"
-            | IndexQnADoc _     -> "Doc.+ "
-            | CodeEval _        -> "Wholesale"
+            match ch.Mode with
+            | M_Plain           -> "Chat"
+            | M_Doc             -> "Doc."
+            | M_Index           -> "Q&A"
+            | M_Doc_Index       -> "Doc.+ "
+            | M_CodeEval        -> "Wholesale"
         $"{cType} [{ch.Parameters.Backend}] ..."
 
     let systemMessage (c:Interaction) = c.SystemMessage
@@ -38,9 +38,9 @@ module Interaction =
     let messages (c:Interaction) = c.Messages
 
     let cBag c =
-        match c.InteractionType with
-        | Plain b -> b
-        | _ -> failwith "unexpected interaction type"
+        c.Types
+        |> List.tryPick (function Plain bag -> Some bag | _ -> None)
+        |> Option.defaultWith (fun _ -> failwith "unexpected chat type")
 
     let configuredChatBackends (cfg:AppConfig) =
         (cfg.ModelsConfig.LongChatModels |> List.map _.Backend)
@@ -53,11 +53,10 @@ module Interaction =
     let getSearchModeCases() = FSharpType.GetUnionCases typeof<SearchMode>
     let getSearchModeCase (mode:SearchMode) = FSharpValue.GetUnionFields(mode,typeof<SearchMode>)
 
-    let maxDocs defaultVal (ch:Interaction) =
-        match ch.InteractionType with
-        | IndexQnA bag -> bag.MaxDocs
-        | IndexQnADoc dbag -> dbag.QABag.MaxDocs
-        | _ -> defaultVal
+    let maxDocs defaultVal (ch:Interaction) = 
+        ch.Types
+        |> List.tryPick (function IndexQnA bag -> Some bag.MaxDocs | _ -> None)
+        |> Option.defaultValue defaultVal
 
     let lastSearchQuery (ch:Interaction) =
         List.rev ch.Messages
@@ -75,63 +74,64 @@ module Interaction =
         | Some n -> n
         | None   -> genName (tag ch) (lastNonEmptyUserMessageText ch) ch.Question
 
-    let docBag (ch:Interaction) = match ch.InteractionType with IndexQnADoc dbag -> dbag | _ -> failwith "unexpected chat type"
 
     let docContent (ch:Interaction) =
-        match ch.InteractionType with
-        | IndexQnADoc dbag -> dbag.Document
-        | QnADoc dc -> dc
-        | _ -> failwith "unexpected chat type"
+        ch.Types
+        |> List.tryPick (function 
+            | QnADoc dc -> Some dc 
+            | _ -> None)
 
-    let getPrompt tpType ch =
-        let dbag  = docBag ch
-        match tpType with
-        | DocQuery -> dbag.QueryTemplate
-        | Extraction -> dbag.ExtractTermsTemplate
 
     let qaBag ch =
-        match ch.InteractionType with
-        | IndexQnA bag       -> Some bag
-        | IndexQnADoc dbag   -> Some dbag.QABag
-        | _                  -> None
+        ch.Types
+        |> List.tryPick (function 
+            | IndexQnA bag -> Some bag 
+            | _ -> None)
 
-    let getIndexes c =
-        match c.InteractionType with
-        | IndexQnA bag      -> bag.Indexes
-        | IndexQnADoc dbag  -> dbag.QABag.Indexes
-        | _                 -> []
+    let getIndexes ch =
+        ch.Types
+        |> List.collect (function 
+            | IndexQnA bag      -> bag.Indexes
+            | _                 -> [])
 
-    let setQABag bag c =
-        match c.InteractionType with
-        | IndexQnA _          -> {c with InteractionType = IndexQnA bag}
-        | IndexQnADoc dbag    -> {c with InteractionType = IndexQnADoc {dbag with QABag = bag}}
-        | _                   -> failwith "unexpected chat type"
+    let setQABag bag ch =
+        {ch with 
+            Types = 
+                ch.Types 
+                |> List.map (function 
+                    | IndexQnA _          -> IndexQnA bag
+                    | x                   -> x)
+        }
 
-    let setDocBag dbag c =
-        match c.InteractionType with
-        | IndexQnADoc _   -> {c with InteractionType = IndexQnADoc dbag}
-        | _               -> failwith "unexpected chat type"
-
-    let setDocContent dc c =
-        match c.InteractionType with
-        | IndexQnADoc dbag   -> {c with InteractionType = IndexQnADoc {dbag with Document=dc }}
-        | QnADoc _           -> {c with InteractionType = QnADoc dc}
-        | _                  -> failwith "unexpected chat type"
+    let setDocContent dc ch =
+        {ch with 
+            Types = 
+                ch.Types 
+                |> List.map (function 
+                    | QnADoc _         -> QnADoc dc
+                    | x                -> x)
+        }
 
 
     let addIndex idx ch =
         let updateBag (bag:QABag) = {bag with Indexes = bag.Indexes @ [idx]}
-        match ch.InteractionType with
-        | IndexQnA bag -> setQABag (updateBag bag) ch
-        | IndexQnADoc dbag -> setQABag (updateBag dbag.QABag) ch
-        | _ -> failwith "give chat type does not contain indexes"
+        {ch with 
+            Types = 
+                ch.Types 
+                |> List.map (function 
+                    | IndexQnA bag -> IndexQnA (updateBag bag) 
+                    | x -> x)
+    }
 
     let setIndexes idxs ch =
         let updateBag (bag:QABag) = {bag with Indexes = idxs}
-        match ch.InteractionType with
-        | IndexQnA bag        -> setQABag (updateBag bag) ch
-        | IndexQnADoc dbag    -> setQABag (updateBag dbag.QABag) ch
-        | _                   -> ch
+        {ch with 
+            Types = 
+                ch.Types 
+                |> List.map (function 
+                    | IndexQnA bag -> IndexQnA (updateBag bag) 
+                    | x -> x)
+        }
 
     let clearDocuments c =
         {c with
@@ -172,12 +172,15 @@ module Interaction =
 
     let setMode mode ch = {ch with Parameters = {ch.Parameters with Mode = mode}}
 
-    let setMaxDocs maxDocs c =
+    let setMaxDocs maxDocs ch =
         let updateBag (bag:QABag) = {bag with MaxDocs=maxDocs}
-        match c.InteractionType with
-        | IndexQnA bag -> setQABag (updateBag bag) c
-        | IndexQnADoc dbag -> setQABag (updateBag dbag.QABag) c
-        | _          -> c
+        {ch with 
+            Types = 
+                ch.Types 
+                |> List.map (function 
+                    | IndexQnA bag -> IndexQnA (updateBag bag) 
+                    | x -> x)
+        }
 
     let endBuffering errOccured c  =
         let c = {c with IsBuffering=false}
@@ -223,36 +226,23 @@ module Interaction =
          {dc with DocumentText = Some cnts; Status = status}
 
     let setFileContents (text,isDone) (ch:Interaction) =
-        match ch.InteractionType with
-        | IndexQnADoc dbag -> {ch with InteractionType = IndexQnADoc {dbag with Document = setContents dbag.Document (text,isDone) }}
-        | QnADoc dc -> {ch with InteractionType = QnADoc (setContents dc (text,isDone))}
-        | _ -> failwith "unexpected chat type"
+        {ch with 
+            Types = 
+                ch.Types 
+                |> List.map (function 
+                    | QnADoc dc -> QnADoc (setContents dc (text,isDone))
+                    | x -> x)
+        }
 
     let setDocumentStatus status (ch:Interaction) =
-        match ch.InteractionType with
-        | QnADoc dc -> {ch with InteractionType = QnADoc {dc with Status=status}}
-        | IndexQnADoc dbag -> {ch with InteractionType = IndexQnADoc {dbag with Document.Status = status}}
-        | _ -> failwith "unexpected chat type"
+        {ch with 
+            Types = 
+                ch.Types 
+                |> List.map (function 
+                    | QnADoc dc -> QnADoc {dc with Status = status}
+                    | x -> x)
+        }
 
-    let applyTemplate (tpType,template) (ch:Interaction) =
-        let dbag = docBag ch
-        let dbag =
-            match tpType with
-            | DocQuery -> {dbag with QueryTemplate = Some template.Template;}
-            | Extraction -> {dbag with ExtractTermsTemplate = Some template.Template}
-        let ch = setDocBag dbag ch
-        match template.Question with
-        | Some q -> setQuestion q ch
-        | None   -> ch
-
-    let setPrompt (tpType,prompt) ch =
-        let prompt = if Utils.isEmpty prompt then None else Some prompt
-        let dbag = docBag ch
-        let dbag =
-            match tpType with
-            | DocQuery -> {dbag with QueryTemplate = prompt}
-            | Extraction -> {dbag with ExtractTermsTemplate = prompt}
-        setDocBag dbag ch
 
     let setParameters parms (ch:Interaction) = {ch with Parameters = parms}
 
@@ -261,23 +251,20 @@ module Interaction =
             Backend = backend
             Mode =
                 match interactionType with
-                | IndexQnA _ | IndexQnADoc _ | QnADoc _ -> ExplorationMode.Factual
+                | IndexQnA _ | QnADoc _ -> ExplorationMode.Factual
                 | _     -> InteractionParameters.Default.Mode
         }
 
     ///trim UI state that is not required for processing chat (cannot be serialized)
-    let removeUIState ch =
-        let ch =
-            match ch.InteractionType with
-            | IndexQnADoc dbag  ->
-                    {ch with
-                        InteractionType = IndexQnADoc {dbag with
-                                                            Document.DocumentRef = None
-                                                            Document.DocType=None}}
-            | QnADoc dc         ->
-                {ch with InteractionType = QnADoc {dc with DocumentRef = None; DocType=None}}
-            | _ -> ch
-        {ch with Feedback=None} //remove feedback
+    let removeUIState ch = 
+        {ch with 
+            Types = 
+                ch.Types 
+                |> List.map (function 
+                    | QnADoc dc  -> QnADoc {dc with DocumentRef = None; DocType=None}
+                    | x -> x)
+            Feedback = None
+        }
 
     let keepMessages n ch = {ch with Messages = ch.Messages |> List.rev |> List.truncate n |> List.rev}
 
@@ -299,15 +286,12 @@ module Interaction =
         }
 
     let removeDocumentText ch =
-        match ch.InteractionType with
-        | IndexQnADoc dbag  ->
-            {ch with
-                InteractionType = IndexQnADoc {dbag with Document.DocumentText = None
-                                                         Document.Status = No_Document }}
-        | QnADoc dc  ->
-            {ch with
-                InteractionType = QnADoc {dc with DocumentText = None; Status = No_Document}}
-        | _ -> ch
+        {ch with Types = 
+                    ch.Types 
+                    |> List.map (function 
+                        | QnADoc dc  -> QnADoc {dc with DocumentText = None; Status = No_Document}
+                        | x -> x)
+        }
 
     let sessionSerialize ch =
         {ch with Notifications=[]; IsBuffering=false}
@@ -323,12 +307,11 @@ module Interaction =
         |> clearDocuments
 
     let create ctype backend msg =
-        let iType =
+        let iType,mode =
             match ctype with
-            | Crt_Plain           -> InteractionType.Plain ChatBag.Default
-            | Crt_IndexQnA        -> InteractionType.IndexQnA QABag.Default
-            | Crt_IndexQnADoc lbl -> InteractionType.IndexQnADoc {DocBag.Default with Label=lbl}
-            | Crt_QnADoc          -> InteractionType.QnADoc DocumentContent.Default
+            | Crt_Plain           -> InteractionType.Plain ChatBag.Default, M_Plain
+            | Crt_IndexQnA        -> InteractionType.IndexQnA QABag.Default, M_Index
+            | Crt_QnADoc          -> InteractionType.QnADoc DocumentContent.Default, M_Doc
         let msg = defaultArg msg ""
         let id = Utils.newId()
         let c =
@@ -336,7 +319,8 @@ module Interaction =
                 Id = id
                 Name = None
                 Feedback = None
-                InteractionType = iType
+                Mode = mode
+                Types = [iType]
                 SystemMessage = C.defaultSystemMessage
                 Question = msg
                 Messages = []
@@ -348,14 +332,12 @@ module Interaction =
         c.Id,c
 
     let setUseWeb useWeb c =
-        match c.InteractionType with
-        | Plain cbag -> {c with InteractionType = Plain {UseWeb=useWeb}}
-        | _ -> failwith "unexpected chat type"
-
-    let toggleDocOnly c =
-        match c.InteractionType with
-        | IndexQnADoc dbag -> {c with InteractionType = IndexQnADoc {dbag with DocOnlyQuery = not dbag.DocOnlyQuery}}
-        | _ -> failwith "unexpected chat type"
+        {c with Types = 
+                    c.Types 
+                    |> List.map (function 
+                        | Plain cbag -> Plain {cbag with UseWeb=useWeb}
+                        | x -> x)
+        }
 
     let setFeedback feedback c = {c with Feedback = feedback}
 
@@ -372,8 +354,6 @@ module Interactions =
     let remove id cs = cs |> List.filter(fun c -> c.Id <> id)
 
     let setQABag id bag cs = updateWith (Interaction.setQABag bag) id cs
-
-    let setDocBag id dbag cs = updateWith (Interaction.setDocBag dbag) id cs
 
     let setDocContent id dc cs = updateWith (Interaction.setDocContent dc) id cs
 
@@ -409,10 +389,6 @@ module Interactions =
 
     let setDocumentStatus id status cs = updateWith (Interaction.setDocumentStatus status) id cs
 
-    let applyTemplate id (tpType,template) cs = updateWith (Interaction.applyTemplate (tpType,template)) id cs
-
-    let setPrompt id (tpType,prompt) cs = updateWith (Interaction.setPrompt (tpType,prompt)) id cs
-
     let setUseWeb id useWeb cs = updateWith (Interaction.setUseWeb useWeb) id cs
 
     let setQuestion id q cs = updateWith (Interaction.setQuestion q) id cs
@@ -424,8 +400,6 @@ module Interactions =
     let setIndexes id idxs cs = updateWith (Interaction.setIndexes idxs) id cs
 
     let setMode id mode cs = updateWith (Interaction.setMode mode) id cs
-
-    let toggleDocOnly id cs = updateWith (Interaction.toggleDocOnly) id cs
 
     let setFeedback id feedback cs = updateWith (Interaction.setFeedback feedback) id cs
 

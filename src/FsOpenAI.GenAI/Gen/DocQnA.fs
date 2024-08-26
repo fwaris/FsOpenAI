@@ -106,9 +106,9 @@ module DocQnA =
             let bestModel = GenUtils.optimalModel modelRefs (GenUtils.tokenSize query)
             let k = (GenUtils.baseKernel parms [bestModel] ch).Build()
             let args = GenUtils.kernelArgs ["document",query] (fun x -> x.MaxTokens <- 1000)
-            let docQuery = 
-                Interaction.getPrompt TemplateType.Extraction ch 
-                |> Option.defaultValue Prompts.DocQnA.extractSearchTerms
+            let docQuery = Prompts.DocQnA.extractSearchTerms
+                // Interaction.getPrompt TemplateType.Extraction ch 
+                // |> Option.defaultValue Prompts.DocQnA.extractSearchTerms
             let! rslt = k.InvokePromptAsync(docQuery,args) |> Async.AwaitTask
             return rslt.GetValue<string>()
         }
@@ -117,8 +117,10 @@ module DocQnA =
         task {
             try 
                 let modelRefs = GenUtils.chatModels modelsConfig ch.Parameters.Backend
-                let dbag = Interaction.docBag ch
-                let document = dbag.Document.DocumentText.Value
+                let document = 
+                    Interaction.docContent ch 
+                    |> Option.bind (fun d-> d.DocumentText) 
+                    |> Option.defaultWith (fun  _-> failwith "no document found")  
                 let! query = getSearchQuery parms modelRefs ch document
                 dispatch (Srv_Ia_SetSearch(ch.Id,query))
             with ex ->
@@ -177,12 +179,10 @@ module DocQnA =
     let continueAnswerQuestion parms modelsConfig ch document memories dispatch combinedSearch =
         task {
             let prompt = 
-                match ch.InteractionType with 
-                | QnADoc _                                -> Prompts.DocQnA.plainDocQuery
-                | IndexQnADoc dbag when dbag.DocOnlyQuery -> Prompts.DocQnA.plainDocQuery
-                | IndexQnADoc _ -> 
-                    Interaction.getPrompt DocQuery ch 
-                    |> Option.defaultValue Prompts.DocQnA.docQueryWithSearchResults
+                match ch.Mode with 
+                | M_Index                                -> Prompts.DocQnA.plainDocQuery
+                | M_Doc                                  -> Prompts.DocQnA.plainDocQuery
+                | M_Doc_Index                            -> Prompts.DocQnA.docQueryWithSearchResults
                 | _ -> failwith "unexpected chat type for document query"
 
             let question = Interaction.lastNonEmptyUserMessageText ch
@@ -223,8 +223,10 @@ module DocQnA =
 
     let runDocOnlyPlan (parms:ServiceSettings) modelsConfig (ch:Interaction) dispatch =
         async {
-            let docCntnt = Interaction.docContent ch
-            let document =  docCntnt.DocumentText.Value
+            let document = 
+                Interaction.docContent ch 
+                |> Option.bind (fun d -> d.DocumentText ) 
+                |> Option.defaultWith (fun _ -> failwith "no document found")
             dispatch (Srv_Ia_Notification (ch.Id,$"Document-only mode (no index search) ..."))
             do! Async.Sleep 100
             do! answerQuestion 1 parms modelsConfig ch document [] dispatch |> Async.AwaitTask
@@ -232,15 +234,16 @@ module DocQnA =
 
     let runIndexSrchPlan (parms:ServiceSettings) modelsConfig (ch:Interaction) dispatch =
         async {
-            let dbag = Interaction.docBag ch
-            let document =  dbag.Document.DocumentText.Value
+            let document = 
+                Interaction.docContent ch 
+                |> Option.bind (fun d -> d.DocumentText ) 
+                |> Option.defaultWith (fun _ -> failwith "no document found")
+            let query = 
+                Interaction.docContent ch 
+                |> Option.bind (fun d -> d.SearchTerms ) 
+                |> Option.defaultWith (fun _ -> failwith "no search terms found")
             let cogMems = QnA.chatPdfMemories parms modelsConfig ch   
             let maxDocs = Interaction.maxDocs 1 ch
-            let query = 
-                if dbag.SearchWithOrigText then 
-                    document 
-                else                        
-                    match dbag.SearchTerms with Some q -> q | _ -> failwith "no search terms found"
             let qMsg = query.Substring(0,min 100 (query.Length-1))  
             dispatch (Srv_Ia_Notification (ch.Id,$"Document + index search mode ..."))
             dispatch (Srv_Ia_Notification (ch.Id,$"Searching with: {qMsg} ..."))
@@ -274,10 +277,9 @@ module DocQnA =
     let runPlan (parms:ServiceSettings) modelsConfig (ch:Interaction) dispatch =
         async {  
             try
-                let dbag = Interaction.docBag ch
-                if dbag.DocOnlyQuery then 
-                    do! runDocOnlyPlan parms modelsConfig ch dispatch
-                else
-                    do! runIndexSrchPlan parms modelsConfig ch dispatch
+                match ch.Mode with 
+                | M_Doc -> do! runDocOnlyPlan parms modelsConfig ch dispatch
+                | M_Doc_Index -> do! runIndexSrchPlan parms modelsConfig ch dispatch
+                | _ -> failwith "unexpected chat mode"
             with ex -> dispatch (Srv_Ia_Done(ch.Id, Some ex.Message))
         }

@@ -82,7 +82,6 @@ type InvocationContext =
 type ChatMode = 
     | CM_Plain 
     | CM_IndexQnA 
-    | CM_IndexQnADoc 
     | CM_IndexQnASite
     | CM_QnADoc
     | CM_CustCtx

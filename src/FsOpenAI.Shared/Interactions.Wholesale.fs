@@ -3,17 +3,13 @@ open System
 open FsOpenAI.Shared
 
 module Interaction =
-    let code ch = match ch.InteractionType with CodeEval c -> c | _ -> failwith "unexpected chat type"
+    let code (ch:Interaction) = ch.Types |> List.tryPick (function CodeEval c -> Some c | _ -> None) |> Option.defaultWith (fun _ -> failwith "unexpected chat type")
 
     let setCode c ch =
-        match ch.InteractionType with
-        | CodeEval bag -> {ch with InteractionType = CodeEval {bag with Code = c}}
-        | _ -> failwith "unexpected chat type"
+        {ch with Types = ch.Types |> List.map (function CodeEval bag -> CodeEval {bag with Code = c} | x -> x)}
 
     let setPlan p ch =
-        match ch.InteractionType with
-        | CodeEval bag -> {ch with InteractionType = CodeEval {bag with Plan = p}}
-        | _ -> failwith "unexpected chat type"
+        {ch with Types = ch.Types |> List.map (function CodeEval bag -> CodeEval {bag with Plan = p} | x -> x)}
 
 module Interactions =
     open FsOpenAI.Shared.Interactions.Core.Interactions
