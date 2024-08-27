@@ -129,5 +129,5 @@ module AppBar =
                 }
             }
             ecomp<MainSettingsView,_,_> model dispatch {attr.empty()}
-            ecomp<ChatCreateView,_,_> model dispatch {attr.empty()}
+//            ecomp<ChatCreateView,_,_> model dispatch {attr.empty()}
         }

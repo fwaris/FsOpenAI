@@ -1,4 +1,5 @@
 ﻿namespace FsOpenAI.Client
+open System
 open Bolero
 open FsOpenAI.Shared
 open System.Security.Claims
@@ -6,6 +7,22 @@ open System.Security.Claims
 type Page =
     | [<EndPoint "/">] Home
     | [<EndPoint "/authentication/{action}">] Authentication of action:string //need a separate route for authentication
+
+type SourceType = ST_AIModel | ST_WebSearch
+
+[<CLIMutable>]
+type SourceTree = {
+    NodeType: SourceType
+    Description: string
+    Children: SourceTree list
+}
+with 
+    static member Flattended (xs:SourceTree list) = 
+        let rec loop acc xs = 
+            match xs with 
+            | [] -> acc
+            | x::rest -> Set.union (loop (Set.add x acc) x.Children) (loop acc rest)
+        loop Set.empty xs
 
 type TempChatState =
     {
@@ -74,7 +91,7 @@ type Message =
     | Ia_Restart of string * InteractionMessage
     | Ia_UpdateName of string * string
     | Ia_UpdateParms of string * InteractionParameters
-    | Ia_Add of InteractionCreateType
+    | Ia_Add of InteractionMode
     | Ia_Remove of string
     | Ia_Selected of string
     | Ia_UpdateQaBag of string * QABag
@@ -167,6 +184,9 @@ module Model =
             apply model
 
     let isChatPeristenceConfigured model = model.appConfig.SessionTableName.IsSome
+
+    let isEnabled mode model = model.appConfig.EnabledChatModes |> List.exists (fun (x,_) -> x = mode)
+    let isEnabledAny modes model = modes |> List.exists (fun m -> isEnabled m model)
 
     type Blk = M of int*int | Topen of int | Tblock of (int*int) | E of int
 

@@ -7,7 +7,7 @@ open Elmish
 open MudBlazor
 open FsOpenAI.Client
 open FsOpenAI.Shared
-open FsOpenAI.Shared.Interactions.Wholesale
+open FsOpenAI.Shared.Interactions.CodeEval
 
 type CodeEvalViewPopup() =
     inherit ElmishComponent<CodeEvalBag*Interaction*Model,Message>()

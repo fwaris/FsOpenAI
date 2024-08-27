@@ -25,16 +25,12 @@ type SidebarView() =
                     attr.``class`` "rz-p-2"
                     "AlignItems" => AlignItems.Center
                     "Orientation" => Orientation.Horizontal
-                    // comp<RadzenText> {
-                    //     "Text" => "Chats"
-                    //     "TextStyle" => TextStyle.H6
-                    // }
                     comp<RadzenButton> {
                         "ButtonStyle" => ButtonStyle.Primary
                         attr.``class`` "rz-border-radius-10 rz-shadow-10"
                         attr.title "Add chat"
                         "Icon" => "add"
-                        attr.callback "Click" (fun (e:MouseEventArgs) -> dispatch (Ia_Add InteractionCreateType.Crt_IndexQnA))
+                        attr.callback "Click" (fun (e:MouseEventArgs) -> dispatch (Ia_Add InteractionMode.M_Index))
                     }
                 }
                 comp<RadzenStack> {

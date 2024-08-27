@@ -10,7 +10,7 @@
     <Compile Include="Settings.fs" />
     <Compile Include="Types.fs" />
     <Compile Include="Interactions.Core.fs" />
-    <Compile Include="Interactions.Wholesale.fs" />
+    <Compile Include="Interactions.CodeEval.fs" />
     <Compile Include="Interactions.fs" />
   </ItemGroup>
   <ItemGroup>

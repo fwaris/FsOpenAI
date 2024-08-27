@@ -79,13 +79,12 @@ type InvocationContext =
                 User = None
             }
 
-type ChatMode = 
-    | CM_Plain 
-    | CM_IndexQnA 
-    | CM_IndexQnASite
-    | CM_QnADoc
-    | CM_CustCtx
-    | CM_TravelSurvey
+type InteractionMode = 
+    | M_Plain
+    | M_Index
+    | M_Doc
+    | M_Doc_Index
+    | M_CodeEval
 
 type AppBarType =
     | AppB_Base of string
@@ -97,7 +96,7 @@ type AppConfig =
         EnabledBackends : Backend list
         
         ///Set the modes of chat that can be created under this configuration
-        EnabledChatModes : (ChatMode*string) list
+        EnabledChatModes : (InteractionMode*string) list
 
         ///Default number of docs for new chats
         DefaultMaxDocs : int
@@ -152,7 +151,7 @@ type AppConfig =
         static member Default = 
             {
                 EnabledBackends = [OpenAI]
-                EnabledChatModes = [CM_Plain,"You are a helpful AI assistant"]
+                EnabledChatModes = [M_Plain,"You are a helpful AI assistant"]
                 DefaultMaxDocs = 10
                 Roles = []
                 RequireLogin = false

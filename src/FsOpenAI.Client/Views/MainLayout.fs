@@ -54,26 +54,20 @@ type MainLayout() =
                                 ecomp<ChatHistoryView,_,_> model dispatch {attr.empty()}
                             }
                             comp<RadzenSplitterPane> {
-                                let state = 
-                                    Model.selectedChat model 
-                                    |> Option.bind (fun chat -> Interaction.qaBag chat |> Option.map (fun bag -> (bag,chat)))
-                                match state with
-                                | None -> "Collapsed" => true
-                                | Some _ -> "Collapsed" => false                               
                                 "Size" => "25%"    
                                 attr.``class`` "rz-p-0 rz-p-lg-12"
                                 "Style" => "overflow:auto;"
-                                state
-                                |> Option.map (fun (bag,chat) -> ecomp<IndexTreeView,_,_> (bag,chat,model) dispatch {attr.empty()})
-                                |> Option.defaultWith (fun () -> 
+                                match Model.selectedChat model with
+                                | Some chat ->  ecomp<SourcesView,_,_> (chat, model) dispatch {attr.empty()}
+                                | None -> 
                                     comp<RadzenStack> {
                                         attr.``class`` "rz-p-8"
                                         comp<RadzenText> {
                                             attr.``class`` "rz-color-info-light"
                                             "TextStyle" => TextStyle.Caption
-                                            "Text" => "Index selection not required for chat type" 
+                                            "Text" => "Sources ..." 
                                         }
-                                    })
+                                }
                             }
                         }
                     }

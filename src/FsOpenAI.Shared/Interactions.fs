@@ -58,6 +58,29 @@ module Interaction =
         |> List.tryPick (function IndexQnA bag -> Some bag.MaxDocs | _ -> None)
         |> Option.defaultValue defaultVal
 
+    let docContent (ch:Interaction) =
+        ch.Types
+        |> List.tryPick (function 
+            | QnADoc dc -> Some dc 
+            | _         -> None)
+
+    let qaBag ch =
+        ch.Types
+        |> List.tryPick (function 
+            | IndexQnA bag -> Some bag 
+            | _ -> None)
+
+    let plainBag ch =
+        ch.Types
+        |> List.tryPick (function 
+            | Plain bag -> Some bag 
+            | _ -> None)
+
+    let useWeb (ch:Interaction) = 
+        plainBag ch
+        |> Option.map (fun bag -> bag.UseWeb)
+        |> Option.defaultValue false
+
     let lastSearchQuery (ch:Interaction) =
         List.rev ch.Messages
         |> List.map (_.Role)
@@ -74,43 +97,26 @@ module Interaction =
         | Some n -> n
         | None   -> genName (tag ch) (lastNonEmptyUserMessageText ch) ch.Question
 
-
-    let docContent (ch:Interaction) =
-        ch.Types
-        |> List.tryPick (function 
-            | QnADoc dc -> Some dc 
-            | _ -> None)
-
-
-    let qaBag ch =
-        ch.Types
-        |> List.tryPick (function 
-            | IndexQnA bag -> Some bag 
-            | _ -> None)
-
     let getIndexes ch =
         ch.Types
         |> List.collect (function 
             | IndexQnA bag      -> bag.Indexes
             | _                 -> [])
 
+    let setPlainBag bag ch =
+        match plainBag ch with 
+        | Some _ -> {ch with Types = ch.Types |> List.map (function Plain _ -> Plain bag | x -> x)}
+        | None   -> {ch with Types = ch.Types @ [Plain bag]}
+
     let setQABag bag ch =
-        {ch with 
-            Types = 
-                ch.Types 
-                |> List.map (function 
-                    | IndexQnA _          -> IndexQnA bag
-                    | x                   -> x)
-        }
+        match qaBag ch with 
+        | Some _ -> {ch with Types = ch.Types |> List.map (function IndexQnA _ -> IndexQnA bag | x -> x)}
+        | None   -> {ch with Types = ch.Types @ [IndexQnA bag]}
 
     let setDocContent dc ch =
-        {ch with 
-            Types = 
-                ch.Types 
-                |> List.map (function 
-                    | QnADoc _         -> QnADoc dc
-                    | x                -> x)
-        }
+        match docContent ch with
+        | Some _ -> {ch with Types = ch.Types |> List.map (function QnADoc _ -> QnADoc dc | x -> x)}
+        | None   -> {ch with Types = ch.Types @ [QnADoc dc]}
 
 
     let addIndex idx ch =
@@ -124,14 +130,9 @@ module Interaction =
     }
 
     let setIndexes idxs ch =
-        let updateBag (bag:QABag) = {bag with Indexes = idxs}
-        {ch with 
-            Types = 
-                ch.Types 
-                |> List.map (function 
-                    | IndexQnA bag -> IndexQnA (updateBag bag) 
-                    | x -> x)
-        }
+        match qaBag ch with
+        | Some bag -> setQABag {bag with Indexes=idxs} ch
+        | None     -> setQABag {QABag.Default with Indexes=idxs} ch
 
     let clearDocuments c =
         {c with
@@ -306,12 +307,14 @@ module Interaction =
         |> removeUIState
         |> clearDocuments
 
-    let create ctype backend msg =
-        let iType,mode =
-            match ctype with
-            | Crt_Plain           -> InteractionType.Plain ChatBag.Default, M_Plain
-            | Crt_IndexQnA        -> InteractionType.IndexQnA QABag.Default, M_Index
-            | Crt_QnADoc          -> InteractionType.QnADoc DocumentContent.Default, M_Doc
+    let create mode backend msg =
+        let iType =
+            match mode with
+            | M_Plain        -> InteractionType.Plain ChatBag.Default
+            | M_Index        -> InteractionType.IndexQnA QABag.Default
+            | M_Doc_Index    -> InteractionType.IndexQnA QABag.Default
+            | _              -> InteractionType.Plain ChatBag.Default
+
         let msg = defaultArg msg ""
         let id = Utils.newId()
         let c =
@@ -320,7 +323,7 @@ module Interaction =
                 Name = None
                 Feedback = None
                 Mode = mode
-                Types = [iType]
+                Types = []// [iType]
                 SystemMessage = C.defaultSystemMessage
                 Question = msg
                 Messages = []
@@ -332,12 +335,9 @@ module Interaction =
         c.Id,c
 
     let setUseWeb useWeb c =
-        {c with Types = 
-                    c.Types 
-                    |> List.map (function 
-                        | Plain cbag -> Plain {cbag with UseWeb=useWeb}
-                        | x -> x)
-        }
+        match plainBag c with
+        | Some pbag -> setPlainBag {pbag with UseWeb=useWeb} c
+        | None      -> setPlainBag {ChatBag.Default with UseWeb=useWeb} c
 
     let setFeedback feedback c = {c with Feedback = feedback}
 

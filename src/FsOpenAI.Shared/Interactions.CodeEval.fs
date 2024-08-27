@@ -1,4 +1,4 @@
-namespace FsOpenAI.Shared.Interactions.Wholesale
+namespace FsOpenAI.Shared.Interactions.CodeEval
 open System
 open FsOpenAI.Shared
 

@@ -7,19 +7,19 @@
   "EnabledChatModes": [
     [
       {
-        "Case": "CM_Plain"
+        "Case": "M_Index"
       },
       "You are a helpful AI assistant\u0022\n"
     ],
     [
       {
-        "Case": "CM_QnADoc"
+        "Case": "M_Doc"
       },
       "You are a helpful AI assistant\u0022\n"
     ],
     [
       {
-        "Case": "CM_IndexQnA"
+        "Case": "M_Plain"
       },
       "You are a helpful AI assistant\u0022\n"
     ]

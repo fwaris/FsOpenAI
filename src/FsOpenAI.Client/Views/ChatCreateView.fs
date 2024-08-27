@@ -6,7 +6,9 @@ open Elmish
 open MudBlazor
 open FsOpenAI.Client
 open FsOpenAI.Shared
+()
 
+(*
 type ChatCreateView() =
     inherit ElmishComponent<Model,Message>()    
     override this.View model (dispatch:Message -> unit) =
@@ -19,3 +21,5 @@ type ChatCreateView() =
                 "Open" => isOpen        
                 Init.createMenu model dispatch
         }
+
+*)

@@ -47,7 +47,13 @@ type ChatHistoryView() =
                                     ChatId = chat.Id
                                     Model = model
                                     Parms = chat.Parameters
-                                    QaBag = Interaction.qaBag chat
+                                    QaBag = 
+                                        Interaction.qaBag chat 
+                                        |> Option.orElseWith (fun _ -> 
+                                            if Model.isEnabledAny [M_Index; M_Doc_Index]  this.Model then 
+                                                Some QABag.Default
+                                            else
+                                                None)
                                     SystemMessage = Interaction.systemMessage chat
                                 }
                             ecomp<ChatSettingsView,_,_> m dispatch {attr.empty()}

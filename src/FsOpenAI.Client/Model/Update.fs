@@ -94,8 +94,8 @@ module Update =
         | Ia_SetSearch(id,txt) -> Submission.updateSearchTerms (id,txt) model,Cmd.none
         | Ia_Remove id -> Submission.removeChat id model
         | Ia_Selected id -> {model with selectedChatId = Some id},Cmd.none
-        | Ia_UseWeb (id,useWeb) -> {model with interactions = Interactions.setUseWeb id useWeb model.interactions},Cmd.none
-        | Ia_SetIndex (id,idxs) -> {TmpState.toggleIndex id model  with interactions = Interactions.setIndexes id idxs model.interactions},Cmd.none
+        | Ia_UseWeb (id,useWeb) -> Submission.setModeUseWeb useWeb id model,Cmd.none
+        | Ia_SetIndex (id,idxs) -> Submission.setModeIndexes idxs id model,Cmd.none
         | Ia_ToggleSettings id -> TmpState.toggleChatSettings id model,Cmd.none
         | Ia_ToggleDocs (id,msgId) -> TmpState.toggleChatDocs (id,msgId) model, Cmd.none
         | Ia_ToggleDocDetails id -> TmpState.toggleDocDetails id model, Cmd.none
@@ -155,7 +155,7 @@ module Update =
         | FromServer (Srv_Ia_Session_DoneLoading) -> Submission.tryLoadSamples model
         | FromServer (Srv_Ia_SetSubmissionId(id,logId)) -> model,Cmd.ofMsg(Ia_Feedback_Set(id,Feedback.Default logId))
         //wholesale
-        | FromServer(Srv_Ia_SetCode(id,c)) -> {model with interactions = Wholesale.Interactions.setCode id c model.interactions},Cmd.none
-        | FromServer(Srv_Ia_SetPlan(id,p)) -> {model with interactions = Wholesale.Interactions.setPlan id p model.interactions},Cmd.none
+        | FromServer(Srv_Ia_SetCode(id,c)) -> {model with interactions = CodeEval.Interactions.setCode id c model.interactions},Cmd.none
+        | FromServer(Srv_Ia_SetPlan(id,p)) -> {model with interactions = CodeEval.Interactions.setPlan id p model.interactions},Cmd.none
 
 

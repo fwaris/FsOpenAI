@@ -29,20 +29,8 @@ module Init =
     open Bolero.Html
 
     let private (===) (a:string) (b:string) = a.Equals(b,StringComparison.InvariantCultureIgnoreCase)
-    let private updateBag bag ch = match bag with Some b -> Interaction.setQABag b ch | None -> ch
-    let private updateIndx idxs ch = (ch,idxs) ||> List.fold (fun ch i -> Interaction.addIndex i ch)
-    let private setUseWeb useWeb ch = Interaction.setUseWeb useWeb ch 
 
     let defaultBackend model = model.appConfig.EnabledBackends |> List.tryHead |> Option.defaultValue OpenAI
-
-    let newInteractionTypes templates =
-        let createsBase =
-            [
-                Icons.Material.Outlined.QuestionAnswer, "New Index Q&A", Crt_IndexQnA
-                Icons.Material.Outlined.DocumentScanner, "New Doc. Q&A", Crt_QnADoc
-            ]
-        createsBase
-        @ [Icons.Material.Outlined.Chat, "New Chat with GPT", Crt_Plain ]
 
     let pingServer serverDispatch =
         async{
@@ -51,31 +39,6 @@ module Init =
             serverDispatch (ClientInitiatedMessages.Clnt_Connected "me")
         }
         |> Async.StartImmediate
-
-    let isAllowedChat appConfig (ctype:InteractionType) =
-        appConfig.EnabledChatModes
-        |> List.exists (fun (m,_) ->
-            match m,ctype with
-            | CM_Plain, Plain _
-            | CM_IndexQnA,IndexQnA _
-            | CM_QnADoc, QnADoc _
-            | CM_TravelSurvey, CodeEval _ -> true
-            | _                           -> false)
-
-    let isAllowedSample appConfig ch =
-        appConfig.EnabledBackends
-        |> List.tryFind (fun b -> b = ch.Parameters.Backend)
-        |> Option.map(fun _ -> ch.Types |> List.exists (fun t -> isAllowedChat appConfig t))
-        |> Option.defaultValue false
-
-    let isAllowedCreate appConfig (ctype:InteractionCreateType) =
-        appConfig.EnabledChatModes
-        |> List.exists (fun (m,_) ->
-            match m,ctype with
-            | CM_Plain, Crt_Plain
-            | CM_QnADoc, Crt_QnADoc
-            | CM_IndexQnA,Crt_IndexQnA          -> true
-            | _                                 -> false)
 
     ///Invoked after all init. data has been sent by server to a newly connected client.
     ///Includes: service parameters, app configuration, and samples.
@@ -97,13 +60,13 @@ module Init =
        let idxs = idxs.Split([|',';' '|],StringSplitOptions.RemoveEmptyEntries)
        idxs |> Seq.collect(fun n ->  [Azure n; Virtual n]) |> Seq.toList
 
-    let createFromSample searchAvailable backend indexes label sample =
+    let createFromSample model searchAvailable backend indexes label sample =
 
-        let cr,useWeb =
+        let mode,useWeb =
             match sample.SampleChatType with
-            | SM_Plain useWeb    -> Crt_Plain,useWeb
-            | SM_QnADoc          -> Crt_QnADoc,false
-            | SM_IndexQnA _      -> Crt_IndexQnA,false
+            | SM_Plain useWeb    -> M_Plain,useWeb
+            | SM_QnADoc          -> M_Doc,false
+            | SM_IndexQnA _      -> M_Index,false
 
         let useWeb = searchAvailable && useWeb
 
@@ -116,16 +79,17 @@ module Init =
             idxRefs
             |> List.choose(fun idx -> indexes |> List.tryFind (fun t -> t = idx))
 
-        let _,ch = Interaction.create cr backend None
-        let ch = Interaction.setQuestion sample.SampleQuestion ch
+        let _,ch = Interaction.create mode backend None
+        let ch = 
+            ch
+            |> Interaction.setQuestion sample.SampleQuestion
+            |> Interaction.setSystemMessage sample.SampleSysMsg
+            |> Interaction.setParameters {ch.Parameters with Mode=sample.SampleMode}
 
-        ch
-        |> setUseWeb useWeb
-        |> Interaction.setParameters {ch.Parameters with Mode=sample.SampleMode}
-        |> updateBag (ch |> Interaction.qaBag |> Option.map(fun b -> {b with MaxDocs=sample.MaxDocs}))
-        |> updateIndx idxRefs
-        |> Interaction.setSystemMessage sample.SampleSysMsg
-
+        match sample.SampleChatType with
+        | SM_Plain _     -> Interaction.setUseWeb useWeb ch 
+        | SM_IndexQnA _  -> Interaction.setQABag {QABag.Default with Indexes = idxRefs; MaxDocs=model.appConfig.DefaultMaxDocs} ch
+        | SM_QnADoc      -> ch
 
     let flatten (trees:IndexTree list)  =
         let rec loop acc = function
@@ -139,16 +103,18 @@ module Init =
     let createFromSamples (label,samples:SamplePrompt list) model =
         let backend = defaultBackend model
 
-        let searchAvailable =
+        let webSearchConfigured =
             model.serviceParameters
             |> Option.bind(fun x->x.BING_ENDPOINT)
             |> Option.map (fun x  -> Utils.isEmpty x.API_KEY |> not)
             |> Option.defaultValue false
 
-        let searchConfigured =
+        let aiSearchConfigured =
             model.serviceParameters
             |> Option.map(fun x -> not(x.AZURE_SEARCH_ENDPOINTS.IsEmpty))
             |> Option.defaultValue false
+
+        if Model.isEnabled M_Index model && not aiSearchConfigured then failwith "Index endpoints not configured"
 
         let chatModels =
             model.appConfig.ModelsConfig.ShortChatModels
@@ -162,18 +128,8 @@ module Init =
 
         if availableModels.IsEmpty then failwith "No chat models configured"
 
-        let chats =
-            let indexRefs = model.indexTrees |> flatten |> List.map(fun x -> x.Idx) |> List.distinct
-            samples |> List.map (createFromSample searchAvailable backend indexRefs label)
-
-        let chats =
-            chats
-            |> List.choose(fun c -> 
-                if searchConfigured then Some c 
-                elif c.Types |> List.exists (function Plain _ -> true | _ -> false) then Some c
-                else None)
-            |> List.filter (isAllowedSample model.appConfig)
-        chats
+        let indexRefs = model.indexTrees |> flatten |> List.map(fun x -> x.Idx) |> List.distinct
+        samples |> List.map (createFromSample model webSearchConfigured backend indexRefs label)
 
     let addSamples label (samples:SamplePrompt list) model =
         try
@@ -182,7 +138,6 @@ module Init =
             m,Cmd.none
         with ex ->
             model,Cmd.ofMsg(ShowError ex.Message)
-
 
     let createMenuGroup dispatch group  =
         concat {
@@ -201,11 +156,6 @@ module Init =
                     }
                 }
         }
-
-    let createMenu model dispatch =
-        newInteractionTypes model.templates
-        |> List.filter (fun (_,_,ctype) -> isAllowedCreate model.appConfig ctype)
-        |> createMenuGroup dispatch
 
     let flashBanner (uparms:UpdateParms) model msg =
         let txClr = Colors.Pink.Lighten3

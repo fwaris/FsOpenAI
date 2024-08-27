@@ -4,14 +4,53 @@ open Elmish
 open FSharp.Control
 open FsOpenAI.Client
 open FsOpenAI.Shared
-open FsOpenAI.Shared.Interactions.Wholesale
+open FsOpenAI.Shared.Interactions.CodeEval
 open FsOpenAI.Shared.Interactions
+open FsOpenAI.Shared.Interactions.Core
 
 
 //manage chat operations like submitting a chat, generating search, etc.
 module Submission =
 
     let docType id cs = (Interactions.docContent id cs) |> Option.bind(fun d->d.DocType) 
+
+    let setMode  desiredMode ch = 
+        match ch.Mode,desiredMode with
+        | x,y when x=y             -> ch
+        | M_Doc_Index, M_Doc       -> ch
+        | M_Doc, M_Doc_Index       -> {ch with Mode=M_Doc_Index}
+        | _,M_Index                -> {ch with Mode=M_Index}
+        | _,M_Plain                -> {ch with Mode=M_Plain}
+        | _,M_Doc                  -> {ch with Mode=M_Doc}
+        | _,M_Doc_Index            -> {ch with Mode=M_Doc_Index}
+        | _,M_CodeEval             -> {ch with Mode=M_CodeEval}
+
+    let setModeUseWeb useWeb id model =
+        {model with 
+            interactions = 
+                        model.interactions
+                        |> List.find (fun c -> c.Id = id)
+                        |> Interaction.setUseWeb useWeb
+                        |> setMode M_Plain
+                        |> Interactions.replace id model.interactions}
+
+    let setModeQaBag qaBag id model =
+        {model with 
+            interactions = 
+                        model.interactions
+                        |> List.find (fun c -> c.Id = id)
+                        |> Interaction.setQABag qaBag
+                        |> setMode M_Index
+                        |> Interactions.replace id model.interactions}
+                        
+    let setModeIndexes idxs id model =
+        {model with 
+            interactions = 
+                        model.interactions
+                        |> List.find (fun c -> c.Id = id)
+                        |> Interaction.setIndexes idxs
+                        |> setMode M_Index
+                        |> Interactions.replace id model.interactions}
 
     let isReady ch =
         match ch with 
@@ -110,13 +149,9 @@ module Submission =
             |> Option.defaultValue (Cmd.ofMsg (Ia_Save id))
         model,cmd
 
-    let defSysMsg createType appConfg =
+    let defSysMsg mode appConfg =
         appConfg.EnabledChatModes
-        |> List.choose(fun (m,sysM) ->
-            match m,createType with
-            | CM_IndexQnA, Crt_IndexQnA
-            | CM_Plain, Crt_Plain         -> Some sysM
-            | _                           -> None)
+        |> List.choose(fun (m,sysM) -> match m with mode -> Some sysM | _ -> None)
         |> List.tryHead
         |> Option.defaultValue C.defaultSystemMessage
 

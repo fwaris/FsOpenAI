@@ -61,11 +61,11 @@ module AltAppBar =
                         "TransformOrigin" => Origin.TopRight
                         "Class" => "mt-1"
                         concat {  
-                            comp<MudMenuItem> {
-                                "Icon" => Icons.Material.Filled.Add
-                                "Color" => Color.Tertiary
-                                Init.createMenu model dispatch
-                            }                            
+                            // comp<MudMenuItem> {
+                            //     "Icon" => Icons.Material.Filled.Add
+                            //     "Color" => Color.Tertiary
+                            //     Init.createMenu model dispatch
+                            // }                            
                             comp<MudMenuItem> {
                                 "Icon" => if model.darkTheme then Icons.Material.Outlined.WbSunny else Icons.Material.Outlined.Nightlight
                                 on.click(fun _ -> dispatch ToggleTheme)

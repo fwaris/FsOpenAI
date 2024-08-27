@@ -130,18 +130,11 @@ type InteractionType =
     | QnADoc of DocumentContent
     | CodeEval of CodeEvalBag
 
-///Create new chat enum
-type InteractionCreateType =
-    | Crt_Plain
-    | Crt_IndexQnA
-    | Crt_QnADoc
-
 ///Chat sample enum
 type SampleChatType =
     | SM_Plain of bool
     | SM_QnADoc
     | SM_IndexQnA of string
-
 
 type Feedback = {
     LogId : string
@@ -149,13 +142,6 @@ type Feedback = {
     Comment : string option
 }
     with static member Default id = {LogId=id; ThumbsUpDn=0; Comment=None}
-
-type InteractionMode = 
-    | M_Plain
-    | M_Index
-    | M_Doc
-    | M_Doc_Index
-    | M_CodeEval
 
 type Interaction = {
     Id : string
