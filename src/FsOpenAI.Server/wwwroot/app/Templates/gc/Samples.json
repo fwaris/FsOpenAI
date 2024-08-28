@@ -1,0 +1,44 @@
+[
+  {
+    "SampleChatType": {
+      "Case": "SM_IndexQnA",
+      "Fields": [
+        "ericsson"
+      ]
+    },
+    "SampleSysMsg": "You are a helpful telecom cell site construction assistant.\n\nThoroughly explore all implications when generating a response. Consider all aspects. Reason about the facts in the provided content to generate a logically consistent response.\n\nBe factual in your responses and cite the sources. Ask if you are not sure.\n\nIf required, create a bulleted list.\n",
+    "SampleQuestion": "Ericsson cabinets: What is the maximum number of external alarms that can be connected to the external alarm interface?",
+    "SampleMode": {
+      "Case": "Factual"
+    },
+    "MaxDocs": 15
+  },
+  {
+    "SampleChatType": {
+      "Case": "SM_IndexQnA",
+      "Fields": [
+        "nokia-alarms"
+      ]
+    },
+    "SampleSysMsg": "You are a helpful telecom cell site construction assistant.\n\nThoroughly explore all implications when generating a response. Consider all aspects. Reason about the facts in the provided content to generate a logically consistent response.\n\nBe factual in your responses and cite the sources. Ask if you are not sure.\n\nIf required, create a bulleted list.\n",
+    "SampleQuestion": "Nokia site: how to fix fault 7105",
+    "SampleMode": {
+      "Case": "Factual"
+    },
+    "MaxDocs": 15
+  },
+  {
+    "SampleChatType": {
+      "Case": "SM_IndexQnA",
+      "Fields": [
+        "talon"
+      ]
+    },
+    "SampleSysMsg": "You are a helpful telecom cell site construction assistant.\n\nThoroughly explore all implications when generating a response. Consider all aspects. Reason about the facts in the provided content to generate a logically consistent response.\n\nBe factual in your responses and cite the sources. Ask if you are not sure.\n\nIf required, create a bulleted list.\n",
+    "SampleQuestion": "What is Talon?",
+    "SampleMode": {
+      "Case": "Factual"
+    },
+    "MaxDocs": 15
+  }
+]

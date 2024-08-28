@@ -3,7 +3,7 @@ open Bolero.Html
 open FsOpenAI.Client
 open FsOpenAI.Shared
 
-module AssistantMessage = 
+module AssistantMessage =
     open Radzen
     open Radzen.Blazor
 
@@ -15,8 +15,8 @@ module AssistantMessage =
                 comp<RadzenColumn> {
                     "Size" => 1
                     comp<RadzenIcon> {
-                        "Icon" => "robot_2" // C.DFLT_ASST_ICON
-                        "IconStyle" => IconStyle.Info
+                        "Icon" =>  C.DFLT_ASST_ICON
+                        //"IconStyle" => IconStyle.Info
                     }
                 }
                 comp<RadzenColumn> {
@@ -41,10 +41,10 @@ module AssistantMessage =
                                         "Style" => "height: 3.5rem; overflow: auto;"
                                         "Orientation" => Orientation.Horizontal
                                         "Wrap" => FlexWrap.Wrap
-                                        for d in docs do                                            
+                                        for d in docs do
                                             comp<RadzenLink> {
                                                 attr.title (Utils.shorten 40 d.Text)
-                                                attr.``class`` "rz-ml-2 "                                                
+                                                attr.``class`` "rz-ml-2 "
                                                 "Style" => "max-width: 140px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; color: var(--rz-danger-light);"
                                                 "Path" => d.Ref
                                                 "Target" => "_blank"
@@ -59,13 +59,13 @@ module AssistantMessage =
                                 td {
                                     attr.colspan 2
                                     match chat.Feedback with
-                                    | Some fb -> 
-                                        ecomp<FeedbackView,_,_> (fb,chat,model) dispatch { attr.empty() }   
+                                    | Some fb ->
+                                        ecomp<FeedbackView,_,_> (fb,chat,model) dispatch { attr.empty() }
                                     | None -> ()
                                 }
                             }
                         }
-                    }                                
+                    }
             }
         }
 

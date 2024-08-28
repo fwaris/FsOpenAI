@@ -44,14 +44,16 @@ module IO =
         (acc,t.Children) ||> List.fold subTree
 
     //select all nodes in the tree that have the given indexRefs
-    let selectIndexTrees idxRefs indexTrees = 
-        let rec loop idx acc idxTree = 
+    let selectIndexTrees idxRefs indexTrees =
+        let rec loop idx acc idxTree =
             if idx = idxTree.Idx then
-                Set.add idxTree acc                
+                Set.add idxTree acc
             else
                 (acc,idxTree.Children) ||> List.fold (loop idx)
-        (Set.empty,idxRefs) 
+        (Set.empty,idxRefs)
         ||> Set.fold (fun acc idx -> (acc,indexTrees) ||> List.fold (loop idx))
+        |> Seq.collect (subTree Set.empty)
+        |> set
 
     ///try to map any tags in the index refs to the actual index names
     let remapIndexRefs treeMap (idxs:Set<IndexRef>) =

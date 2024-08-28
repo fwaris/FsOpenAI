@@ -21,6 +21,6 @@ type IndexQnAView() =
             comp<MudPaper> {
                 "Class" => "d-flex flex-1 ma-2"
                 //ecomp<IndexSelectionView,_,_> (bag,chat,model) dispatch {attr.empty()}
-                ecomp<SourcesView,_,_> (chat,model) dispatch {attr.empty()}
+                //ecomp<SourcesView,_,_> (chat,model) dispatch {attr.empty()}
             }
         }

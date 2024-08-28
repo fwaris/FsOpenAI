@@ -10,34 +10,33 @@ open FsOpenAI.Shared.Interactions
 open System.Collections.Generic
 open FsOpenAI.Shared
 
-type DocView() = 
-    inherit ElmishComponent<DocumentContent*Interaction*Model,Message>()
+type DocView() =
+    inherit ElmishComponent<Model,Message>()
 
     override this.View mdl dispatch =
-        let bag,chat,model = mdl
-
-        let title = 
-            match bag.Status with 
+        let bag = Model.selectedChat mdl |> Option.bind Interaction.docContent |> Option.defaultValue DocumentContent.Default
+        let title =
+            match bag.Status with
             | No_Document -> "No document selected"
             | Uploading -> "Uploading document..."
             | Receiving -> "Receiving document content ..."
             | ExtractingTerms -> "Extracting search terms..."
             | Ready -> "Document ready"
 
-        let icon = 
-            match bag.Status with 
+        let icon =
+            match bag.Status with
             | No_Document -> "upload_file" //Icons.Material.Outlined.UploadFile
             | Uploading -> "upload" //Icons.Material.Outlined.Upload
             | Receiving -> "download" //Icons.Material.Outlined.Download
             | ExtractingTerms -> "content_paste_search" //Icons.Material.Outlined.ContentPasteSearch
             | Ready -> "check" // Icons.Material.Outlined.Check
-        
-        let color = 
-            match bag.Status with 
+
+        let color =
+            match bag.Status with
             | Ready       -> Colors.Success
             | No_Document -> Colors.Info
             | _           -> Colors.Warning
-        
+
         comp<RadzenStack> {
             "Orientation" => Orientation.Vertical
             "AlignItems" => AlignItems.Center
@@ -58,12 +57,13 @@ type DocView() =
             }
         }
 
-type ModelQueryView() = 
-    inherit ElmishComponent<Interaction*Model,Message>()
+type ModelQueryView() =
+    inherit ElmishComponent<Model,Message>()
 
     override this.View mdl dispatch =
-        let chat,model = mdl
-        
+        let mode = Model.selectedChat mdl |> Option.map (fun x -> x.Mode) |> Option.defaultValue M_Plain
+        let useWeb = Model.selectedChat mdl |> Option.map (fun x -> Interaction.useWeb x) |> Option.defaultValue false
+
         comp<RadzenStack> {
             "Orientation" => Orientation.Vertical
             "AlignItems" => AlignItems.Start
@@ -72,9 +72,10 @@ type ModelQueryView() =
                 "AlignItems" => AlignItems.Center
                 comp<RadzenCheckBox<bool>> {
                     attr.title "Query AI model directly (no index search)"
-                    "Value" => (chat.Mode = M_Plain)
-                    attr.callback "Change" (fun (v:bool) -> 
-                        dispatch (Ia_UseWeb (chat.Id, Interaction.useWeb chat)))
+                    "Value" => (mode = M_Plain)
+                    attr.callback "Change" (fun (v:bool) ->
+                        Model.selectedChat mdl |> Option.iter (fun chat ->
+                            dispatch (Ia_UseWeb (chat.Id, Interaction.useWeb chat))))
                 }
                 comp<RadzenLabel> {
                     "Text" => "AI Model"
@@ -86,50 +87,63 @@ type ModelQueryView() =
                 attr.``class`` "rz-ml-2"
                 comp<RadzenCheckBox<bool>> {
                     attr.title "Include web search results to enrich answer"
-                    "Value" => ((chat.Mode = M_Plain) && Interaction.useWeb chat)
-                    attr.callback "Change" (fun (v:bool) -> 
-                        dispatch (Ia_UseWeb (chat.Id, v)))
+                    "Value" => ((mode = M_Plain) && useWeb)
+                    attr.callback "Change" (fun (v:bool) ->
+                        Model.selectedChat mdl |> Option.iter (fun chat ->
+                            dispatch (Ia_UseWeb (chat.Id, v))))
                 }
                 comp<RadzenLabel> {
                     "Text" => "With web search"
                 }
             }
         }
-        
-        
 
-type IndexTreeView() = 
-    inherit ElmishComponent<QABag*Interaction*Model,Message>()
+type IndexTreeView() =
+    inherit ElmishComponent<Model,Message>()
 
-    override this.View mdl dispatch =
-        let bag,chat,model = mdl
+    member this.CheckedValuesChanged (xs:obj seq) =
+        let idxRefs = xs |> Seq.cast<IndexTree> |> Seq.map (fun x -> x.Idx) |> List.ofSeq
+        Model.selectedChat this.Model
+        |> Option.iter (fun chat ->
+            this.Dispatch (Ia_SetIndex (chat.Id, idxRefs)))
 
-        let checkedVals = 
-            match chat.Mode with
-            | M_Index 
-            | M_Doc_Index -> IO.selectIndexTrees (set bag.Indexes) model.indexTrees
-            | _           -> Set.empty
+    member this.CheckedValues with get() =
+        let idxs =
+            Model.selectedChat this.Model
+            |> Option.bind (fun chat -> Interaction.qaBag chat |> Option.map (fun bag -> chat.Mode,bag.Indexes))
+            |> Option.map (fun (mode,idxs) ->
+                match mode with
+                | M_Index
+                | M_Doc_Index -> IO.selectIndexTrees (set idxs) this.Model.indexTrees
+                | _           -> Set.empty)
+            |> Option.defaultValue Set.empty
+        printfn "CheckedValues: %A" (idxs |> Set.map (fun x -> x.Idx))
+        idxs
 
-        comp<RadzenTree> {
-            "AllowCheckBoxes" => true
-            "AllowCheckChildren" => true
-            "AllowCheckParents" => true
-            "Data" => model.indexTrees
-            "CheckedValues" => checkedVals
-            attr.callback "CheckedValuesChanged" (fun (xs:obj seq) -> 
-                let idxRefs = xs |> Seq.cast<IndexTree> |> Seq.map (fun x -> x.Idx) |> List.ofSeq
-                dispatch (Ia_SetIndex (chat.Id, idxRefs)))
-            comp<RadzenTreeLevel> {
-                "TextProperty" => "Description"
-                "ChildrenProperty" => "Children"
-                "Expanded" => Func<_,_>(fun (t:obj) -> true) 
-            }                                            
-        }
+    override this.View model dispatch =
+        if model.indexTrees.IsEmpty then
+            comp<RadzenText> {
+                "Text" => "No indexes available"
+            }
+        else
+            comp<RadzenTree> {
+                "AllowCheckBoxes" => true
+                "AllowCheckChildren" => true
+                "AllowCheckParents" => true
+                "Data" => model.indexTrees
+                "CheckedValues" => this.CheckedValues
+                attr.callback "CheckedValuesChanged" this.CheckedValuesChanged
+                comp<RadzenTreeLevel> {
+                    "TextProperty" => "Description"
+                    "ChildrenProperty" => "Children"
+                    "Expanded" => Func<_,_>(fun (t:obj) -> true)
+                }
+            }
 
 type SourcesView() =
-    inherit ElmishComponent<Interaction*Model,Message>()
+    inherit ElmishComponent<Model,Message>()
 
-    let makeWrapped wrap title (content:Node) = 
+    let makeWrapped wrap title (content:Node) =
         if wrap then
             comp<RadzenFieldset> {
                 "Text" => title
@@ -138,22 +152,11 @@ type SourcesView() =
         else
             content
 
-    override this.View mdl dispatch =
-        let chat,model = mdl
-
-        let qaBag = 
-            Interaction.qaBag chat 
-                |> Option.orElseWith (fun _ -> 
-                    if Model.isEnabledAny [M_Index; M_Doc_Index] model then 
-                        Some QABag.Default
-                    else
-                        None)
-
-        let doc = Interaction.docContent chat
-        
+    override this.View model dispatch =
+        let haveDoc = Model.selectedChat model |> Option.bind Interaction.docContent
         let showPlain = if Model.isEnabled M_Plain model then 1 else 0
-        let showIndex = if qaBag.IsSome then 1 else 0
-        let showDoc = if doc.IsSome then 1 else 0
+        let showIndex = if Model.isEnabledAny [M_Doc_Index; M_Index] model then 1 else 0
+        let showDoc = if Model.isEnabledAny [M_Doc_Index; M_Doc] model && haveDoc.IsSome then 1 else 0
         let wrap = (showPlain + showIndex + showDoc) > 1
 
         comp<RadzenColumn> {
@@ -165,20 +168,14 @@ type SourcesView() =
                 }
             }
             comp<RadzenRow> {
-                comp<RadzenCard> {                                    
-                    comp<RadzenStack> {
-                        concat {
-                            if showPlain > 0 then
-                                makeWrapped wrap "Model" (ecomp<ModelQueryView,_,_> (chat,model) dispatch {attr.empty()})
-                            if showDoc > 0 then
-                                match doc with 
-                                | None -> ()
-                                | Some doc -> makeWrapped wrap "Document" (ecomp<DocView,_,_> (doc,chat,model) dispatch {attr.empty()})
-                            if showIndex > 0 then
-                                match qaBag with
-                                | None -> ()
-                                | Some bag -> makeWrapped wrap "Indexes" (ecomp<IndexTreeView,_,_> (bag,chat,model) dispatch {attr.empty()})
-                        }
+                comp<RadzenStack> {
+                    concat {
+                        if showPlain > 0 then
+                            makeWrapped wrap "Model" (ecomp<ModelQueryView,_,_> model dispatch {attr.empty()})
+                        if showDoc > 0 then
+                            makeWrapped wrap "Document" (ecomp<DocView,_,_> model dispatch {attr.empty()})
+                        if showIndex > 0 then
+                            makeWrapped wrap "Indexes" (ecomp<IndexTreeView,_,_> model dispatch {attr.empty()})
                     }
                 }
             }

@@ -1,6 +1,6 @@
 ﻿namespace FsOpenAI.Shared
 
-type AppPalette = 
+type AppPalette =
     {
         Primary   : string option
         Secondary : string option
@@ -11,8 +11,8 @@ type AppPalette =
         Error     : string option
         AppBar    : string option
     }
-    with 
-        static member Default = 
+    with
+        static member Default =
                         {
                             Primary     = None
                             Secondary   = None
@@ -20,26 +20,26 @@ type AppPalette =
                             Info        = None
                             Success     = None
                             Warning     = None
-                            Error       = None        
+                            Error       = None
                             AppBar      = None
                         }
 type Backend = OpenAI | AzureOpenAI
 
-type ModelRef = 
+type ModelRef =
     {
-        Backend         : Backend        
+        Backend         : Backend
         Model           : string
         TokenLimit      : int
     }
-    with 
-        static member Default = 
+    with
+        static member Default =
             {
                 Backend = OpenAI
                 Model = "gpt-4o"
                 TokenLimit = 2000
             }
 
-type ModelsConfig = 
+type ModelsConfig =
     {
         ///List of models that can be used to generated embeddings
         EmbeddingsModels : ModelRef list
@@ -55,8 +55,8 @@ type ModelsConfig =
 
         LowCostModels : ModelRef list
     }
-    with 
-            static member Default = 
+    with
+            static member Default =
                 {
                     EmbeddingsModels = []
                     ShortChatModels  = []
@@ -65,21 +65,21 @@ type ModelsConfig =
                     LowCostModels    = []
                 }
 
-type InvocationContext = 
+type InvocationContext =
     {
         ModelsConfig : ModelsConfig
         AppId        : string option
         User         : string option
     }
-    with 
-        static member Default = 
+    with
+        static member Default =
             {
                 ModelsConfig = ModelsConfig.Default
                 AppId = None
                 User = None
             }
 
-type InteractionMode = 
+type InteractionMode =
     | M_Plain
     | M_Index
     | M_Doc
@@ -90,25 +90,25 @@ type AppBarType =
     | AppB_Base of string
     | AppB_Alt of string
 
-type AppConfig = 
+type AppConfig =
     {
         ///Backends that are enabled for this app. First backend in the list is the default
         EnabledBackends : Backend list
-        
+
         ///Set the modes of chat that can be created under this configuration
         EnabledChatModes : (InteractionMode*string) list
 
         ///Default number of docs for new chats
         DefaultMaxDocs : int
 
-        ///List of app roles. If the user's identity provider provides any of the roles, the authenticated user 
+        ///List of app roles. If the user's identity provider provides any of the roles, the authenticated user
         ///is authorized. If the list is empty then any authenticted user is authorized to use this app
-        Roles : string list  
+        Roles : string list
 
         ///AppBar style
         AppBarType : AppBarType option
 
-        ///If true, only authenticated and authorized users will be allowed to 
+        ///If true, only authenticated and authorized users will be allowed to
         ///invoke models
         RequireLogin : bool
 
@@ -118,15 +118,15 @@ type AppConfig =
         ///Light theme colors overrides
         PaletteLight : AppPalette option
 
-        ///Url to go to when main logo is clicked 
+        ///Url to go to when main logo is clicked
         LogoUrl : string option
 
         ///Name of the application that will show on the browser tab
         AppName: string option
 
-        ///Application identifier that will be logged with each call (along if user name, if authenticated). 
+        ///Application identifier that will be logged with each call (along if user name, if authenticated).
         ///This string is logged as 'User' property of the API call
-        AppId : string option 
+        AppId : string option
 
         PersonaText : string option
         PersonaSubText : string option
@@ -147,11 +147,11 @@ type AppConfig =
         SessionTableName : string option
 
     }
-    with 
-        static member Default = 
+    with
+        static member Default =
             {
                 EnabledBackends = [OpenAI]
-                EnabledChatModes = [M_Plain,"You are a helpful AI assistant"]
+                EnabledChatModes = []//M_Plain,"You are a helpful AI assistant"]
                 DefaultMaxDocs = 10
                 Roles = []
                 RequireLogin = false
@@ -164,7 +164,7 @@ type AppConfig =
                 IndexGroups = []
                 ModelsConfig = ModelsConfig.Default
                 AppId = None
-                AppName = Some "FsOpenAI"
+                AppName = None
                 PersonaText = None
                 PersonaSubText = None
                 DatabaseName = C.DFLT_COSMOSDB_NAME
