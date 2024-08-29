@@ -112,6 +112,9 @@ type AppConfig =
         ///invoke models
         RequireLogin : bool
 
+        AssistantIcon : string option
+        AssistantIconColor : string option
+
         ///Dark theme colors overrides
         PaletteDark : AppPalette option
 
@@ -156,6 +159,8 @@ type AppConfig =
                 Roles = []
                 RequireLogin = false
                 AppBarType = None
+                AssistantIcon = None
+                AssistantIconColor = None
                 PaletteDark = None
                 PaletteLight = None
                 Disclaimer = None

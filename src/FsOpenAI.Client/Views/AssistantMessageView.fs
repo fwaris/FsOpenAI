@@ -15,8 +15,8 @@ module AssistantMessage =
                 comp<RadzenColumn> {
                     "Size" => 1
                     comp<RadzenIcon> {
-                        "Icon" =>  C.DFLT_ASST_ICON
-                        //"IconStyle" => IconStyle.Info
+                        "Icon" =>  (model.appConfig.AssistantIcon |> Option.defaultValue C.DFLT_ASST_ICON)                        
+                        "IconColor" => (model.appConfig.AssistantIconColor |> Option.defaultValue  C.DFLT_ASST_ICON_COLOR)
                     }
                 }
                 comp<RadzenColumn> {

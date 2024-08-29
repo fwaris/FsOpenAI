@@ -207,7 +207,8 @@ type ServerInitiatedMessages =
     | Srv_Error of string
     | Srv_Info of string
     | Srv_IndexesRefreshed of IndexTree list
-    | Srv_Ia_SetContents of string*string*bool
+    | Srv_Ia_File_Chunk of string*string*bool
+    | Srv_Ia_File_Error of string*string
     | Srv_SetTemplates of LabeledTemplates list
     | Srv_LoadSamples of (string*SamplePrompt list)
     | Srv_SetConfig of AppConfig

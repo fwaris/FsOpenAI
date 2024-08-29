@@ -7,22 +7,12 @@ open MudBlazor
 open Radzen
 
 module Update =
-(*
-    let flashMessage uparms model msg =
-        let model =
-            if model.flashBanner && model.appConfig.PersonaText.IsSome then
-                Init.flashBanner uparms model msg
-                {model with flashBanner = false}
-            else
-                uparms.snkbar.Add(
-                        msg,
-                        configure = fun o ->
-                            o.VisibleStateDuration<-500
-                            o.HideTransitionDuration<-100
-                        ) |> ignore
-                model
-        model,Cmd.none
-*)
+
+    let handleError (exn:Exception) model =
+        printfn $"Error: {exn}"
+        match exn with 
+//      | <handle typed exceptions>
+        | _ -> model, Cmd.ofMsg (ShowError exn.Message)
 
     let flashMessage uparms model msg =
         uparms.notificationService.Notify(detail=msg, severity=NotificationSeverity.Info, duration=1000.) |> ignore
@@ -107,7 +97,7 @@ module Update =
         | Ia_Feedback_Cancel id -> let fb = Interactions.feedback id model.interactions |> Option.map(fun x -> Feedback.Default x.LogId) in {model with interactions = Interactions.setFeedback id fb model.interactions},Cmd.none
         //session and state
         | CloseDialog -> uparms.dialogService.Close(); model,Cmd.none
-        | Error exn -> model,Cmd.ofMsg (ShowError exn.Message)
+        | Error exn -> handleError exn model
         | ShowError str -> uparms.notificationService.Notify(detail=str, severity=NotificationSeverity.Error) |> ignore; model,Cmd.none
         | ShowInfo str -> uparms.notificationService.Notify(detail=str) |> ignore; model,Cmd.none
         | FlashInfo str -> flashMessage uparms model str
@@ -149,12 +139,13 @@ module Update =
         | FromServer (Srv_Info err) -> model,Cmd.ofMsg (ShowInfo err)
         | FromServer (Srv_Ia_Notification (id,note)) -> model,Cmd.ofMsg(Ia_Notification(id,note))
         | FromServer (Srv_Ia_SetDocs (id,docs)) -> Submission.updateDocs (id,docs) model, Cmd.none
-        | FromServer (Srv_Ia_SetContents (id,cntnt,isDone)) -> model,Cmd.ofMsg(Ia_File_SetContents(id,cntnt,isDone))
+        | FromServer (Srv_Ia_File_Chunk (id,cntnt,isDone)) -> model,Cmd.ofMsg(Ia_File_SetContents(id,cntnt,isDone))
+        | FromServer (Srv_Ia_File_Error (id,err)) -> {model with interactions = Interactions.clearDocContent id model.interactions},Cmd.ofMsg(ShowError err)
         | FromServer (Srv_Ia_SetSearch (id,query)) -> model,Cmd.ofMsg(Ia_SetSearch(id,query))
         | FromServer (Srv_Ia_Session_Loaded ch) -> {model with interactions = IO.fixIndexRefs model [ch] @ model.interactions},Cmd.none
         | FromServer (Srv_Ia_Session_DoneLoading) -> Submission.tryLoadSamples model
         | FromServer (Srv_Ia_SetSubmissionId(id,logId)) -> model,Cmd.ofMsg(Ia_Feedback_Set(id,Feedback.Default logId))
-        //wholesale
+        //code eval
         | FromServer(Srv_Ia_SetCode(id,c)) -> {model with interactions = CodeEval.Interactions.setCode id c model.interactions},Cmd.none
         | FromServer(Srv_Ia_SetPlan(id,p)) -> {model with interactions = CodeEval.Interactions.setPlan id p model.interactions},Cmd.none
 

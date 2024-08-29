@@ -89,6 +89,8 @@ let acctAppCfg =
         AppBarType = Some (AppB_Base "FsOpenAI Chat") //Header bar style and title text
         Roles = [] //if not empty app will only allow users that have the listed roles (from AD; case sensitive)
         RequireLogin = false //if true, requires AD login (via MSAL); needs valid appSettings.json (see above)
+        AssistantIcon = None
+        AssistantIconColor = None
         PaletteDark = None // Some {AppPalette.Default with Primary=Some "#FF1E92"; AppBar = Some "#e20074"}
         PaletteLight = None //Some {AppPalette.Default with Primary=Some "#e20074"; AppBar = Some "#e20074"}
         LogoUrl = Some "https:/github.com/fwaris/FsOpenAI" //url associated with app logo (shown in the header)

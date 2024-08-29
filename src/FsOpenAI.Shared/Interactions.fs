@@ -118,6 +118,7 @@ module Interaction =
         | Some _ -> {ch with Types = ch.Types |> List.map (function QnADoc _ -> QnADoc dc | x -> x)}
         | None   -> {ch with Types = ch.Types @ [QnADoc dc]}
 
+    let clearDocContent ch = {ch with Types = ch.Types |> List.filter (function QnADoc _ -> false | _ -> true)}
 
     let addIndex idx ch =
         let updateBag (bag:QABag) = {bag with Indexes = bag.Indexes @ [idx]}
@@ -356,6 +357,8 @@ module Interactions =
     let setQABag id bag cs = updateWith (Interaction.setQABag bag) id cs
 
     let setDocContent id dc cs = updateWith (Interaction.setDocContent dc) id cs
+
+    let clearDocContent id cs = updateWith Interaction.clearDocContent id cs
 
     let setUserMessage id msg cs = updateWith (Interaction.setUserMessage msg) id cs
 

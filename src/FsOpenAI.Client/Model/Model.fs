@@ -217,7 +217,3 @@ module Model =
                 | Tblock(i1,i2) -> yield pre{attr.style "max-width:100rem;"; code{text (msg.Substring(i1,i2-i1))}}
                 | E i -> yield text(msg.Substring(i))
         }
-
-
-
-

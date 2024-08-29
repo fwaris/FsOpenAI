@@ -1,7 +1,7 @@
 {
   "EnabledBackends": [
     {
-      "Case": "AzureOpenAI"
+      "Case": "OpenAI"
     }
   ],
   "EnabledChatModes": [
@@ -9,55 +9,43 @@
       {
         "Case": "M_Index"
       },
-      "You are a helpful telecom cell site construction assistant.\n\nThoroughly explore all implications when generating a response. Consider all aspects. Reason about the facts in the provided content to generate a logically consistent response.\n\nBe factual in your responses and cite the sources. Ask if you are not sure.\n\nIf required, create a bulleted list.\n"
+      "You are a helpful AI assistant\u0022\n"
     ],
     [
       {
         "Case": "M_Doc"
       },
-      "You are a helpful telecom cell site construction assistant.\n\nThoroughly explore all implications when generating a response. Consider all aspects. Reason about the facts in the provided content to generate a logically consistent response.\n\nBe factual in your responses and cite the sources. Ask if you are not sure.\n\nIf required, create a bulleted list.\n"
+      "You are a helpful AI assistant\u0022\n"
+    ],
+    [
+      {
+        "Case": "M_Plain"
+      },
+      "You are a helpful AI assistant\u0022\n"
     ]
   ],
   "DefaultMaxDocs": 10,
-  "Roles": [
-    "OpenAIMagentaBuildBotUsers"
-  ],
+  "Roles": [],
   "AppBarType": {
     "Case": "AppB_Base",
     "Fields": [
-      "Magenta Build Bot"
+      "FsOpenAI Chat"
     ]
   },
-  "RequireLogin": true,
-  "PaletteDark": {
-    "Primary": "#FF1E92",
-    "Secondary": null,
-    "Tertiary": null,
-    "Info": null,
-    "Success": null,
-    "Warning": null,
-    "Error": null,
-    "AppBar": "#e20074"
-  },
-  "PaletteLight": {
-    "Primary": "#e20074",
-    "Secondary": null,
-    "Tertiary": null,
-    "Info": null,
-    "Success": null,
-    "Warning": null,
-    "Error": null,
-    "AppBar": "#e20074"
-  },
-  "LogoUrl": "https://mle.t-mobile.com/",
-  "AppName": "Magenta Build Bot",
-  "AppId": "gc-poc",
+  "RequireLogin": false,
+  "AssistantIcon": null,
+  "AssistantIconColor": null,
+  "PaletteDark": null,
+  "PaletteLight": null,
+  "LogoUrl": "https:/github.com/fwaris/FsOpenAI",
+  "AppName": "FsOpenAI Chat",
+  "AppId": "default",
   "PersonaText": null,
   "PersonaSubText": null,
   "Disclaimer": null,
-  "MetaIndex": "fsopenai-meta-gc-3",
+  "MetaIndex": "fsopenai-meta",
   "IndexGroups": [
-    "gc"
+    "default"
   ],
   "ModelsConfig": {
     "EmbeddingsModels": [
@@ -74,14 +62,14 @@
         "Backend": {
           "Case": "AzureOpenAI"
         },
-        "Model": "gpt-4-turbo",
+        "Model": "gpt-4o",
         "TokenLimit": 8000
       },
       {
         "Backend": {
           "Case": "OpenAI"
         },
-        "Model": "gpt-4-1106-preview",
+        "Model": "gpt-4o-mini",
         "TokenLimit": 127000
       }
     ],
@@ -90,14 +78,14 @@
         "Backend": {
           "Case": "AzureOpenAI"
         },
-        "Model": "gpt-4-turbo",
-        "TokenLimit": 127000
+        "Model": "gpt-4o",
+        "TokenLimit": 30000
       },
       {
         "Backend": {
           "Case": "OpenAI"
         },
-        "Model": "gpt-4-1106-preview",
+        "Model": "gpt-4o-mini",
         "TokenLimit": 127000
       }
     ],
@@ -134,7 +122,7 @@
       }
     ]
   },
-  "DatabaseName": "tmgenai",
-  "DiagTableName": "tmgenai-log1",
+  "DatabaseName": "fsopenai",
+  "DiagTableName": "log1",
   "SessionTableName": "sessions"
 }

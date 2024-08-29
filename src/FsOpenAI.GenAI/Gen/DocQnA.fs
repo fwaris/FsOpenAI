@@ -94,10 +94,10 @@ module DocQnA =
                     | Some DT_Text       -> extractPlainTexts fn
                     | Some x             -> failwith $"unsupported document type {x}"
                 texts
-                |> Seq.iter(fun t -> dispatch (Srv_Ia_SetContents (id,t,false)))
-                dispatch (Srv_Ia_SetContents (id,"",true))
+                |> Seq.iter(fun t -> dispatch (Srv_Ia_File_Chunk (id,t,false)))
+                dispatch (Srv_Ia_File_Chunk (id,"",true))
             with ex ->
-                dispatch (Srv_Error(ex.Message))
+                dispatch (Srv_Ia_File_Error(id,ex.Message))
         }
 
     let getSearchQuery parms modelRefs ch query =

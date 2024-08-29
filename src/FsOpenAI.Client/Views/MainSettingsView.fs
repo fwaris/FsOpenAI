@@ -60,9 +60,10 @@ type MainSettingsView() =
                     ],
                     fun (e:MenuItemEventArgs) -> 
                         match e.Value :?> M_MenuItems with
-                        | M_ClearChats -> dispatch Ia_ClearChats
-                        | M_PurgeLocalData -> dispatch PurgeLocalData
+                        | M_ClearChats -> this.ContextMenuService.Close(); dispatch Ia_ClearChats
+                        | M_PurgeLocalData -> this.ContextMenuService.Close(); dispatch PurgeLocalData
                         | M_SetOpenAIKey -> 
+                            this.ContextMenuService.Close();
                             let parms = ["Model", model :> obj; "Dispatch", dispatch] |> dict |> Dictionary
                             this.DialogService.OpenAsync<OpenAIKey>("OpenAI Key", parameters=parms) |> ignore
                         | _ -> ()
