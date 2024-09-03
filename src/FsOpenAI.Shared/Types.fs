@@ -2,16 +2,16 @@
 open System
 open System.Security.Claims
 
-type Document = {Text:string; Embedding:float32[]; Ref:string; Title:string}
+type DocRef = {Text:string; Embedding:float32[]; Ref:string; Title:string}
 
-type QueriedDocuments = {SearchQuery:string option; Docs: Document list }
-    with static member Empty = {SearchQuery=None; Docs=[]}
+type QueriedDocuments = {SearchQuery:string option; DocRefs: DocRef list }
+    with static member Empty = {SearchQuery=None; DocRefs=[]}
 
 type MessageRole = User | Assistant of QueriedDocuments
 
 type InteractionMessage = {MsgId:string; Role:MessageRole; Message: string}
     with
-        member this.IsUser =
+        member this.IsUser =    
             match this.Role with
             | MessageRole.User  -> true
             | _                 -> false
@@ -198,7 +198,7 @@ type ServerInitiatedMessages =
     | Srv_Parameters of ServiceSettings
     | Srv_Ia_Delta of string*int*string   //chat id,index,delta
     | Srv_Ia_SetSearch of string*string
-    | Srv_Ia_SetDocs of string*Document list
+    | Srv_Ia_SetDocs of string*DocRef list
     | Srv_Ia_Done of string*string option //chat id, optional log id, optional error
     | Srv_Ia_SetSubmissionId of string*string
     | Srv_Ia_Notification of string*string //chat id (optional error)

@@ -13,11 +13,11 @@ open System.Linq.Expressions
 open Radzen.Blazor.Rendering
 
 type SVAttr =
-    static member Property(expr:Expression<Func<Document,string>>) =
+    static member Property(expr:Expression<Func<DocRef,string>>) =
         "Property" => expr
 
 type SearchResultsView() =
-    inherit ElmishComponent<string option*Document list,Message>()    
+    inherit ElmishComponent<string option*DocRef list,Message>()    
     let popup = Ref<Popup>()
     let button = Ref<RadzenButton>()
 
@@ -40,7 +40,7 @@ type SearchResultsView() =
                     "Style" => "height:100%;width:100%;overflow:none;background-color:var(--rz-panel-background-color);"
                     "Variant" => Variant.Filled
                     attr.``class`` "rz-shadow-5 rz-p-2 rz-border-radius-5 rz-border-danger-light"
-                    comp<RadzenDataList<Document>> {
+                    comp<RadzenDataList<DocRef>> {
                         "Style" => "height:100%;width:100%;overflow:none;"
                         attr.``class`` "rz-mb-2"
                         "Data" => docs
@@ -49,7 +49,7 @@ type SearchResultsView() =
                         "AllowVirtualization" => false
                         "PageSize" => 1
                         "Density" => Density.Compact
-                        attr.fragmentWith "Template" (fun (o:Document) ->                             
+                        attr.fragmentWith "Template" (fun (o:DocRef) ->                             
                                 comp<RadzenStack> {
                                     "Style" => "width:100%; height:100%; overflow:none;"
                                     comp<RadzenLink> {

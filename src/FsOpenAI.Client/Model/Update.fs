@@ -76,16 +76,17 @@ module Update =
         | Ia_Notification (id,note) -> {model with interactions = Interactions.addNotification id note model.interactions},Cmd.none
         | Ia_UpdateQaBag (id,bag) -> {model with interactions = Interactions.setQABag id bag model.interactions},Cmd.none
         | Ia_Feedback_Set (id,fb) -> {model with interactions = Interactions.setFeedback id (Some fb) model.interactions},Cmd.none
-        | Ia_File_BeingLoad2 (id,dc) -> {model with interactions = Interactions.setDocContent id dc model.interactions},Cmd.ofMsg (Ia_File_Load id)
-        | Ia_File_Load id -> {model with interactions = Interactions.setDocumentStatus id Uploading model.interactions},Cmd.OfTask.either IO.loadFile (id,model,uparms.serverCall) Ia_File_Loaded Error
-        | Ia_File_Loaded (id,fileId) -> uparms.serverDispatch (Clnt_ExtractContents (id,fileId,Submission.docType id model.interactions)); model,Cmd.none
-        | Ia_File_SetContents (id,txt,isDone) -> {model with interactions = Interactions.setFileContents id (txt,isDone) model.interactions},if isDone then Cmd.ofMsg(Ia_GenSearch(id)) else Cmd.none
         | Ia_GenSearch id -> Model.checkBusy model <| (Submission.tryGenSearch uparms.serverDispatch id)
         | Ia_SetSearch(id,txt) -> Submission.updateSearchTerms (id,txt) model,Cmd.none
         | Ia_Remove id -> Submission.removeChat id model
         | Ia_Selected id -> {model with selectedChatId = Some id},Cmd.none
         | Ia_UseWeb (id,useWeb) -> Submission.setModeUseWeb useWeb id model,Cmd.none
         | Ia_SetIndex (id,idxs) -> Submission.setModeIndexes idxs id model,Cmd.none
+        | Ia_Mode_Document id -> {model with interactions = Interactions.setMode id M_Doc model.interactions},Cmd.none
+        | Ia_File_BeingLoad2 (id,dc) -> Submission.setModeDoc dc id model, Cmd.ofMsg (Ia_File_Load id)
+        | Ia_File_Load id -> {model with interactions = Interactions.setDocumentStatus id Uploading model.interactions},Cmd.OfTask.either IO.loadFile (id,model,uparms.serverCall) Ia_File_Loaded Error
+        | Ia_File_Loaded (id,fileId) -> uparms.serverDispatch (Clnt_ExtractContents (id,fileId,Submission.docType id model.interactions)); model,Cmd.none
+        | Ia_File_SetContents (id,txt,isDone) -> {model with interactions = Interactions.setFileContents id (txt,isDone) model.interactions},if isDone then Cmd.ofMsg(Ia_GenSearch(id)) else Cmd.none
         | Ia_ToggleSettings id -> TmpState.toggleChatSettings id model,Cmd.none
         | Ia_ToggleDocs (id,msgId) -> TmpState.toggleChatDocs (id,msgId) model, Cmd.none
         | Ia_ToggleDocDetails id -> TmpState.toggleDocDetails id model, Cmd.none

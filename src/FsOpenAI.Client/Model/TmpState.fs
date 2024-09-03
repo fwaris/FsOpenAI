@@ -86,7 +86,7 @@ module TmpState =
                     chat.Messages
                     |> List.filter(fun m -> m.MsgId=msgId)
                     |> List.tryHead 
-                    |> Option.map(fun m -> match m.Role with Assistant s -> s.Docs | _ -> failwith "unexpected"))
+                    |> Option.map(fun m -> match m.Role with Assistant s -> s.DocRefs | _ -> failwith "unexpected"))
             )
             |> Option.defaultValue []
         selChat |> Option.map (fun c -> c.Id),docs

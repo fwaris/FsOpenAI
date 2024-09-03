@@ -14,44 +14,26 @@ module Submission =
 
     let docType id cs = (Interactions.docContent id cs) |> Option.bind(fun d->d.DocType) 
 
-    let setMode  desiredMode ch = 
-        match ch.Mode,desiredMode with
-        | x,y when x=y             -> ch
-        | M_Doc_Index, M_Doc       -> ch
-        | M_Doc, M_Doc_Index       -> {ch with Mode=M_Doc_Index}
-        | _,M_Index                -> {ch with Mode=M_Index}
-        | _,M_Plain                -> {ch with Mode=M_Plain}
-        | _,M_Doc                  -> {ch with Mode=M_Doc}
-        | _,M_Doc_Index            -> {ch with Mode=M_Doc_Index}
-        | _,M_CodeEval             -> {ch with Mode=M_CodeEval}
-
     let setModeUseWeb useWeb id model =
         {model with 
-            interactions = 
-                        model.interactions
-                        |> List.find (fun c -> c.Id = id)
-                        |> Interaction.setUseWeb useWeb
-                        |> setMode M_Plain
-                        |> Interactions.replace id model.interactions}
-
-    let setModeQaBag qaBag id model =
-        {model with 
-            interactions = 
-                        model.interactions
-                        |> List.find (fun c -> c.Id = id)
-                        |> Interaction.setQABag qaBag
-                        |> setMode M_Index
-                        |> Interactions.replace id model.interactions}
-                        
+            interactions =
+                model.interactions
+                |> Interactions.setUseWeb id useWeb
+                |> Interactions.setMode id M_Plain}
+                
     let setModeIndexes idxs id model =
         {model with 
             interactions = 
                         model.interactions
-                        |> List.find (fun c -> c.Id = id)
-                        |> Interaction.setIndexes idxs
-                        |> setMode M_Index
-                        |> Interactions.replace id model.interactions}
+                        |> Interactions.setMode id M_Index 
+                        |> Interactions.setIndexes id idxs}                        
 
+    let setModeDoc doc id model = 
+        {model with interactions = 
+                        model.interactions
+                        |> Interactions.setDocContent id doc
+                        |> Interactions.setMode id M_Doc}
+            
     let isReady ch =
         match ch with 
         | Some ch -> 

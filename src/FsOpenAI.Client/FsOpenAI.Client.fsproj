@@ -25,6 +25,7 @@
     <Compile Include="Views\MessageView.fs" />
     <Compile Include="Views\QuestionView.fs" />
     <Compile Include="Views\ChatHistoryView.fs" />
+    <Compile Include="Views\DocView.fs" />
     <Compile Include="Views\SourcesView.fs" />
     <Compile Include="Views\PromptSelectorView.fs" />
     <Compile Include="Views\DocSelectorView.fs" />

@@ -149,7 +149,7 @@ module Interaction =
         let h,tail = match List.rev c.Messages with h::t -> h,t | _ -> failwith "no messages in chat"
         let h =
             match h.Role with
-            | Assistant d -> {h with Role = Assistant {d with Docs=docs}}
+            | Assistant d -> {h with Role = Assistant {d with DocRefs=docs}}
             | _ -> failwith "Expected an Assistant message"
         let msgs = h::tail
         let _,msgs =
@@ -171,8 +171,6 @@ module Interaction =
     let setSystemMessage msg (c:Interaction) = {c with SystemMessage = msg}
 
     let setQuestion q (c:Interaction) = {c with Question = q}
-
-    let setMode mode ch = {ch with Parameters = {ch.Parameters with Mode = mode}}
 
     let setMaxDocs maxDocs ch =
         let updateBag (bag:QABag) = {bag with MaxDocs=maxDocs}
@@ -245,7 +243,6 @@ module Interaction =
                     | x -> x)
         }
 
-
     let setParameters parms (ch:Interaction) = {ch with Parameters = parms}
 
     let defaultParameters backend interactionType =
@@ -280,7 +277,7 @@ module Interaction =
                         {m with
                             Role = Assistant {
                                                 SearchQuery = None
-                                                Docs = q.Docs |> List.map(fun d -> {d with Embedding=[||]; Text="[...]"})
+                                                DocRefs = q.DocRefs |> List.map(fun d -> {d with Embedding=[||]; Text="[...]"})
                                               }
                         }
                     | _ -> m
@@ -341,6 +338,17 @@ module Interaction =
         | None      -> setPlainBag {ChatBag.Default with UseWeb=useWeb} c
 
     let setFeedback feedback c = {c with Feedback = feedback}
+
+    let setMode  desiredMode ch = 
+        match ch.Mode,desiredMode with
+        | x,y when x=y             -> ch
+        | M_Doc_Index, M_Doc       -> ch
+        | M_Doc, M_Doc_Index       -> {ch with Mode=M_Doc_Index}
+        | _,M_Index                -> {ch with Mode=M_Index}
+        | _,M_Plain                -> {ch with Mode=M_Plain}
+        | _,M_Doc                  -> {ch with Mode=M_Doc}
+        | _,M_Doc_Index            -> {ch with Mode=M_Doc_Index}
+        | _,M_CodeEval             -> {ch with Mode=M_CodeEval}
 
 module Interactions =
 

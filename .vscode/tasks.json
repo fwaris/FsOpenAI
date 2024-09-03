@@ -15,7 +15,7 @@
 				"kind": "build",
 				"isDefault": true
 			},
-			"label": "Build: solution",
+			"label": "build",
 			"detail": "Build the FsOpenAI.sln solution using dotnet build"
 		},
 		{			
@@ -36,7 +36,7 @@
 				"kind": "build",
 				"isDefault": false
 			},
-			"label": "Clean FsOpenAI.Client",
+			"label": "clean client",
 			"detail": "clean FsOpenAI.Client project to capture any source changes"
 		}
 	]	

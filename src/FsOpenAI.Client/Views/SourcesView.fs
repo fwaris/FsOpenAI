@@ -10,52 +10,6 @@ open FsOpenAI.Shared.Interactions
 open System.Collections.Generic
 open FsOpenAI.Shared
 
-type DocView() =
-    inherit ElmishComponent<Model,Message>()
-
-    override this.View mdl dispatch =
-        let bag = Model.selectedChat mdl |> Option.bind Interaction.docContent |> Option.defaultValue DocumentContent.Default
-        let title =
-            match bag.Status with
-            | No_Document -> "No document selected"
-            | Uploading -> "Uploading document..."
-            | Receiving -> "Receiving document content ..."
-            | ExtractingTerms -> "Extracting search terms..."
-            | Ready -> "Document ready"
-
-        let icon =
-            match bag.Status with
-            | No_Document -> "upload_file" //Icons.Material.Outlined.UploadFile
-            | Uploading -> "upload" //Icons.Material.Outlined.Upload
-            | Receiving -> "download" //Icons.Material.Outlined.Download
-            | ExtractingTerms -> "content_paste_search" //Icons.Material.Outlined.ContentPasteSearch
-            | Ready -> "check" // Icons.Material.Outlined.Check
-
-        let color =
-            match bag.Status with
-            | Ready       -> Colors.Success
-            | No_Document -> Colors.Info
-            | _           -> Colors.Warning
-
-        comp<RadzenStack> {
-            "Orientation" => Orientation.Vertical
-            "AlignItems" => AlignItems.Center
-            comp<RadzenButton> {
-                "Icon" => icon
-                attr.title title
-                "IconColor" => color
-            }
-            comp<RadzenStack> {
-                "Orientation" => Orientation.Horizontal
-                "AlignItems" => AlignItems.Center
-                comp<RadzenCheckBox<bool>> {
-                    "Value" => true
-                }
-                comp<RadzenLabel> {
-                    "Text" => (IO.browserFile bag.DocumentRef |> Option.map (fun x -> x.Name) |> Option.defaultValue "No document selected")
-                }
-            }
-        }
 
 type ModelQueryView() =
     inherit ElmishComponent<Model,Message>()
@@ -101,7 +55,24 @@ type ModelQueryView() =
 type IndexTreeView() =
     inherit ElmishComponent<Model,Message>()
 
+    member val IndexTree =  Ref<RadzenTree>() with get, set
+    //let indexTree = Ref<RadzenTree>()
+
     member this.CheckedValuesChanged (xs:obj seq) =
+        let idxRefs = xs |> Seq.cast<IndexTree> |> Seq.map (fun x -> x.Idx) |> List.ofSeq
+        Model.selectedChat this.Model
+        |> Option.iter (fun chat ->
+            this.Dispatch (Ia_SetIndex (chat.Id, idxRefs)))
+
+    member this.Change (x:TreeEventArgs) =        
+        let xs = this.IndexTree.Value |> Option.map (fun x -> x.CheckedValues) |> Option.defaultValue Seq.empty 
+        let idxRefs = xs |> Seq.cast<IndexTree> |> Seq.map (fun x -> x.Idx) |> List.ofSeq
+        Model.selectedChat this.Model
+        |> Option.iter (fun chat ->
+            this.Dispatch (Ia_SetIndex (chat.Id, idxRefs)))
+
+    member this.ValueChanged (_:obj) =
+        let xs = this.IndexTree.Value |> Option.map (fun x -> x.CheckedValues) |> Option.defaultValue Seq.empty 
         let idxRefs = xs |> Seq.cast<IndexTree> |> Seq.map (fun x -> x.Idx) |> List.ofSeq
         Model.selectedChat this.Model
         |> Option.iter (fun chat ->
@@ -109,6 +80,7 @@ type IndexTreeView() =
 
     member this.CheckedValues with get() =
         let idxs =
+
             Model.selectedChat this.Model
             |> Option.bind (fun chat -> Interaction.qaBag chat |> Option.map (fun bag -> chat.Mode,bag.Indexes))
             |> Option.map (fun (mode,idxs) ->
@@ -117,7 +89,7 @@ type IndexTreeView() =
                 | M_Doc_Index -> IO.selectIndexTrees (set idxs) this.Model.indexTrees
                 | _           -> Set.empty)
             |> Option.defaultValue Set.empty
-        printfn "CheckedValues: %A" (idxs |> Set.map (fun x -> x.Idx))
+        //printfn "CheckedValues: %A" (idxs |> Set.map (fun x -> x.Idx))
         idxs
 
     override this.View model dispatch =
@@ -132,7 +104,10 @@ type IndexTreeView() =
                 "AllowCheckParents" => true
                 "Data" => model.indexTrees
                 "CheckedValues" => this.CheckedValues
-                attr.callback "CheckedValuesChanged" this.CheckedValuesChanged
+                attr.callback "ValueChanged" this.ValueChanged
+                //attr.callback "Change" this.Change
+                //attr.callback "CheckedValuesChanged" this.CheckedValuesChanged
+                this.IndexTree
                 comp<RadzenTreeLevel> {
                     "TextProperty" => "Description"
                     "ChildrenProperty" => "Children"

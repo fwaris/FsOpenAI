@@ -8,7 +8,7 @@ module AssistantMessage =
     open Radzen.Blazor
 
     let view (msg:InteractionMessage) (chat:Interaction) lastMsg model dispatch =
-        let docs = match msg.Role with Assistant r -> r.Docs | _ -> []
+        let docs = match msg.Role with Assistant r -> r.DocRefs | _ -> []
         comp<RadzenCard> {
             attr.``class`` $"rz-mt-1 rz-border-radius-3"
             comp<RadzenRow> {
