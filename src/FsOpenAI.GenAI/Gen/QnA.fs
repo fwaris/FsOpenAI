@@ -61,7 +61,7 @@ module QnA =
     ///semantic memory supporting chatpdf format
     let chatPdfMemories (parms:ServiceSettings) (invCtx:InvocationContext) (ch:Interaction) : ISemanticTextMemory list =        
         let embModel = invCtx.ModelsConfig.EmbeddingsModels.Head.Model
-        let bag = Interaction.qaBag ch |> Option.defaultWith (fun _ -> failwith "invalid chat type for index search")
+        let bag = Interaction.qaBag ch |> Option.defaultWith (fun _ -> failwith "no indexes selected")
         if bag.Indexes.IsEmpty then failwith "No indexes selected"
         let realIndexes = bag.Indexes |> List.filter(fun x -> not x.isVirtual)
         if realIndexes.IsEmpty then failwith "No real indexes selected, only virtual indexes found. Re-select index(es))"
@@ -69,12 +69,12 @@ module QnA =
         |> List.map(fun idx -> 
             let idxClient = Indexes.searchServiceClient parms
             let srchClient = idxClient.GetSearchClient(idx.Name)
-            let openAIClient,_ = GenUtils.getEmbeddingsClient parms ch
+            let openAIClient,_ = GenUtils.getEmbeddingsClient parms ch embModel
             let mode = match bag.SearchMode with
                         | Hybrid    -> SemanticVectorSearch.SearchMode.Hybrid
                         | Semantic  -> SemanticVectorSearch.SearchMode.Semantic            
                         | Keyword   -> SemanticVectorSearch.SearchMode.Plain
-            SemanticVectorSearch.CognitiveSearch(mode,srchClient,openAIClient,embModel,["contentVector"],"content","sourcefile","title"))
+            SemanticVectorSearch.CognitiveSearch(mode,srchClient,openAIClient,["contentVector"],"content","sourcefile","title"))
 
     let runRefineQuery (k:Kernel) userMessage chatHistory = 
         async {

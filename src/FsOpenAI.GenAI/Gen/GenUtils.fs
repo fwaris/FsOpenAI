@@ -16,6 +16,7 @@ open FsOpenAI.Shared.Interactions
 
 module GenUtils =
     open Microsoft.SemanticKernel.Memory
+    open Microsoft.SemanticKernel.Embeddings
     let rng = Random()
     let randSelect (ls:_ list) = ls.[rng.Next(ls.Length)]
 
@@ -54,12 +55,6 @@ module GenUtils =
         let tokenizer = TokenizerBuilder.CreateByModelNameAsync("gpt-4").GetAwaiter().GetResult();
         let tokens = tokenizer.Encode(s, new System.Collections.Generic.HashSet<string>());
         float tokens.Count
-
-    let content (msg:Azure.AI.OpenAI.ChatRequestMessage) = 
-        match msg with 
-        | :? Azure.AI.OpenAI.ChatRequestAssistantMessage as x -> x.Content
-        | :? Azure.AI.OpenAI.ChatRequestUserMessage as x -> x.Content
-        | _ -> ""
 
     let msgRole (m:InteractionMessage) = if m.IsUser then "User" else "Assistant"
 
@@ -116,6 +111,14 @@ module GenUtils =
         if modelRefs.IsEmpty then failwith $"No lowcost chat model(s) configured for backend '{backend}' (these primarily be used for summarization)"
         modelRefs
 
+    let toChatHistory (ch:Interaction) =
+        let h = ChatHistory() 
+        if String.IsNullOrWhiteSpace ch.SystemMessage |> not then
+            h.AddSystemMessage(ch.SystemMessage)
+        for m in ch.Messages do
+            let role = if m.IsUser then AuthorRole.User else AuthorRole.Assistant
+            h.AddMessage(role,m.Message)
+        h
 
     let tokenBudget modelsConfig ch = 
         chatModels modelsConfig ch.Parameters.Backend
@@ -145,28 +148,29 @@ module GenUtils =
         let url = $"https://{rg}.openai.azure.com"
         rg,url,endpt.API_KEY
 
-    let getClientFor (parms:ServiceSettings) backend =
+    let getClientFor (parms:ServiceSettings) backend model : (IChatCompletionService*string) =
             match backend with 
             | AzureOpenAI -> 
                 let rg,url,key = getAzureEndpoint parms.AZURE_OPENAI_ENDPOINTS
-                let clr = Azure.AI.OpenAI.OpenAIClient(Uri url,Azure.AzureKeyCredential(key))                        
+                let clr = Connectors.AzureOpenAI.AzureOpenAIChatCompletionService(model,url,key)
                 clr,rg
             | OpenAI  ->     
                 let key = match parms.OPENAI_KEY with Some key when Utils.notEmpty key -> key | _ -> failwith "OpenAI Key not set"
-                let opts = new OpenAIClientOptions(version=OpenAIClientOptions.ServiceVersion.V2023_05_15)
-                Azure.AI.OpenAI.OpenAIClient(parms.OPENAI_KEY.Value,opts),"OpenAI"
+                OpenAIChatCompletionService(model,key),"OpenAI"
                 
-    let getEmbeddingsClientFor (parms:ServiceSettings) backend =
+    let getEmbeddingsClientFor (parms:ServiceSettings) backend model : (ITextEmbeddingGenerationService*string)=
             match backend with 
             | AzureOpenAI -> 
-                let rg,url,key = getAzureEndpoint parms.EMBEDDING_ENDPOINTS
-                let clr = Azure.AI.OpenAI.OpenAIClient(Uri url,Azure.AzureKeyCredential(key))                        
-                clr,"OpenAI"
-            | OpenAI  ->  getClientFor parms backend
+                let rg,url,key = getAzureEndpoint parms.AZURE_OPENAI_ENDPOINTS
+                let clr = Connectors.AzureOpenAI.AzureOpenAITextEmbeddingGenerationService(model,url,key)
+                clr,rg
+            | OpenAI  ->     
+                let key = match parms.OPENAI_KEY with Some key when Utils.notEmpty key -> key | _ -> failwith "OpenAI Key not set"
+                OpenAITextEmbeddingGenerationService(model,key),"OpenAI"
 
-    let getClient (parms:ServiceSettings) (ch:Interaction) = getClientFor parms ch.Parameters.Backend
+    let getClient (parms:ServiceSettings) (ch:Interaction) model = getClientFor parms ch.Parameters.Backend model
 
-    let getEmbeddingsClient (parms:ServiceSettings) (ch:Interaction) = getEmbeddingsClientFor parms ch.Parameters.Backend
+    let getEmbeddingsClient (parms:ServiceSettings) (ch:Interaction) model = getEmbeddingsClientFor parms ch.Parameters.Backend model
 
     let logger = 
         {new ILogger with
@@ -292,11 +296,11 @@ module GenUtils =
             invCtx.ModelsConfig.EmbeddingsModels 
             |> List.tryFind (fun m -> m.Backend = ch.Parameters.Backend) 
             |> Option.defaultValue (invCtx.ModelsConfig.EmbeddingsModels.Head)
-        let embClient,resource = getEmbeddingsClient parms ch
+        let embClient,resource = getEmbeddingsClient parms ch embModel.Model
         let de = diaEntryEmbeddings ch invCtx embModel.Model resource query
         task {
             try
-                let! resp = embClient.GetEmbeddingsAsync(EmbeddingsOptions(embModel.Model,[query]))
+                let! resp = embClient.GenerateEmbeddingsAsync(ResizeArray[query])                
                 Monitoring.write (Diag de)
                 return resp
             with ex -> 

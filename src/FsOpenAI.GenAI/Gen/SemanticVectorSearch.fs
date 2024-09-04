@@ -6,6 +6,7 @@ open Azure.AI.OpenAI
 open Azure.Search.Documents.Models
 open Azure.Search.Documents
 open FSharp.Control
+open Microsoft.SemanticKernel.Embeddings
 
 type SearchMode = Semantic | Hybrid | Plain
 
@@ -13,8 +14,7 @@ type CognitiveSearch
     (
         mode,
         srchClient:SearchClient,
-        embeddingClient:OpenAIClient,
-        embeddingModel:string,
+        embeddingClient:ITextEmbeddingGenerationService,
         vectorFields,
         contentField,
         sourceRefField,
@@ -59,8 +59,8 @@ type CognitiveSearch
                 [idField; contentField; sourceRefField; descriptionField] |> Seq.iter so.Select.Add 
                 match mode with 
                 | Semantic | Hybrid -> 
-                    let! resp = embeddingClient.GetEmbeddingsAsync(EmbeddingsOptions(embeddingModel, [query])) |> Async.AwaitTask
-                    let eVec = resp.Value.Data.[0].Embedding
+                    let! resp = embeddingClient.GenerateEmbeddingsAsync(ResizeArray[query]) |> Async.AwaitTask
+                    let eVec = resp.[0]
                     let vec = VectorizedQuery(KNearestNeighborsCount = limit,vector = eVec)
                     vectorFields |> Seq.iter vec.Fields.Add
                     //so.Filter <- query

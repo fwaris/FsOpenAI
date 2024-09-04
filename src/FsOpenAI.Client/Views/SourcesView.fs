@@ -104,9 +104,9 @@ type IndexTreeView() =
                 "AllowCheckParents" => true
                 "Data" => model.indexTrees
                 "CheckedValues" => this.CheckedValues
-                attr.callback "ValueChanged" this.ValueChanged
+                //attr.callback "ValueChanged" this.ValueChanged
                 //attr.callback "Change" this.Change
-                //attr.callback "CheckedValuesChanged" this.CheckedValuesChanged
+                attr.callback "CheckedValuesChanged" this.CheckedValuesChanged
                 this.IndexTree
                 comp<RadzenTreeLevel> {
                     "TextProperty" => "Description"

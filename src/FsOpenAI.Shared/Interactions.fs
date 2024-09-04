@@ -170,7 +170,8 @@ module Interaction =
 
     let setSystemMessage msg (c:Interaction) = {c with SystemMessage = msg}
 
-    let setQuestion q (c:Interaction) = {c with Question = q}
+    let setQuestion q (c:Interaction) = 
+        {c with Question = q}
 
     let setMaxDocs maxDocs ch =
         let updateBag (bag:QABag) = {bag with MaxDocs=maxDocs}

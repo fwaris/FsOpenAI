@@ -7,49 +7,31 @@ open Microsoft.SemanticKernel.Connectors.OpenAI
 
 module Completions =
     open Microsoft.SemanticKernel
-    type ChatMsg = Azure.AI.OpenAI.ChatRequestMessage
-    type SysMsg = Azure.AI.OpenAI.ChatRequestSystemMessage
-    type AsstMsg = Azure.AI.OpenAI.ChatRequestAssistantMessage
-    type UserMsg = Azure.AI.OpenAI.ChatRequestUserMessage
-    type ApiRole = Azure.AI.OpenAI.ChatRole
-
     ///Construct a call to LLM service (but not invoke it yet, as the results may be streamed later)
     let buildCall parms (invCtx:InvocationContext) ch modelSelector =
         let modelSelector = defaultArg modelSelector GenUtils.chatModels
         let modelRefs = modelSelector invCtx ch.Parameters.Backend
-        let sysMsg = Interaction.systemMessage ch
-        let messages  =
-            seq {
-                if String.IsNullOrWhiteSpace sysMsg |> not then
-                    yield SysMsg(sysMsg) :> ChatMsg
-                for m in Interaction.messages ch do
-                    if not <| Utils.isEmpty m.Message then
-                        yield
-                            match m.Role with
-                            | User -> UserMsg(m.Message)
-                            | Assistant _ -> AsstMsg(m.Message)
-            }
-            |> Seq.toList
+        let messages = GenUtils.toChatHistory ch
         let tokenEstimate = GenUtils.tokenEstimate ch
         let modelRef = GenUtils.optimalModel modelRefs tokenEstimate
-        let caller,resource =  GenUtils.getClient parms ch
-        let opts = Azure.AI.OpenAI.ChatCompletionsOptions(modelRef.Model,messages)
+        let caller,resource =  GenUtils.getClient parms ch modelRef.Model
+        let opts = OpenAIPromptExecutionSettings()
+        opts.Temperature <- float <| GenUtils.temperature ch.Parameters.Mode
         opts.User <- GenUtils.userAgent invCtx
-        opts.Temperature <- GenUtils.temperature ch.Parameters.Mode
         opts.MaxTokens <- ch.Parameters.MaxTokens
         let de = GenUtils.diaEntryChat ch invCtx modelRef.Model resource
-        caller,opts,de
+        caller,messages,opts,de
 
     ///Stream complete chat. Returns async seq of chat completion responses
     let streamChat parms (invCtx:InvocationContext) ch modelSelector =
         async {
-            let caller,opts,de = buildCall parms invCtx ch modelSelector
-            let! resp = caller.GetChatCompletionsStreamingAsync(opts) |> Async.AwaitTask
+            let caller,msgs,opts,de = buildCall parms invCtx ch modelSelector
+            let resp = caller.GetStreamingChatMessageContentsAsync(msgs,executionSettings=opts) 
             let xs =
-                resp.EnumerateValues()
+                resp
                 |> AsyncSeq.ofAsyncEnum
-                |> AsyncSeq.map(fun cs -> cs.ChoiceIndex, cs.ContentUpdate)
-                |> AsyncSeq.filter(fun (i,x) -> i.HasValue &&  x <> null)
+                |> AsyncSeq.map(fun cs -> cs.ChoiceIndex, cs.Content)
+                |> AsyncSeq.filter(fun (i,x) -> x <> null)
             return (de,xs)
         }
 
@@ -87,7 +69,7 @@ module Completions =
                         |> AsyncSeq.bufferByCountAndTime 10 1000
                         |> AsyncSeq.filter(fun xs -> xs.Length > 0)                        
                         |> AsyncSeq.map(fun xs -> xs |> Seq.last |> fst, xs |> Seq.map snd |> String.concat "")
-                        |> AsyncSeq.iter (fun (i,x) -> rs<-x::rs; dispatch(Srv_Ia_Delta(ch.Id, i.Value, x)))
+                        |> AsyncSeq.iter (fun (i,x) -> rs<-x::rs; dispatch(Srv_Ia_Delta(ch.Id, i, x)))
                     match! Async.Catch comp with
                     | Choice1Of2 _ ->
                         let resp = String.Join("",rs |> List.rev)
@@ -112,29 +94,10 @@ module Completions =
 
     let completeChat parms invCtx ch modelSelector dispatch =
         async {
-            let caller,opts,de = buildCall parms invCtx ch modelSelector
+            let caller,msgs,opts,de = buildCall parms invCtx ch modelSelector
             try
-                let! resp = caller.GetChatCompletionsAsync(opts) |> Async.AwaitTask
-                let respMsg = resp.Value.Choices.[0].Message
-                let de =
-                    {de with
-                        Response = respMsg.Content
-                        OutputTokens = GenUtils.tokenSize respMsg.Content |> int
-                    }
-                Monitoring.write (Diag de)
-                Srv_Ia_SetSubmissionId(ch.Id,de.id) |> dispatch
-                return respMsg
-            with ex ->
-                Monitoring.write (Diag {de with Error = ex.Message})
-                return raise ex
-        }
-
-    let completeChatLowcost parms invCtx ch modelSelector dispatch =
-        async {
-            let caller,opts,de = buildCall parms invCtx ch modelSelector
-            try
-                let! resp = caller.GetChatCompletionsAsync(opts) |> Async.AwaitTask
-                let respMsg = resp.Value.Choices.[0].Message
+                let! resp = caller.GetChatMessageContentsAsync(msgs,opts) |> Async.AwaitTask
+                let respMsg = resp.[0]
                 let de =
                     {de with
                         Response = respMsg.Content

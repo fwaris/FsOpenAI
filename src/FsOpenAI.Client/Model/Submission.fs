@@ -21,12 +21,15 @@ module Submission =
                 |> Interactions.setUseWeb id useWeb
                 |> Interactions.setMode id M_Plain}
                 
-    let setModeIndexes idxs id model =
-        {model with 
-            interactions = 
-                        model.interactions
-                        |> Interactions.setMode id M_Index 
-                        |> Interactions.setIndexes id idxs}                        
+    let setModeIndexes (idxs:IndexRef list) id model =
+        match Model.selectedChat model, idxs.Length = 0 with
+        | Some ch, true when ch.Mode <> M_Index -> model //no change if not in index mode and no indexes selected (handles Razen idiosyncracy)
+        | _ ->
+            {model with 
+                interactions = 
+                            model.interactions
+                            |> Interactions.setMode id M_Index 
+                            |> Interactions.setIndexes id idxs}                        
 
     let setModeDoc doc id model = 
         {model with interactions = 
@@ -63,41 +66,56 @@ module Submission =
         else
             model,Cmd.batch [msg; Cmd.ofMsg Ia_Local_ClearAll]
 
+    let private sendChat model serverDispatch (ch:Interaction) =
+        match ch.Mode with
+        | M_Index   -> serverDispatch (Clnt_Run_IndexQnA(model.serviceParameters.Value,IO.invocationContext model,ch))
+        | M_Plain -> serverDispatch (Clnt_Run_Plain(model.serviceParameters.Value,IO.invocationContext model,ch))
+        | M_Doc -> serverDispatch (Clnt_Run_QnADoc(model.serviceParameters.Value,IO.invocationContext model,ch))
+        | M_Doc_Index -> serverDispatch (Clnt_Run_IndexQnADoc(model.serviceParameters.Value,IO.invocationContext model,ch))
+        | M_CodeEval -> serverDispatch (Clnt_Run_EvalCode(model.serviceParameters.Value,IO.invocationContext model,ch,(Interaction.code ch).CodeEvalParms))
+
+    let checkSubmission prompt id model = 
+        let ch = model.interactions |> List.tryFind (fun c -> c.Id = id)
+        match ch, model.serviceParameters, Utils.isEmpty prompt with
+        | None,_,_ -> Some "No chat selected"
+        | _,None,_ -> Some "Service configuration not yet received from server"
+        | _,_,true -> Some "Question is empty"
+        | Some ch, _,_ when (ch.Mode = M_Index && (Interaction.getIndexes ch).Length = 0) -> Some "Please select a source"
+        | _ -> None
+
+    let prepForSubmit prompt id model =
+        let chats =
+            model.interactions
+            |> Interactions.setUserMessage id prompt
+            |> Interactions.setQuestion id ""
+            |> Interactions.addMessage id (Interaction.newAsstantMessage "")
+            |> Interactions.clearNotifications id
+            |> Interactions.startBuffering id
+        let model = {model with interactions = chats; error=None}
+        //chat changes below are for submission only - the state of chat in UI is not affected
+        let ch =
+            model.interactions
+            |> List.find(fun x->x.Id=id)
+            |> Interaction.preSerialize
+            |> Interaction.setQuestion prompt //send the question to the server separately also for logging (note the prompt may be modfied along the way)
+        let idxs = Interaction.getIndexes ch
+        let ch =
+            if List.isEmpty idxs then
+                ch
+            else
+                ch |> Interaction.setIndexes (IO.expandIdxRefs model idxs |> Set.toList) //expand index list to include child indexes, if needed
+        model,ch
+
     let submitChat serverDispatch prompt id model =
-        if Utils.notEmpty prompt then
-            let invCtx = IO.invocationContext model
-            match model.serviceParameters with
-            | Some sp ->
-                let chats =
-                    model.interactions
-                    |> Interactions.setUserMessage id prompt
-                    |> Interactions.setQuestion id ""
-                    |> Interactions.addMessage id (Interaction.newAsstantMessage "")
-                    |> Interactions.clearNotifications id
-                    |> Interactions.startBuffering id
-                let model = {model with interactions = chats; error=None}
-                //chat changes below are for submission only - the state of chat in UI is not affected
-                let ch =
-                    model.interactions
-                    |> List.find(fun x->x.Id=id)
-                    |> Interaction.preSerialize
-                    |> Interaction.setQuestion prompt //send the question to the server separately also for logging (note the prompt may be modfied along the way)
-                let idxs = Interaction.getIndexes ch
-                let ch =
-                    if List.isEmpty idxs then
-                        ch
-                    else
-                        ch |> Interaction.setIndexes (IO.expandIdxRefs model idxs |> Set.toList) //expand index list to include child indexes, if needed
-                match ch.Mode with
-                | M_Index   -> serverDispatch (Clnt_Run_IndexQnA(sp,invCtx,ch))
-                | M_Plain -> serverDispatch (Clnt_Run_Plain(sp,invCtx,ch))
-                | M_Doc -> serverDispatch (Clnt_Run_QnADoc(sp,invCtx,ch))
-                | M_Doc_Index -> serverDispatch (Clnt_Run_IndexQnADoc(sp,invCtx,ch))
-                | M_CodeEval -> serverDispatch (Clnt_Run_EvalCode(sp,invCtx,ch,(Interaction.code ch).CodeEvalParms))
-                model,Cmd.none
-            | None -> model,Cmd.ofMsg(ShowInfo "Service configuration not yet received from server")
-        else
-            model,Cmd.ofMsg(ShowInfo "Question is empty")
+        match checkSubmission prompt id model with
+        | Some error -> 
+            let interactions = model.interactions |> Interactions.setQuestion id prompt
+            let model' = {model with interactions=interactions}
+            model',Cmd.ofMsg(ShowInfo error)
+        | None ->
+            let model,ch = prepForSubmit prompt id model
+            sendChat model serverDispatch ch
+            model,Cmd.none
 
     let genSearch serverDispatch id model =
         match model.serviceParameters with

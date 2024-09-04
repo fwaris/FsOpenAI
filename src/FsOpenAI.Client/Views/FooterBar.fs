@@ -8,8 +8,6 @@ open FsOpenAI.Shared.Interactions
 open Microsoft.AspNetCore.Components.Web
 open Microsoft.JSInterop
 
-#nowarn "44"
-
 module FooterBar =
     let copyToClipboard (jsr:IJSRuntime) (text:string) =
         jsr.InvokeVoidAsync ("navigator.clipboard.writeText", text) |> ignore
