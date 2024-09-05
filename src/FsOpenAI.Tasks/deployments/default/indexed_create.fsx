@@ -25,12 +25,13 @@ let createCitations folder =
 
 //shred and index the pdfs
 let embModel = "text-embedding-ada-002"
+let clientFac() = ScriptEnv.openAiEmbeddingClient embModel
 
 let indexFolder indexName path =
     createCitations path
     let indexDef = ScriptEnv.Indexes.indexDefinition indexName
     ScriptEnv.Indexes.shredPdfsAsync path
-    |> ScriptEnv.Indexes.getEmbeddingsAsync embModel ScriptEnv.openAiClient 7.0
+    |> ScriptEnv.Indexes.getEmbeddingsAsync clientFac 7.0
     |> AsyncSeq.map ScriptEnv.Indexes.toSearchDoc
     |> ScriptEnv.Indexes.loadIndexAsync true indexDef 
 

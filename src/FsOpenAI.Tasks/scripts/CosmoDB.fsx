@@ -12,7 +12,7 @@ let cstr = ScriptEnv.settings.Value.LOG_CONN_STR.Value
 
 let db() =
     Cosmos.fromConnectionString cstr
-    |> Cosmos.database FsOpenAI.GenAI.Monitoring.COSMOSDB
+    |> Cosmos.database FsOpenAI.Shared.C.DFLT_COSMOSDB_NAME
     |> Cosmos.container FsOpenAI.Shared.C.DFLT_MONITOR_TABLE_NAME
 
 let findDrops() =

@@ -5,9 +5,11 @@ open System.Threading
 open System.Threading.Tasks
 open System.Text.Json
 open Azure
-open Azure.AI.OpenAI
 open Azure.Search.Documents
 open Azure.Search.Documents.Indexes
+open Microsoft.SemanticKernel.Embeddings
+open Microsoft.SemanticKernel.Connectors.AzureOpenAI
+open Microsoft.SemanticKernel.Connectors.OpenAI
 open Microsoft.SemanticKernel.Text
 open FSharp.Control
 open FsOpenAI.Shared
@@ -62,14 +64,14 @@ let indexClient() =
     let ep = searchEndpoint()
     SearchIndexClient(Uri ep.ENDPOINT,AzureKeyCredential(ep.API_KEY))
 
-let azureOpenAiClient() =
+let azureOpenAiEmbeddingClient model : ITextEmbeddingGenerationService =
     let ep = openAIEndpoint()
     let openAiEndpoint = $"https://{ep.RESOURCE_GROUP}.openai.azure.com"
-    OpenAIClient(Uri openAiEndpoint,AzureKeyCredential(ep.API_KEY))
+    AzureOpenAITextEmbeddingGenerationService(model,openAiEndpoint,ep.API_KEY)
 
-let openAiClient() =
+let openAiEmbeddingClient model : ITextEmbeddingGenerationService =
     let key = settings.Value.OPENAI_KEY |> Option.defaultWith (fun _ -> failwith "OpenAI key not found")
-    OpenAIClient(key)
+    OpenAITextEmbeddingGenerationService(model,key)
 
 let inline await fn = fn |> Async.AwaitTask |> Async.RunSynchronously
 
@@ -261,15 +263,15 @@ module Indexes =
             printfn "done loading index"
         }
 
-    let getEmbeddingsAsync (embModel:string) (clientFac:unit->OpenAIClient) rateLimit (chunks : AsyncSeq<Doc>) =
+    let getEmbeddingsAsync (clientFac:unit->ITextEmbeddingGenerationService) rateLimit (chunks : AsyncSeq<Doc>) =
         chunks
         |> AsyncSeq.mapAsyncParallelRateLimit rateLimit (fun doc ->
             async {
                 let t1 = DateTime.Now
                 let client = clientFac()
-                let t = client.GetEmbeddingsAsync(EmbeddingsOptions(embModel,[doc.Chunk])) |> Async.AwaitTask
+                let t = client.GenerateEmbeddingAsync(doc.Chunk) |> Async.AwaitTask
                 let! emb = submitLoop "embedding" 0 t
-                return {Time = t1; Doc=doc; Embeddings = emb.Value.Data.[0].Embedding.ToArray() }
+                return {Time = t1; Doc=doc; Embeddings = emb.ToArray()}
             })
 
     let docTextPdf (r:Readers.IDocReader) =

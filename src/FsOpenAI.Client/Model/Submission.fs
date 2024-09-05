@@ -23,7 +23,7 @@ module Submission =
                 
     let setModeIndexes (idxs:IndexRef list) id model =
         match Model.selectedChat model, idxs.Length = 0 with
-        | Some ch, true when ch.Mode <> M_Index -> model //no change if not in index mode and no indexes selected (handles Razen idiosyncracy)
+        | Some ch, true when ch.Mode <> M_Index -> model //no change if not in index mode and no indexes selected (handles Radzen idiosyncracy)
         | _ ->
             {model with 
                 interactions = 
