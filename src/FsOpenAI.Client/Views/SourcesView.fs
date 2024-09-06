@@ -128,7 +128,7 @@ type SourcesView() =
             content
 
     override this.View model dispatch =
-        let haveDoc = Model.selectedChat model |> Option.bind Interaction.docContent
+        let haveDoc = Model.selectedChat model |> Option.bind Interaction.docContent |> Option.bind (fun x -> match x.Status with | No_Document -> None | _ -> Some x)
         let showPlain = if Model.isEnabled M_Plain model then 1 else 0
         let showIndex = if Model.isEnabledAny [M_Doc_Index; M_Index] model then 1 else 0
         let showDoc = if Model.isEnabledAny [M_Doc_Index; M_Doc] model && haveDoc.IsSome then 1 else 0

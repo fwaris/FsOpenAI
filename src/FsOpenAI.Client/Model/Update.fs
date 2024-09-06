@@ -52,7 +52,7 @@ module Update =
         | Ia_Submit (id,lastMsg) -> Model.checkBusy model <| Auth.checkAuthFlip (Submission.submitChat uparms.serverDispatch lastMsg id)
         | Ia_SubmitOnKey (id,delay) -> Submission.submitOnKey model id delay
         | Ia_SystemMessage (id,msg) -> {model with interactions = Interactions.setSystemMessage id msg model.interactions},Cmd.none
-        | Ia_ApplyTemplate (id,tpType,tmplt) -> printfn "TODO apply template"; model,Cmd.none //Submission.tryApplyTemplate (id,tpType,tmplt) model
+        | Ia_ApplyTemplate (id,tpType,tmplt) -> Submission.tryApplyTemplate (id,tpType,tmplt) model
         | Ia_SetPrompt (id,tpType,prompt) ->  printfn "TODO set prompt"; model,Cmd.none //{model with interactions = Interactions.setPrompt id (tpType,prompt) model.interactions}, Cmd.none
         | Ia_Save id -> model, if Model.isChatPeristenceConfigured model then Cmd.ofMsg (Ia_Session_Save id) else Cmd.ofMsg Ia_Local_Save
         | Ia_Local_Save -> model, Cmd.OfTask.either IO.saveChats (model,uparms.localStore) ShowInfo Error
@@ -82,7 +82,9 @@ module Update =
         | Ia_Selected id -> {model with selectedChatId = Some id},Cmd.none
         | Ia_UseWeb (id,useWeb) -> Submission.setModeUseWeb useWeb id model,Cmd.none
         | Ia_SetIndex (id,idxs) -> Submission.setModeIndexes idxs id model,Cmd.none
+        | Ia_Remove_Document id -> Submission.removeDoc id model,Cmd.none
         | Ia_Mode_Document id -> {model with interactions = Interactions.setMode id M_Doc model.interactions},Cmd.none
+        | Ia_Mode_Doc_Index (id,useIndex) -> Submission.setModeDocIndex useIndex id model,Cmd.none
         | Ia_File_BeingLoad2 (id,dc) -> Submission.setModeDoc dc id model, Cmd.ofMsg (Ia_File_Load id)
         | Ia_File_Load id -> {model with interactions = Interactions.setDocumentStatus id Uploading model.interactions},Cmd.OfTask.either IO.loadFile (id,model,uparms.serverCall) Ia_File_Loaded Error
         | Ia_File_Loaded (id,fileId) -> uparms.serverDispatch (Clnt_ExtractContents (id,fileId,Submission.docType id model.interactions)); model,Cmd.none

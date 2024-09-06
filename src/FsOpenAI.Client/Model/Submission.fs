@@ -31,11 +31,30 @@ module Submission =
                             |> Interactions.setMode id M_Index 
                             |> Interactions.setIndexes id idxs}                        
 
-    let setModeDoc doc id model = 
+    let setModeDoc (doc:DocumentContent) id model = 
         {model with interactions = 
                         model.interactions
                         |> Interactions.setDocContent id doc
                         |> Interactions.setMode id M_Doc}
+
+    let setModeDocIndex useIndex id model = 
+        if useIndex then
+            {model with interactions = 
+                            model.interactions
+                            |> Interactions.setMode id M_Doc_Index}            
+        else
+            {model with interactions = 
+                            model.interactions
+                            |> Interactions.forceSetMode id M_Doc}
+
+    let removeDoc id model =
+        let defMode = 
+            model.interactions |> List.tryFind (fun c -> c.Id = id)
+            |> Option.map(fun c -> match c.Mode with M_Doc_Index -> M_Index | _ -> M_Plain)
+        {model with interactions = 
+                        model.interactions
+                        |> Interactions.removeDoc id
+                        |> Interactions.setMode id M_Plain}
             
     let isReady ch =
         match ch with 
@@ -194,6 +213,14 @@ module Submission =
             else
                 Cmd.ofMsg (Ia_Local_Save)
         model,cmd
+
+    
+    let tryApplyTemplate (id,tpType,template) model =
+        try
+            let ixs = Interactions.applyTemplate id (tpType,template) model.interactions
+            {model with interactions = ixs},Cmd.none
+        with ex ->
+            model,Cmd.ofMsg (ShowInfo ex.Message)
 
     let tryLoadSamples model =
         let model = {model with busy = false}

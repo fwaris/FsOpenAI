@@ -13,6 +13,12 @@
     ],
     [
       {
+        "Case": "M_Doc_Index"
+      },
+      "You are a helpful AI assistant\u0022\n"
+    ],
+    [
+      {
         "Case": "M_Doc"
       },
       "You are a helpful AI assistant\u0022\n"

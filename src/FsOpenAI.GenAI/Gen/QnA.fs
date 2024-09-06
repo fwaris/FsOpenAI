@@ -104,7 +104,7 @@ module QnA =
         async {  
             try
                 let cogMems = chatPdfMemories parms invCtx ch   
-                let maxDocs = Interaction.maxDocs 1 ch              
+                let maxDocs = Interaction.maxDocs 1 ch
                 let! query = refineQuery parms invCtx ch |> Async.AwaitTask
                 dispatch (Srv_Ia_Notification (ch.Id,$"Searching with: {query}"))
                 let docs = 

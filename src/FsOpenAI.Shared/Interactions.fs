@@ -341,15 +341,34 @@ module Interaction =
     let setFeedback feedback c = {c with Feedback = feedback}
 
     let setMode  desiredMode ch = 
-        match ch.Mode,desiredMode with
+        let currentMode = ch.Mode
+        match currentMode,desiredMode with
         | x,y when x=y             -> ch
         | M_Doc_Index, M_Doc       -> ch
+        | M_Doc_Index, M_Index     -> ch
         | M_Doc, M_Doc_Index       -> {ch with Mode=M_Doc_Index}
         | _,M_Index                -> {ch with Mode=M_Index}
         | _,M_Plain                -> {ch with Mode=M_Plain}
         | _,M_Doc                  -> {ch with Mode=M_Doc}
         | _,M_Doc_Index            -> {ch with Mode=M_Doc_Index}
         | _,M_CodeEval             -> {ch with Mode=M_CodeEval}
+
+    let forceSetMode (mode:InteractionMode) (ch:Interaction) = {ch with Mode=mode}
+
+    let applyTemplate (tpType,template) (ch:Interaction) =
+        printfn "TODO apply template"
+        ch
+        // let dbag = docBag ch
+        // let dbag =
+        //     match tpType with
+        //     | DocQuery -> {dbag with QueryTemplate = Some template.Template;}
+        //     | Extraction -> {dbag with ExtractTermsTemplate = Some template.Template}
+        // let ch = setDocBag dbag ch
+        // match template.Question with
+        // | Some q -> setQuestion q ch
+        // | None   -> ch
+
+    let removeDoc ch = {ch with Types = ch.Types |> List.filter (function QnADoc _ -> false | _ -> true)}
 
 module Interactions =
 
@@ -413,6 +432,12 @@ module Interactions =
 
     let setMode id mode cs = updateWith (Interaction.setMode mode) id cs
 
+    let forceSetMode id mode cs = updateWith (Interaction.forceSetMode mode) id cs
+
     let setFeedback id feedback cs = updateWith (Interaction.setFeedback feedback) id cs
 
     let feedback id cs = cs |> List.find(fun c -> c.Id = id) |> fun c -> c.Feedback
+
+    let applyTemplate id (tpType,template) cs = updateWith (Interaction.applyTemplate (tpType,template)) id cs
+
+    let removeDoc id cs = updateWith Interaction.removeDoc id cs
