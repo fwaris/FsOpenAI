@@ -136,29 +136,6 @@ module Submission =
             sendChat model serverDispatch ch
             model,Cmd.none
 
-    let genSearch serverDispatch id model =
-        match model.serviceParameters with
-        | Some sp ->
-            let chats =
-                model.interactions
-                |> Interactions.setDocumentStatus id ExtractingTerms
-            let model = {model with interactions = chats; error=None}
-            let ch =
-                model.interactions
-                |> List.find(fun x->x.Id=id)
-                |> Interaction.removeUIState
-            match Interaction.docContent ch with
-            | Some d -> serverDispatch (Clnt_SearchQuery(sp,IO.invocationContext model,ch))
-            | _       -> failwith "unexptected chat type"
-            model,Cmd.none
-        | None -> model,Cmd.ofMsg(ShowInfo "Service configuration not yet received from server")
-
-    let tryGenSearch dispatch id model =
-        let ch = model.interactions |> List.find (fun c -> c.Id = id)
-        match ch.Mode with
-        | M_Doc_Index -> genSearch dispatch id model
-        | _ -> model,Cmd.none
-
     let completeChat id err model =
         let cs = Interactions.endBuffering id (Option.isSome err) model.interactions
         let model = {model with interactions = cs}

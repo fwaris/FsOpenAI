@@ -15,9 +15,8 @@
     <Compile Include="Gen\Prompts.fs" />
     <Compile Include="Gen\Completions.fs" />
     <Compile Include="Gen\WebCompletion.fs" />
-    <Compile Include="Gen\QnA.fs" />
+    <Compile Include="Gen\IndexQnA.fs" />
     <Compile Include="Gen\DocQnA.fs" />
-    <Compile Include="Gen\QnADocPlan.fs" />
     <PackageReference Include="FSharp.CosmosDb" Version="1.2.1" />
     <PackageReference Include="MathNet.Numerics.FSharp" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />

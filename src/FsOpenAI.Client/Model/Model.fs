@@ -101,7 +101,6 @@ type Message =
     | Ia_File_Loaded of string*string
     | Ia_File_SetContents of string*string*bool
     | Ia_SetSearch of string*string
-    | Ia_GenSearch of string
     | Ia_UseWeb of string*bool
     | Ia_Mode_Document of string
     | Ia_Remove_Document of string

@@ -7,7 +7,7 @@ open FsOpenAI.Shared.Interactions
 open SemanticVectorSearch
 open FsOpenAI.Shared
 
-module QnA =
+module IndexQnA =
 
     let serializeHistory maxTokens msgs =
         let hist = 

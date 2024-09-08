@@ -226,7 +226,6 @@ type ClientInitiatedMessages =
     | Clnt_Run_QnADoc of ServiceSettings*InvocationContext*Interaction
     | Clnt_UploadChunk of string*byte[]
     | Clnt_ExtractContents of string*string*DocType option
-    | Clnt_SearchQuery of ServiceSettings*InvocationContext*Interaction
     | Clnt_Ia_Session_Save of InvocationContext*Interaction
     | Clnt_Ia_Session_LoadAll of InvocationContext
     | Clnt_Ia_Session_ClearAll of InvocationContext

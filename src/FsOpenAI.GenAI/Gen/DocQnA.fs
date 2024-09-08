@@ -100,20 +100,18 @@ module DocQnA =
                 dispatch (Srv_Ia_File_Error(id,ex.Message))
         }
 
-    let getSearchQuery parms modelRefs ch query =
+    let extractDocSearchTerms parms modelRefs ch query =
         task {
             let query = Utils.shorten 7000 query
             let bestModel = GenUtils.optimalModel modelRefs (GenUtils.tokenSize query)
             let k = (GenUtils.baseKernel parms [bestModel] ch).Build()
             let args = GenUtils.kernelArgs ["document",query] (fun x -> x.MaxTokens <- 1000)
             let docQuery = Prompts.DocQnA.extractSearchTerms
-                // Interaction.getPrompt TemplateType.Extraction ch 
-                // |> Option.defaultValue Prompts.DocQnA.extractSearchTerms
             let! rslt = k.InvokePromptAsync(docQuery,args) |> Async.AwaitTask
             return rslt.GetValue<string>()
         }
 
-    let extractQuery parms modelsConfig ch dispatch =
+    let docSearchTerms parms modelsConfig ch dispatch =
         task {
             try 
                 let modelRefs = GenUtils.chatModels modelsConfig ch.Parameters.Backend
@@ -121,10 +119,12 @@ module DocQnA =
                     Interaction.docContent ch 
                     |> Option.bind (fun d-> d.DocumentText) 
                     |> Option.defaultWith (fun  _-> failwith "no document found")  
-                let! query = getSearchQuery parms modelRefs ch document
+                dispatch (Srv_Ia_Notification(ch.Id,"Extracting search terms from document..."))
+                let! query = extractDocSearchTerms parms modelRefs ch document
                 dispatch (Srv_Ia_SetSearch(ch.Id,query))
+                return query 
             with ex ->
-                dispatch (Srv_Error(ex.Message))
+                return failwith $"Error extracting search terms: {ex.Message}"
         }
 
     let summarizeWholeDocument parms modelsConfig ch document dispatch =
@@ -204,14 +204,14 @@ module DocQnA =
         task {
             let tknBudget = GenUtils.chatModels invCtx ch.Parameters.Backend |> List.map (_.TokenLimit) |> List.max |> float
             let tknsDoc =  GenUtils.tokenSize document
-            let combinedSearch = QnA.combineSearchResults tknBudget memories
+            let combinedSearch = IndexQnA.combineSearchResults tknBudget memories
             let tknsSearch = GenUtils.tokenSize combinedSearch 
             if i < 3 then 
                 match reduceCheck tknsDoc tknsSearch tknBudget with 
                 | ReduceNone -> do! continueAnswerQuestion parms invCtx ch document memories dispatch combinedSearch
                 | ReduceSearch -> 
                     dispatch (Srv_Ia_Notification(ch.Id,$"Dropping some search results to meet token limit : {i}"))        
-                    let memories = QnA.trimMemories (tknBudget - tknsDoc) memories
+                    let memories = IndexQnA.trimMemories (tknBudget - tknsDoc) memories
                     do! answerQuestion (i+1) parms invCtx ch document memories dispatch
                 | ReduceDoc -> 
                     dispatch (Srv_Ia_Notification(ch.Id,$"Summarizing document to meet token limit: {i}"))
@@ -238,11 +238,14 @@ module DocQnA =
                 Interaction.docContent ch 
                 |> Option.bind (fun d -> d.DocumentText ) 
                 |> Option.defaultWith (fun _ -> failwith "no document found")
-            let query = 
-                Interaction.docContent ch 
-                |> Option.bind (fun d -> d.SearchTerms ) 
-                |> Option.defaultWith (fun _ -> failwith "no search terms found")
-            let cogMems = QnA.chatPdfMemories parms modelsConfig ch   
+            let! query = 
+                let cachedTerms = 
+                    Interaction.docContent ch 
+                    |> Option.bind (fun d -> d.SearchTerms ) 
+                match cachedTerms with 
+                | None -> docSearchTerms parms modelsConfig ch dispatch |> Async.AwaitTask
+                | Some x -> async{return x}                
+            let cogMems = IndexQnA.chatPdfMemories parms modelsConfig ch   
             let maxDocs = Interaction.maxDocs 1 ch
             let qMsg = query.Substring(0,min 100 (query.Length-1))  
             dispatch (Srv_Ia_Notification (ch.Id,$"Document + index search mode ..."))
@@ -251,7 +254,7 @@ module DocQnA =
             let! rephrasedQuestion =
                 if ch.Messages.Length > 2 then 
                     dispatch (Srv_Ia_Notification(ch.Id,"Rephrasing question based on chat history ..."))
-                    QnA.refineQuery parms modelsConfig ch |> Async.AwaitTask
+                    IndexQnA.refineQuery parms modelsConfig ch |> Async.AwaitTask
                 else
                     async{return ""}
 

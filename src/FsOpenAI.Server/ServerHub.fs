@@ -128,7 +128,7 @@ type ServerHub() =
 
                 | Clnt_Run_IndexQnA (settings,invCtx,chat) ->
                     let settings = Settings.updateKey settings
-                    QnA.runPlan settings invCtx chat dispatch |> Async.Start
+                    IndexQnA.runPlan settings invCtx chat dispatch |> Async.Start
 
                 | Clnt_Run_QnADoc (settings,invCtx,chat) ->
                     let settings = Settings.updateKey settings
@@ -136,7 +136,7 @@ type ServerHub() =
 
                 | Clnt_Run_IndexQnADoc (settings,invCtx,chat) ->
                     let settings = Settings.updateKey settings
-                    QnADocPlan.runPlan settings invCtx chat dispatch |> Async.Start
+                    DocQnA.runPlan settings invCtx chat dispatch |> Async.Start
 
                 | Clnt_Run_EvalCode (settings,invCtx,chat,evalParms) ->
                     let settings = Settings.updateKey settings
@@ -150,10 +150,6 @@ type ServerHub() =
 
                 | Clnt_ExtractContents (id,fileId,docType) ->
                     DocQnA.extract (id,fileId,docType) dispatch |> Async.Start
-
-                | Clnt_SearchQuery (settings,invCtx,ch) ->
-                    let settings = Settings.updateKey settings
-                    do! DocQnA.extractQuery settings invCtx ch dispatch
 
                 | Clnt_Ia_Session_Save (invCtx,ch) ->
                     let session = Sessions.toSession invCtx ch
