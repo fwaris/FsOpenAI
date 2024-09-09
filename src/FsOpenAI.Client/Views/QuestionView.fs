@@ -104,7 +104,7 @@ type QuestionView() =
                                 "Icon" => "attach_file"
                                 "Style" => "background-color: transparent;"
                                 attr.disabled  isNotReady
-                                attr.title "Attach file"
+                                attr.title "Load a document or image"
                              }
                         }
                     }

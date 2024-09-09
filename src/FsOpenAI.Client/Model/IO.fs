@@ -24,6 +24,9 @@ module IO =
             | ".pptx" | ".ppt" -> Some DT_Powerpoint
             | ".xlsx" | ".xls" -> Some DT_Excel
             | ".rtf"           -> Some DT_RTF
+            | ".jpg" 
+            | ".jpeg" 
+            | ".png"            -> Some DT_Image
             | _                -> None
         printfn $"document type: {docType}"
         docType

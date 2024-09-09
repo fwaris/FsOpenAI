@@ -236,4 +236,15 @@ module Submission =
         | Some fb -> serverDispatch (Clnt_Ia_Feedback_Submit(IO.invocationContext model,fb))
         | None -> ()
 
-    
+    let extractContents serverDispatch fileId chatId model =
+        match model.serviceParameters with
+        | Some sp -> 
+            match model.interactions |> List.tryFind (fun c -> c.Id = chatId) with
+            | Some ch ->
+                let docType = docType ch.Id model.interactions
+                let parms =sp,IO.invocationContext model, ch.Parameters.Backend
+                serverDispatch (Clnt_Ia_Doc_Extract(parms,(chatId,fileId,docType)))
+            | None -> ()
+            model,Cmd.none
+        | _ ->  model,Cmd.ofMsg (ShowError "Service configuration not yet received from server")
+        

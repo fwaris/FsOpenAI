@@ -148,7 +148,7 @@ type ServerHub() =
                     with ex ->
                         return raise (HubException(ex.Message))
 
-                | Clnt_ExtractContents (id,fileId,docType) ->
+                | Clnt_Ia_Doc_Extract (parms,(id,fileId,docType)) ->
                     DocQnA.extract (id,fileId,docType) dispatch |> Async.Start
 
                 | Clnt_Ia_Session_Save (invCtx,ch) ->

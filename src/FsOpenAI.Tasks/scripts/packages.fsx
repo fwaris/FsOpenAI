@@ -48,5 +48,5 @@
 #load "Gen/SemanticVectorSearch.fs"
 #load "Gen/Completions.fs"
 #load "Gen/WebCompletion.fs"
-#load "Gen/QnA.fs"
+#load "Gen/IndexQnA.fs"
 #load "Gen/DocQnA.fs"

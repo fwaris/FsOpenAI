@@ -20,7 +20,7 @@ type ExplorationMode = Factual | Exploratory | Creative
 
 type SearchMode = Semantic | Hybrid | Keyword
 
-type DocType = DT_Pdf | DT_Word | DT_Powerpoint | DT_Excel | DT_Text | DT_RTF
+type DocType = DT_Pdf | DT_Word | DT_Powerpoint | DT_Excel | DT_Text | DT_RTF | DT_Image
 
 type InteractionParameters =
     {
@@ -225,7 +225,7 @@ type ClientInitiatedMessages =
     | Clnt_Run_IndexQnADoc of ServiceSettings*InvocationContext*Interaction
     | Clnt_Run_QnADoc of ServiceSettings*InvocationContext*Interaction
     | Clnt_UploadChunk of string*byte[]
-    | Clnt_ExtractContents of string*string*DocType option
+    | Clnt_Ia_Doc_Extract of (ServiceSettings*InvocationContext*Backend)*(string*string*DocType option)
     | Clnt_Ia_Session_Save of InvocationContext*Interaction
     | Clnt_Ia_Session_LoadAll of InvocationContext
     | Clnt_Ia_Session_ClearAll of InvocationContext

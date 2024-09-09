@@ -148,6 +148,25 @@ module GenUtils =
         let url = $"https://{rg}.openai.azure.com"
         rg,url,endpt.API_KEY
 
+    let visionModel (backend:Backend) (modelConfig:ModelsConfig) =
+        let filter (m:ModelRef) = if m.Backend = backend then Some m else None
+        (modelConfig.LongChatModels |> List.choose filter)
+        @ (modelConfig.ShortChatModels |> List.choose filter)
+        @ (modelConfig.LongChatModels |> List.choose filter)
+        |> List.filter (fun x->x.Model.Contains("-4o")) 
+        |> List.tryHead
+
+    let servceEndpoint (parms:ServiceSettings) (backend:Backend) (model:string) =
+        match backend with 
+        | AzureOpenAI -> 
+            let rg,url,key = getAzureEndpoint parms.AZURE_OPENAI_ENDPOINTS
+            let url = $"https://{rg}.openai.azure.com/openai/deployments/{model}/chat/completions?api-version=2023-07-01-preview";
+            url,key
+        | OpenAI -> 
+            match parms.OPENAI_KEY with 
+            | Some key when Utils.notEmpty key -> "https://api.openai.com",key
+            | _ -> raise (NoOpenAIKey "No OpenAI Key found")
+
     let getClientFor (parms:ServiceSettings) backend model : (IChatCompletionService*string) =
             match backend with 
             | AzureOpenAI -> 

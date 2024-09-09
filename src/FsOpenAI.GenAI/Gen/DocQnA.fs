@@ -81,6 +81,10 @@ module DocQnA =
         |> Seq.map(fun rs -> String.Join(" ", rs))
         |> Seq.toList
 
+    // let extractImage (visionEp:AzureOpenAIEndpoints (filePath:string)   = 
+    //     VisionApi.processImage  
+        
+
     let extract (id,fileId,docType) dispatch =
         async {
             try
