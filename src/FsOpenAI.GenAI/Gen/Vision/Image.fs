@@ -1,9 +1,11 @@
-﻿module Image
+﻿namespace FsOpenAI.GenAI.Image
 open System
 open System.IO
 
-let imagePath docPath pageNum imageNum = docPath + $".{pageNum}_{imageNum}.jpeg"
-let imageTextPath imagePath = imagePath + ".txt"
+module ImageUtils = 
+
+    let imagePath docPath pageNum imageNum = docPath + $".{pageNum}_{imageNum}.jpeg"
+    let imageTextPath imagePath = imagePath + ".txt"
 
 [<RequireQualifiedAccess>]
 module Extraction =
@@ -18,7 +20,7 @@ module Extraction =
             use d = WordprocessingDocument.Open(filePath,false)
             d.MainDocumentPart.ImageParts
             |> Seq.iteri(fun i img ->
-                let imgPath = imagePath filePath 0 i
+                let imgPath = ImageUtils.imagePath filePath 0 i
                 printfn $"Image {i} : {imgPath}"
                 use bmp = Bitmap.FromStream(img.GetStream())
                 bmp.Save(imgPath,ImageFormat.Jpeg))
@@ -42,7 +44,7 @@ module Extraction =
                 |> Seq.toList
             images
             |> List.iteri (fun i img ->
-                let imgPath = imagePath filePath 0 i
+                let imgPath = ImageUtils.imagePath filePath 0 i
                 printfn $"Image {i} : {imgPath}"
                 use bmp = Bitmap.FromStream(img.GetStream())
                 bmp.Save(imgPath,ImageFormat.Jpeg))
@@ -66,7 +68,7 @@ module Extraction =
             let d = i.TryGetPng(&pngBytes)
             use stream = new MemoryStream(if pngBytes = null then i.RawBytes |> Seq.toArray else pngBytes);
             use image = Image.FromStream(stream, false, false);
-            let fn = imagePath path page.Number j
+            let fn = ImageUtils.imagePath path page.Number j
             image.Save(fn, jpegEncoder, null);
             j <- j + 1
 
@@ -126,7 +128,7 @@ module Conversion =
             let w,h = page.GetPageWidth(),page.GetPageHeight()
             use bmp = new Bitmap(w,h,PixelFormat.Format32bppArgb)
             addBytes bmp imgBytes
-            let outPath = imagePath path i 0
+            let outPath = ImageUtils.imagePath path i 0
             saveBmp bmp outPath)
 
     ///Export entire pages as jpeg images to disk
@@ -144,5 +146,5 @@ module Conversion =
             let w,h = page.GetPageWidth(),page.GetPageHeight()
             use bmp = new Bitmap(w,h,PixelFormat.Format32bppArgb)
             addBytes bmp imgBytes
-            let outPath = imagePath path i 0
+            let outPath = ImageUtils.imagePath path i 0
             saveBmp bmp outPath)

@@ -236,7 +236,7 @@ module Submission =
         | Some fb -> serverDispatch (Clnt_Ia_Feedback_Submit(IO.invocationContext model,fb))
         | None -> ()
 
-    let extractContents serverDispatch fileId chatId model =
+    let extractContents serverDispatch chatId fileId model =
         match model.serviceParameters with
         | Some sp -> 
             match model.interactions |> List.tryFind (fun c -> c.Id = chatId) with

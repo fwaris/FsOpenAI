@@ -164,7 +164,7 @@ module GenUtils =
             url,key
         | OpenAI -> 
             match parms.OPENAI_KEY with 
-            | Some key when Utils.notEmpty key -> "https://api.openai.com",key
+            | Some key when Utils.notEmpty key -> "https://api.openai.com/v1/chat/completions",key
             | _ -> raise (NoOpenAIKey "No OpenAI Key found")
 
     let getClientFor (parms:ServiceSettings) backend model : (IChatCompletionService*string) =

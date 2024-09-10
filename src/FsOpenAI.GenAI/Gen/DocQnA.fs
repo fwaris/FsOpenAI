@@ -80,27 +80,35 @@ module DocQnA =
         |> Seq.chunkBySize 100
         |> Seq.map(fun rs -> String.Join(" ", rs))
         |> Seq.toList
-
-    // let extractImage (visionEp:AzureOpenAIEndpoints (filePath:string)   = 
-    //     VisionApi.processImage  
         
-
-    let extract (id,fileId,docType) dispatch =
+    let imageToText parms filePath = 
         async {
-            try
-                let fn = Path.Combine(Path.GetTempPath(),fileId)
-                let texts = 
-                    match docType with 
-                    | None | Some DT_Pdf -> extractPdfTexts fn
-                    | Some DT_Word       -> extractWordTexts fn 
-                    | Some DT_Powerpoint -> extractTextPptx fn
-                    | Some DT_Excel      -> extractExcelTexts fn
-                    | Some DT_Text       -> extractPlainTexts fn
-                    | Some x             -> failwith $"unsupported document type {x}"
-                texts
-                |> Seq.iter(fun t -> dispatch (Srv_Ia_File_Chunk (id,t,false)))
+            let img = File.ReadAllBytes(filePath)   
+            let! resp = VisionApi.processImage parms ("","extract text from image. just out the text from image. [text]:",img)
+            return 
+                match resp with
+                | Some r -> r.choices |> List.map (fun x -> x.message.content)
+                | None -> ["no content extracted from image"]
+        }
+
+    let extract parms (id,fileId,docType) dispatch =
+        async {
+            let fn = Path.Combine(Path.GetTempPath(),fileId)
+            let texts = 
+                match docType with 
+                | None | Some DT_Pdf -> async{return extractPdfTexts fn}
+                | Some DT_Word       -> async{return extractWordTexts fn}
+                | Some DT_Powerpoint -> async{return extractTextPptx fn}
+                | Some DT_Excel      -> async{return extractExcelTexts fn}
+                | Some DT_Text       -> async{return extractPlainTexts fn}
+                | Some DT_Image      -> dispatch (Srv_Ia_Notification (id,"Extracting text from image..."))
+                                        imageToText parms fn
+                | Some x             -> async{return failwith $"unsupported document type {x}"}
+            match! Async.Catch texts with
+            | Choice1Of2 xs ->  
+                xs |> List.iter (fun t -> (dispatch (Srv_Ia_File_Chunk (id,t,false))))
                 dispatch (Srv_Ia_File_Chunk (id,"",true))
-            with ex ->
+            | Choice2Of2 ex -> 
                 dispatch (Srv_Ia_File_Error(id,ex.Message))
         }
 

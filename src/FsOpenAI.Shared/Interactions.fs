@@ -223,7 +223,12 @@ module Interaction =
 
     let private setContents (dc:DocumentContent) (text,isDone) =
          let cnts = match dc.DocumentText with Some t -> String.Join("\r",[t;text]) | None -> text
-         let status = if isDone then Ready else dc.Status
+         printfn "%A" isDone
+         let status = 
+            if isDone then 
+                Ready 
+            else 
+                dc.Status
          {dc with DocumentText = Some cnts; Status = status}
 
     let setFileContents (text,isDone) (ch:Interaction) =
