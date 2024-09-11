@@ -9,7 +9,6 @@
     <Compile Include="Connection.fs" />
     <Compile Include="Sessions.fs" />
     <Compile Include="Monitoring.fs" />
-    <Compile Include="Gen\Utils.fs" />
     <Compile Include="Gen\SemanticVectorSearch.fs" />
     <Compile Include="Gen\GenUtils.fs" />
     <Compile Include="Gen\Indexes.fs" />
@@ -26,7 +25,7 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
     <PackageReference Include="Microsoft.Identity.Web" Version="3.1.0" />
     <PackageReference Include="Microsoft.DeepDev.TokenizerLib" Version="1.3.3" />
-    <PackageReference Include="Microsoft.SemanticKernel" Version="1.18.2" />
+    <PackageReference Include="Microsoft.SemanticKernel" Version="1.19.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="PdfPig" Version="0.1.9-alpha-20231119-4537e" />
     <PackageReference Include="Azure.Search.Documents" Version="11.6.0" />

@@ -33,7 +33,7 @@ let baseSettingsFile = @"%USERPROFILE%/.fsopenai/poc/ServiceSettings.json"
 //- app/imgs/{favicon.ico|logo.png|persona.png (opt.)} - branding images for the app
 let clientFiles = "client"
 
-//The root folder for server files. These will be copied to server wwwroot. 
+//The root folder for server files. These will be copied to server wwwroot.
 //Contains: appSettings.json with server side configuration
 let serverFiles = "server"
 
