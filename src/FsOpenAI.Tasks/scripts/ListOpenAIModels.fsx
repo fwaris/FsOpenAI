@@ -20,6 +20,7 @@ doc.RootElement.EnumerateObject()
 |> Seq.collect(fun d -> if d.Name = "data" then d.Value.EnumerateArray() |> Seq.cast<JsonElement> else Seq.empty)
 |> Seq.map(fun n -> n.GetProperty("id").GetString(), n.GetProperty("created").GetInt64() |> toDate) 
 //|> Seq.filter (fun (m,d) -> m.StartsWith("gpt"))
+|> Seq.sortByDescending snd
 |> Seq.iter (fun (m,d) -> printfn "%s" $"{m}: {d.ToShortDateString()}")
 
 

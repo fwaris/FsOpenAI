@@ -192,7 +192,6 @@ DONT GENEARTE SQL. JUST LIST THE TERMS AS COMMA-SEPARATED VALUES
 QUERY:
 """
 
-
         let docQueryWithSearchResults = """
 DOCUMENT: '''
 {{$document}}
@@ -237,4 +236,20 @@ QUESTION:'''
 
 ANSWER:
 
+"""
+
+        let imageToTtext = """Extract the text from the image. Just respond with the extracted text
+[Text]:
+"""
+
+        let imageClassification = """Analyze the image carefully. Is the image a technical drawing or a flowchart? 
+Note: 
+An image is a technical drawing if it contains many lines and shapes. 
+A flowchart is a diagram that represents a workflow or process with lines connected boxes and shapes.
+Only answer with yes or no.
+[Answer]:
+"""
+
+        let imageDescription = """Describe the image in detail. Include any text in the image.
+[Description]:
 """

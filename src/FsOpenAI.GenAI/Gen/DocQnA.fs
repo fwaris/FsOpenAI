@@ -80,11 +80,30 @@ module DocQnA =
         |> Seq.chunkBySize 100
         |> Seq.map(fun rs -> String.Join(" ", rs))
         |> Seq.toList
+
+    let isDrawing parms (img:byte[]) =
+        async {
+            let! resp = VisionApi.processImage parms ("",Prompts.DocQnA.imageClassification,img)
+            return 
+                match resp with
+                | Some r -> 
+                    let ans = r.choices |> List.map (fun x -> x.message.content)  |> String.concat ""
+                    let ans = ans.Trim().ToLower()
+                    //printfn "Answer: %s" ans
+                    ans.Contains("yes",StringComparison.OrdinalIgnoreCase)
+                | None -> false
+        }
         
     let imageToText parms filePath = 
         async {
-            let img = File.ReadAllBytes(filePath)   
-            let! resp = VisionApi.processImage parms ("","extract text from image. just out the text from image. [text]:",img)
+            let img = File.ReadAllBytes(filePath)  
+            let! isDrawing = isDrawing parms img
+            //printfn "isDrawing: %b" isDrawing
+            let! resp = 
+                if isDrawing then
+                    VisionApi.processImage parms ("",Prompts.DocQnA.imageDescription,img)
+                else
+                    VisionApi.processImage parms ("",Prompts.DocQnA.imageToTtext,img)
             return 
                 match resp with
                 | Some r -> r.choices |> List.map (fun x -> x.message.content)

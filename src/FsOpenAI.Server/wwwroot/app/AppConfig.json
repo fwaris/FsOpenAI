@@ -68,7 +68,7 @@
         "Backend": {
           "Case": "AzureOpenAI"
         },
-        "Model": "gpt-4o",
+        "Model": "gpt-4o-mini",
         "TokenLimit": 8000
       },
       {
@@ -84,7 +84,7 @@
         "Backend": {
           "Case": "AzureOpenAI"
         },
-        "Model": "gpt-4o",
+        "Model": "gpt-4o-mini",
         "TokenLimit": 30000
       },
       {
@@ -116,7 +116,7 @@
         "Backend": {
           "Case": "AzureOpenAI"
         },
-        "Model": "gpt-35-turbo",
+        "Model": "gpt-4o-mini",
         "TokenLimit": 8000
       },
       {

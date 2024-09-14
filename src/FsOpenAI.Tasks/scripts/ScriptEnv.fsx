@@ -423,11 +423,21 @@ module ModelDefs =
     let shortChat =
         [
             {Backend=AzureOpenAI; Model="gpt-4o"; TokenLimit=8000};
+            {Backend=OpenAI; Model="gpt-4o"; TokenLimit=127000};
+        ]
+    let shortChatMini =
+        [
+            {Backend=AzureOpenAI; Model="gpt-4o-mini"; TokenLimit=8000};
             {Backend=OpenAI; Model="gpt-4o-mini"; TokenLimit=127000};
         ]
     let longChat =
         [
             {Backend=AzureOpenAI; Model="gpt-4o"; TokenLimit=30000}
+            {Backend=OpenAI; Model="gpt-4o"; TokenLimit=127000}
+        ]
+    let longChatMini =
+        [
+            {Backend=AzureOpenAI; Model="gpt-4o-mini"; TokenLimit=30000}
             {Backend=OpenAI; Model="gpt-4o-mini"; TokenLimit=127000}
         ]
     let completion =
@@ -437,7 +447,7 @@ module ModelDefs =
         ]
     let lowcost =
         [
-            {Backend=AzureOpenAI; Model="gpt-35-turbo"; TokenLimit=8000}
+            {Backend=AzureOpenAI; Model="gpt-4o-mini"; TokenLimit=8000}
             {Backend=OpenAI; Model="gpt-4o-mini"; TokenLimit=8000}
         ]
     let modelsConfig =
@@ -448,3 +458,13 @@ module ModelDefs =
             CompletionModels = completion
             LowCostModels = lowcost
         }
+
+    let modelsConfigMini =
+        {
+            EmbeddingsModels = embedding
+            ShortChatModels = shortChatMini
+            LongChatModels = longChatMini
+            CompletionModels = completion
+            LowCostModels = lowcost
+        }
+

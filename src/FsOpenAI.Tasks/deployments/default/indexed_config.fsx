@@ -102,7 +102,7 @@ let acctAppCfg =
         IndexGroups = ["default"] //list of index groups that the app will show in the index dropdown
         DefaultMaxDocs = 10
         MetaIndex = metaIndexName
-        ModelsConfig = ScriptEnv.ModelDefs.modelsConfig //model and token limits for different backends
+        ModelsConfig = ScriptEnv.ModelDefs.modelsConfigMini //model and token limits for different backends
     }
 
 //samples
