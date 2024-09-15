@@ -1,7 +1,6 @@
 ﻿namespace FsOpenAI.Client.Views
 open System
 open Bolero.Html
-open MudBlazor
 open FsOpenAI.Client
 open FsOpenAI.Shared
 open FsOpenAI.Shared.Interactions
@@ -46,7 +45,6 @@ type MainLayout() =
                     ecomp<SidebarView,_,_> model dispatch {attr.empty()}
                     comp<RadzenBody> {
                         comp<RadzenSplitter> {
-                            //"Style" => "height: calc(100vh - 1.0rem);"
                             "Style" => "height: 100%;"
                             "Orientation" => Orientation.Horizontal
                             comp<RadzenSplitterPane> {
@@ -64,29 +62,3 @@ type MainLayout() =
                     Footer.view this.JSRuntime model dispatch
                 }
             }
-
-(*
-                comp<MudThemeProvider> { "isDarkMode" => model.darkTheme; "Theme" => model.theme }
-                comp<MudPopoverProvider>
-                comp<MudScrollToTop> {comp<MudFab> { "Icon" => Icons.Material.Filled.ArrowUpward; "Color" => Color.Primary; "Size" => Size.Small }}
-                comp<MudDialogProvider> {attr.empty()}
-                comp<MudSnackbarProvider> {attr.empty()}
-                comp<MudLayout> {
-                    "Style" => "height:100vh; overflow: hidden; justify-content: space-around; display:flex"
-                    match model.appConfig.AppBarType with
-                    | Some (AppB_Base t) -> AppBar.appBar model t dispatch
-                    | Some (AppB_Alt t)  -> AltAppBar.appBar model t dispatch
-                    | None               -> ()
-                    comp<MudMainContent> {
-                        ecomp<MainContent,_,_> model dispatch {attr.empty()}
-                    }
-                    comp<MudPaper> {
-                        "Class" => "fixed"
-                        "Elevation" => 0
-                        "Style" => $"height:11rem; width:100%%; max-width:{qwidth}; bottom:0; background:transparent; {qmargin}"
-                        ecomp<QuestionView,_,_> model dispatch {attr.empty()}
-                    }
-                    FooterBar.footer this.JSRuntime model dispatch
-                }
-            }
-*)

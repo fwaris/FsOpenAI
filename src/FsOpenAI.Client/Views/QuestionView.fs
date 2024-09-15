@@ -8,7 +8,6 @@ open Bolero.Html
 open FsOpenAI.Client
 open FsOpenAI.Shared
 open FsOpenAI.Shared.Interactions
-open MudBlazor
 open Radzen
 open Radzen.Blazor
 open Microsoft.AspNetCore.Components.Forms

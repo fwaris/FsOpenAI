@@ -7,7 +7,6 @@ open Microsoft.Identity.Web
 open Bolero.Remoting.Server
 open Bolero.Server
 open Bolero.Templating.Server
-open MudBlazor.Services
 open Microsoft.Extensions.Logging
 open Blazored.LocalStorage
 open FsOpenAI.GenAI
@@ -29,7 +28,6 @@ module Startup =
         
         services.AddMvc() |> ignore
         services.AddServerSideBlazor() |> ignore
-        services.AddMudServices() |> ignore
         services.AddRadzenComponents() |> ignore
         services.AddBlazoredLocalStorage() |> ignore
         services.AddControllersWithViews() |> ignore

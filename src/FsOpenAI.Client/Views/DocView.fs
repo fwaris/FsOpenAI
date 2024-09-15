@@ -178,19 +178,6 @@ type DocView() =
                             attr.callback "Change" (fun (v:bool) -> chat |> Option.iter (fun chat -> dispatch (Ia_Mode_Doc_Index (chat.Id,v))))
                             attr.title "Use document content with selected indexes for question answering"
                         }
-                        (*
-                        if chat |> Option.map (fun ch -> ch.Mode = M_Doc_Index) |> Option.defaultValue false then
-                            comp<RadzenButton> {
-                                "Style" => "background:transparent;height:2rem;"
-                                "Icon" => "more_horiz"
-                                attr.title "Settings"
-                                "ButtonStyle" => ButtonStyle.Base
-                                attr.callback "Click" (fun (e:MouseEventArgs) -> 
-                                    let parms = ["Model",model :> obj; "Dispatch",dispatch] |> dict |> Dictionary
-                                    let opts = DialogOptions(Width = "50%", Height="50%")
-                                    this.DialogService.OpenAsync<PromptTemplateDialog>("Select Prompt Template", parameters=parms, options=opts) |> ignore)
-                            }
-                        *)
                     }
                 }
         }

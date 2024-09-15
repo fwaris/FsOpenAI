@@ -2,7 +2,6 @@ module FsOpenAI.Server.Index
 open Bolero
 open Bolero.Html
 open Bolero.Server.Html
-open MudBlazor
 open FsOpenAI
 
 let inline (!>) (x:^a) : ^b = ((^a or ^b) : (static member op_Implicit : ^a -> ^b) x)

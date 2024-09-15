@@ -1,10 +1,8 @@
 ﻿namespace FsOpenAI.Client.Views
-open System
 open Microsoft.AspNetCore.Components
 open Microsoft.AspNetCore.Components.Web
 open Bolero
 open Bolero.Html
-open Elmish
 open Radzen
 open Radzen.Blazor
 open FsOpenAI.Client
@@ -66,72 +64,5 @@ type MainSettingsView() =
                             this.ContextMenuService.Close();
                             let parms = ["Model", model :> obj; "Dispatch", dispatch] |> dict |> Dictionary
                             this.DialogService.OpenAsync<OpenAIKey>("OpenAI Key", parameters=parms) |> ignore
-                        | _ -> ()
                 ))
             }
-        
-        //         comp<RadzenAppearanceToggle> {attr.empty()} 
-        //         comp<RadzenMenuItem> {
-        //             "Icon" => "delete_sweep"
-        //             attr.callback "Click" (fun (e:MenuItemEventArgs) -> dispatch Ia_ClearChats)
-        //             "Text" => "Clear Chats"
-        //         }
-        //         comp<RadzenMenuItem> {
-        //             "Icon" => "folder_delete"
-        //             "IconColor" => Colors.Warning
-        //             attr.callback "Click" (fun (e:MenuItemEventArgs) -> dispatch PurgeLocalData)
-        //             "Text" => "Purge all data stored in local browser storage"
-        //         }
-        //         if model.appConfig.EnabledBackends |> List.contains OpenAI then
-        //             comp<RadzenMenuItem> {
-        //                 "Icon" => "key"
-        //                 attr.callback "Click" (fun (e:MenuItemEventArgs) -> 
-        //                     let parms = ["Model", model :> obj; "Dispatch", dispatch] |> dict |> Dictionary
-        //                     this.DialogService.OpenAsync<OpenAIKey>("OpenAI Key", parameters=parms) |> ignore)                
-        //                 "Text" => "Set OpenAI Key"
-        //             }
-        //     }
-        // }
-
-(*
-type MainSettingsView() =
-    inherit ElmishComponent<Model,Message>()    
-    override this.View mdl (dispatch:Message -> unit) =
-        let settingsOpen = Utils.isOpen C.MAIN_SETTINGS mdl.settingsOpen
-        comp<MudPopover> {
-                "Style" => "margin-top:3rem; margin-right:5rem; width:75%; max-width:25rem;"
-                "AnchorOrigin" => Origin.TopRight
-                "TransformOrigin" => Origin.TopRight
-                "Open" => settingsOpen
-                "Paper" => true
-                "Outlined" => true
-                comp<MudStack> {
-                    comp<MudStack> {
-                        "Row" => true
-                        comp<MudText> {
-                            "Class" => "px-4"
-                            "Typo" => Typo.h6
-                            "Settings"
-                        }
-                        comp<MudSpacer>{
-                            attr.empty()
-                        }
-                        comp<MudIconButton> {
-                            "Class" => "align-self-end"
-                            "Icon" => Icons.Material.Filled.Close
-                            on.click (fun e -> dispatch (OpenCloseSettings C.MAIN_SETTINGS))
-                        }
-                    }
-                    comp<MudTextField<string>> {
-                        "Label" => "OpenAI Key"
-                        "Class" => "ma-2"
-                        "InputType" => InputType.Password
-                        attr.callback "ValueChanged" (fun e -> dispatch (UpdateOpenKey e))
-                        "Variant" => Variant.Outlined
-                        "Placeholder" => "key stored locally"
-                        "Text" => (mdl.serviceParameters |> Option.bind(fun p -> p.OPENAI_KEY) |> Option.defaultValue "")
-                    }
-                }
-            }
-        
-*)

@@ -7,7 +7,6 @@ open FSharp.Control
 open Microsoft.AspNetCore.Components
 open Microsoft.AspNetCore.Components.Web
 open Blazored.LocalStorage
-open MudBlazor
 open FsOpenAI.Shared
 open FsOpenAI.Shared.Interactions
 open Radzen
@@ -15,7 +14,6 @@ open Radzen
 type UpdateParms =
     {
         localStore           : ILocalStorageService
-        snkbar               : ISnackbar
         notificationService  : NotificationService
         dialogService        : DialogService
         navMgr               : NavigationManager
@@ -139,25 +137,11 @@ module Init =
         with ex ->
             model,Cmd.ofMsg(ShowError ex.Message)
 
-    let createMenuGroup dispatch group  =
-        concat {
-            for (icon,name,createType) in group do
-                comp<MudMenuItem> {
-                    "Icon" => icon
-                    on.click(fun _ -> dispatch (Ia_Add createType))                    
-                    comp<MudPaper> {
-                        "Class" => "d-flex align-center"
-                        "Elevation" => 0
-                        comp<MudBadge> {
-                            "Class" => "d-flex flex-none mr-2"
-                            "Dot" => true
-                        }
-                        text name
-                    }
-                }
-        }
-
     let flashBanner (uparms:UpdateParms) model msg =
+        div{
+            text "work in progress ..."
+        }
+    (*
         let txClr = Colors.Pink.Lighten3
         let msgClr = Colors.Gray.Lighten3
         let n =
@@ -196,24 +180,6 @@ module Init =
         let rf = RenderFragment(fun (t) -> n.Invoke(null,t,0) |> ignore)
         uparms.snkbar.Add(rf)
         |> ignore
+    *)
 
-    module AppConfig =
-        let setColors (ap:AppPalette) (p:Palette) =
-            ap.Primary |> Option.iter (fun c -> p.Primary <- Utilities.MudColor(c))
-            ap.Secondary |> Option.iter (fun c -> p.Secondary <- Utilities.MudColor(c))
-            ap.Tertiary |> Option.iter (fun c -> p.Tertiary <- Utilities.MudColor(c))
-            ap.Info|> Option.iter (fun c -> p.Info <- Utilities.MudColor(c))
-            ap.Success |> Option.iter (fun c -> p.Success <- Utilities.MudColor(c))
-            ap.Warning |> Option.iter (fun c -> p.Warning <- Utilities.MudColor(c))
-            ap.Error |> Option.iter (fun c -> p.Error <- Utilities.MudColor(c))
-
-        let toTheme (appConfig:AppConfig) =
-            let pLight = new PaletteLight()
-            let pDark = new PaletteDark()
-            appConfig.PaletteDark |> Option.iter(fun p -> setColors p pDark)
-            appConfig.PaletteLight |> Option.iter(fun p -> setColors p pLight)
-            let th = MudTheme()
-            th.PaletteDark <- pDark
-            th.PaletteLight <- pLight
-            th
 

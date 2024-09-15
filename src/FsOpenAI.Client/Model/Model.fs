@@ -62,7 +62,6 @@ type Model =
         settingsOpen            : Map<string,bool>
         serviceParameters       : ServiceSettings option
         darkTheme               : bool
-        theme                   : MudBlazor.MudTheme
         tabsUp                  : bool
         user                    : UserState
         photo                   : string option
@@ -117,15 +116,13 @@ type Message =
     | Ia_SetIndex of string*IndexRef list
     | Ia_Feedback_Set of string*Feedback
     | Ia_Feedback_Submit of string
-    | Ia_Feedback_Cancel of string
-    | Ia_Feedback_Show of string
     //common
-    | ToggleSideBar
     | SidebarExpanded of bool
+    | ToggleSideBar
     | CloseDialog
     | SaveUIState
     | LoadUIState
-    | LoadedUIState of bool*bool //darkTheme,tabsUp
+    | LoadedUIState of bool //darkTheme
     | RefreshIndexes of bool
     | Nop of unit
     | Error of exn
@@ -141,8 +138,6 @@ type Message =
     | PurgeLocalData
     | SaveToLocal of string*obj
     | IgnoreError of exn
-    | ToggleTheme
-    | ToggleTabs
     | SetPage of Page
     | SetAuth of ClaimsPrincipal option
     | LoginLogout
@@ -166,7 +161,6 @@ module Model =
             settingsOpen = Map.empty
             serviceParameters = None
             darkTheme = true
-            theme = new MudBlazor.MudTheme()
             user = Unauthenticated
             page = Home
             photo = None

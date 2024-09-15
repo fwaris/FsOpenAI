@@ -4,7 +4,8 @@ open System.IO
 open Bolero
 open Bolero.Html
 open Elmish
-open MudBlazor
+open Radzen
+open Radzen.Blazor
 open FsOpenAI.Client
 open FsOpenAI.Shared
 open FsOpenAI.Shared.Interactions.CodeEval
@@ -16,7 +17,10 @@ type CodeEvalViewPopup() =
         let bag,chat,model = m
         let codeText = bag.Code |> Option.defaultValue ""
         let planText = bag.Plan |> Option.defaultValue ""
-
+        div {
+            codeText
+        }
+(*
         comp<MudPopover> {
             "Open" => TmpState.isIndexOpen chat.Id model
             "AnchorOrigin" => Origin.TopRight
@@ -55,22 +59,8 @@ type CodeEvalViewPopup() =
                 on.click(fun _ -> dispatch (Ia_OpenIndex chat.Id))
             }
         }
+*)
 
-type WholesaleCodeView() =
-    inherit ElmishComponent<Interaction*Model,Message>()
-
-    override this.View mdl dispatch =
-        let chat,model = mdl
-        comp<MudPaper> {
-            "Elevation" => 0
-            "Class" => "d-flex flex-none align-center"
-            comp<MudIconButton> {
-                "Class" => "ma-2 self-align-end d-flex"
-                "Icon" => Icons.Material.Outlined.ExpandMore
-                "Title" => "Display charts"
-                on.click(fun _ -> dispatch (Ia_OpenIndex chat.Id))
-            }
-        }
 
 type CodeEvalView () =
     inherit ElmishComponent<CodeEvalBag*Interaction*Model,Message>()
@@ -79,7 +69,10 @@ type CodeEvalView () =
 
     override this.View m dispatch =
         let bag,chat,model = m
-
+        div {
+            bag.Code |> Option.defaultValue ""
+        }
+(*
         comp<MudPaper> {
             "Elevation" => 3
             "class" => "d-flex ma-2"
@@ -91,4 +84,5 @@ type CodeEvalView () =
             ecomp<WholesaleCodeView,_,_> (chat,model) dispatch {attr.empty()}
             ecomp<CodeEvalViewPopup,_,_> (bag,chat,model) dispatch {attr.empty()}
         }
+*)
 

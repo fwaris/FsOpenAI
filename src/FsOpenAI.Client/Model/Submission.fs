@@ -147,7 +147,7 @@ module Submission =
 
     let defSysMsg mode appConfg =
         appConfg.EnabledChatModes
-        |> List.choose(fun (m,sysM) -> match m with mode -> Some sysM | _ -> None)
+        |> List.choose(fun (mode',sysM) -> if mode' = mode then Some sysM else None)
         |> List.tryHead
         |> Option.defaultValue C.defaultSystemMessage
 

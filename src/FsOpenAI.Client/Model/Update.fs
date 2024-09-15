@@ -3,7 +3,6 @@ open System
 open Elmish
 open FsOpenAI.Shared
 open FsOpenAI.Shared.Interactions
-open MudBlazor
 open Radzen
 
 module Update =
@@ -21,12 +20,12 @@ module Update =
                 Init.flashBanner uparms model msg
                 {model with flashBanner = false}
             else
-                uparms.snkbar.Add(
-                        msg,
-                        configure = fun o ->
-                            o.VisibleStateDuration<-500
-                            o.HideTransitionDuration<-100
-                        ) |> ignore
+                //uparms.snkbar.Add(
+                //        msg,
+                //        configure = fun o ->
+                //            o.VisibleStateDuration<-500
+                //            o.HideTransitionDuration<-100
+                //        ) |> ignore
                 model
         model,Cmd.none
 
@@ -96,7 +95,6 @@ module Update =
         | Ia_ToggleSysMsg id -> TmpState.toggleSysMsg id model, Cmd.none
         | Ia_ToggleFeedback(id) -> TmpState.toggleFeedback id model, Cmd.none
         | Ia_Feedback_Submit id -> Submission.submitFeedback uparms.serverDispatch id model; model,Cmd.none
-        | Ia_Feedback_Cancel id -> let fb = Interactions.feedback id model.interactions |> Option.map(fun x -> Feedback.Default x.LogId) in {model with interactions = Interactions.setFeedback id fb model.interactions},Cmd.none
         //session and state
         | CloseDialog -> uparms.dialogService.Close(); model,Cmd.none
         | Error exn -> handleError exn model
@@ -105,19 +103,17 @@ module Update =
         | FlashInfo str -> flashMessage uparms model str
         | Nop () -> model,Cmd.none
         | ClearError -> {model with error = None},Cmd.none
+        | ToggleSideBar -> TmpState.toggle C.SIDE_BAR_EXPANDED model,Cmd.none
+        | SidebarExpanded isExpanded -> TmpState.setState C.SIDE_BAR_EXPANDED isExpanded model,Cmd.none
         | OpenCloseSettings id -> TmpState.openClose id model, Cmd.none
         | RefreshIndexes initial -> Model.checkBusy model <| IO.refreshIndexes uparms.serverDispatch initial
         | GetOpenAIKey -> IO.getKeyFromLocal uparms.localStore model
         | SetOpenAIKey key -> {model with serviceParameters = model.serviceParameters |> Option.map (fun p -> {p with OPENAI_KEY = Some key})},Cmd.none
         | UpdateOpenKey key -> model,Cmd.batch [Cmd.ofMsg (SetOpenAIKey key); Cmd.ofMsg (SaveToLocal(C.LS_OPENAI_KEY,key))]
         | SaveToLocal (k,v) -> uparms.localStore.SetItemAsync(k,v) |> ignore; model,Cmd.none
-        | ToggleTheme -> {model with darkTheme = not model.darkTheme},Cmd.ofMsg SaveUIState
-        | ToggleTabs -> {model with tabsUp = not model.tabsUp},Cmd.ofMsg SaveUIState
-        | ToggleSideBar -> TmpState.toggle C.SIDE_BAR_EXPANDED model,Cmd.none
-        | SidebarExpanded isExpanded -> TmpState.setState C.SIDE_BAR_EXPANDED isExpanded model,Cmd.none
-        | SaveUIState -> model, Cmd.batch [Cmd.ofMsg (SaveToLocal(C.DARK_THEME,model.darkTheme)); Cmd.ofMsg(SaveToLocal(C.TABS_UP,model.tabsUp))]
+        | SaveUIState -> model, Cmd.batch [Cmd.ofMsg (SaveToLocal(C.DARK_THEME,model.darkTheme));]
         | LoadUIState -> model,Cmd.OfTask.either IO.loadUIState uparms.localStore LoadedUIState Error
-        | LoadedUIState (darkTheme,tabsUp) -> {model with darkTheme = darkTheme; tabsUp = tabsUp},Cmd.none
+        | LoadedUIState (darkTheme) -> {model with darkTheme = darkTheme},Cmd.none
         | IgnoreError ex -> model,Cmd.none
         | PurgeLocalData -> model, Cmd.OfTask.either IO.purgeLocalStorage uparms.localStore ShowInfo Error
 
@@ -130,7 +126,7 @@ module Update =
 
         //server initiated
         | FromServer (Srv_DoneInit _) -> Init.postServerInit model
-        | FromServer (Srv_SetConfig appConfig) -> {model with appConfig=appConfig; theme=Init.AppConfig.toTheme appConfig},Cmd.none
+        | FromServer (Srv_SetConfig appConfig) -> {model with appConfig=appConfig; (*theme=Init.AppConfig.toTheme appConfig*)},Cmd.none
         | FromServer (Srv_IndexesRefreshed idxTrs) -> {model with busy=false; indexTrees=idxTrs},Cmd.none
         | FromServer (Srv_Parameters p) -> {model with serviceParameters=Some p;}, Cmd.none
         | FromServer (Srv_SetTemplates templates) -> {model with templates = templates},Cmd.none

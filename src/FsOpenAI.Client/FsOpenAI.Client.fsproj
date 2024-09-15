@@ -16,30 +16,16 @@
     <Compile Include="Views\Binding.fs" />
     <Compile Include="Views\ChatSettingsView.fs" />
     <Compile Include="Views\MainSettingsView.fs" />
-    <Compile Include="Views\ChatCreateView.fs" />
     <Compile Include="Views\SearchResultsView.fs" />
-    <Compile Include="Views\SystemMessageView.fs" />
     <Compile Include="Views\FeedbackView.fs" />
     <Compile Include="Views\UserMessageView.fs" />
     <Compile Include="Views\AssistantMessageView.fs" />
-    <Compile Include="Views\MessageView.fs" />
     <Compile Include="Views\QuestionView.fs" />
     <Compile Include="Views\ChatHistoryView.fs" />
     <Compile Include="Views\DocView.fs" />
     <Compile Include="Views\SourcesView.fs" />
-    <Compile Include="Views\PromptSelectorView.fs" />
-    <Compile Include="Views\DocSelectorView.fs" />
-    <Compile Include="Views\DocBagView.fs" />
     <Compile Include="Views\AuthenticationViews.fs" />
-    <Compile Include="Views\PlainView.fs" />
-    <Compile Include="Views\IndexQnAView.fs" />
-    <Compile Include="Views\IndexQnADocView.fs" />
     <Compile Include="Views\CodeEvalView.fs" />
-    <Compile Include="Views\QnADocView.fs" />
-    <Compile Include="Views\AppBar.fs" />
-    <Compile Include="Views\AltAppBar.fs" />
-    <Compile Include="Views\FooterBar.fs" />
-    <Compile Include="Views\MainContent.fs" />
     <Compile Include="Views\SidebarView.fs" />
     <Compile Include="Views\HeaderView.fs" />
     <Compile Include="Views\FooterView.fs" />
@@ -54,7 +40,7 @@
     <PackageReference Include="Bolero" Version="0.*" />
     <PackageReference Include="Bolero.Build" Version="0.*" />
     <PackageReference Include="Bolero.HotReload" Version="0.*" />
-    <PackageReference Include="MudBlazor" Version="7.8.0" />
+    <!--<PackageReference Include="MudBlazor" Version="7.8.0" />-->
     <PackageReference Include="Radzen.Blazor" Version="5.1.10" />
     <PackageReference Include="System.Threading.Channels" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />

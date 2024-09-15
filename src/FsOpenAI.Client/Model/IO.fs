@@ -150,13 +150,11 @@ module IO =
         }
 
     let loadTheme (localStore:ILocalStorageService) = loadKey<bool> C.DARK_THEME localStore
-    let loadTabsUp (localStore:ILocalStorageService) = loadKey<bool> C.TABS_UP localStore
 
     let loadUIState (localStore:ILocalStorageService) =
         task {
             let! darkTheme = loadTheme localStore
-            let! tabsUp = loadTabsUp localStore
-            return darkTheme,tabsUp
+            return darkTheme
         }
 
     let deleteSavedChats (localStore:ILocalStorageService) =

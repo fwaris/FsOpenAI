@@ -10,7 +10,6 @@ open Bolero
 open Bolero.Html
 open Bolero.Remoting.Client
 open Bolero.Templating.Client
-open MudBlazor
 open FsOpenAI.Client.Views
 open FsOpenAI.Shared
 
@@ -27,9 +26,6 @@ module App =
 
         [<Inject>]
         member val LocalStore : Blazored.LocalStorage.ILocalStorageService = Unchecked.defaultof<_> with get, set
-
-        [<Inject>]
-        member val Snackbar : ISnackbar = Unchecked.defaultof<_> with get, set
 
         [<Inject>]
         member val logger:ILoggerProvider = Unchecked.defaultof<_> with get, set
@@ -76,7 +72,6 @@ module App =
                     localStore = this.LocalStore
                     notificationService = this.NotificationService
                     dialogService = this.DialogService
-                    snkbar = this.Snackbar
                     serverDispatch = serverDispatch
                     serverDispatchUnAuth = serverDispatchUnAuth
                     serverCall = serverCall
