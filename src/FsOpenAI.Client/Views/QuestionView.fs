@@ -20,6 +20,12 @@ type QuestionView() =
 
     [<Inject>] member val TooltipService : TooltipService = Unchecked.defaultof<_> with get, set
 
+    member this.GetText() = 
+        task{
+            let! text = this.JSRuntime.InvokeAsync<string>("eval", """document.getElementById("idQuestion").value""")
+            return text
+        }
+
     override this.View model dispatch = 
         let selChat = Model.selectedChat model
         let isNotReady = not (Submission.isReady selChat)
@@ -48,9 +54,14 @@ type QuestionView() =
                     on.keydown (fun e -> 
                         if not e.ShiftKey && e.Key = "Enter" && Submission.isReady selChat then  
                             task{
-                                let! text = this.JSRuntime.InvokeAsync<string>("eval", """document.getElementById("idQuestion").value""")
+                                let! text = this.GetText()
                                 dispatch (Ia_Submit (selChat.Value.Id,text))
                             } |> ignore)
+                    on.blur (fun e -> 
+                        task{
+                            let! text = this.GetText()
+                            dispatch (Ia_SetQuestion (selChat.Value.Id,text))
+                        } |> ignore)
                     "Placeholder" => match selChat with Some _ -> "Type your question here" | _ -> "Select or add a chat to start"
                     attr.disabled selChat.IsNone
                     "Style" => "resize: none; width: 100%; outline: none; border: none;border-bottom: 2px solid var(--rz-primary);"

@@ -98,8 +98,6 @@ let acctAppCfg =
         RequireLogin = false //if true, requires AD login (via MSAL); needs valid appSettings.json (see above)
         AssistantIcon = None
         AssistantIconColor = None
-        PaletteDark = None // Some {AppPalette.Default with Primary=Some "#FF1E92"; AppBar = Some "#e20074"}
-        PaletteLight = None //Some {AppPalette.Default with Primary=Some "#e20074"; AppBar = Some "#e20074"}
         LogoUrl = Some "https:/github.com/fwaris/FsOpenAI" //url associated with app logo (shown in the header)
         AppName = Some "FsOpenAI Chat" //shows as tab text in the browser
         AppId = Some "default" //unique id for the app for logging purposes

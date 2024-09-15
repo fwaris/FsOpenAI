@@ -1,28 +1,5 @@
 ﻿namespace FsOpenAI.Shared
 
-type AppPalette =
-    {
-        Primary   : string option
-        Secondary : string option
-        Tertiary  : string option
-        Info      : string option
-        Success   : string option
-        Warning   : string option
-        Error     : string option
-        AppBar    : string option
-    }
-    with
-        static member Default =
-                        {
-                            Primary     = None
-                            Secondary   = None
-                            Tertiary    = None
-                            Info        = None
-                            Success     = None
-                            Warning     = None
-                            Error       = None
-                            AppBar      = None
-                        }
 type Backend = OpenAI | AzureOpenAI
 
 type ModelRef =
@@ -115,12 +92,6 @@ type AppConfig =
         AssistantIcon : string option
         AssistantIconColor : string option
 
-        ///Dark theme colors overrides
-        PaletteDark : AppPalette option
-
-        ///Light theme colors overrides
-        PaletteLight : AppPalette option
-
         ///Url to go to when main logo is clicked
         LogoUrl : string option
 
@@ -161,8 +132,6 @@ type AppConfig =
                 AppBarType = None
                 AssistantIcon = None
                 AssistantIconColor = None
-                PaletteDark = None
-                PaletteLight = None
                 Disclaimer = None
                 LogoUrl = Some "https://github.com/fwaris/FsOpenAI"
                 MetaIndex = None

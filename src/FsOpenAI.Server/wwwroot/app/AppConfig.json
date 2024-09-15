@@ -41,8 +41,6 @@
   "RequireLogin": false,
   "AssistantIcon": null,
   "AssistantIconColor": null,
-  "PaletteDark": null,
-  "PaletteLight": null,
   "LogoUrl": "https:/github.com/fwaris/FsOpenAI",
   "AppName": "FsOpenAI Chat",
   "AppId": "default",
