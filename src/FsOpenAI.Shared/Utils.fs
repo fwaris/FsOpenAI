@@ -30,9 +30,7 @@ module Utils =
         o.WriteIndented <- true
         o.ReadCommentHandling <- JsonCommentHandling.Skip
         JsonFSharpOptions.Default()
-            .WithAllowNullFields(true)
-            .WithAllowOverride(true)
-            .WithSkippableOptionFields(false)
+            //.WithUnionEncoding(JsonUnionEncoding.NewtonsoftLike) //consider for future as provides better roundtrip support
             .AddToJsonSerializerOptions(o)        
         o
 

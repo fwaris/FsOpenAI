@@ -34,6 +34,7 @@
     <PackageReference Include="ExcelDataReader" Version="3.7.0" />
     <PackageReference Include="ExcelDataReader.DataSet" Version="3.7.0" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="8.0.0" />
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.Google" Version="1.19.0-alpha" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\FsOpenAI.Shared\FsOpenAI.Shared.fsproj" />

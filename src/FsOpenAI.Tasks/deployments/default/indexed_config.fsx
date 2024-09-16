@@ -26,7 +26,8 @@ let keyVault = "your-keyvault-name"
 //The location of the settings file for this config.
 //It will be copied to %USERPROFILE%/.fsopenai/ServiceSettings.json so that it is 'in-effect'
 //for local development.
-let baseSettingsFile = @"%USERPROFILE%/.fsopenai/poc/ServiceSettings.json"
+//let baseSettingsFile = @"%USERPROFILE%/.fsopenai/poc/ServiceSettings.json"
+let baseSettingsFile = @"%USERPROFILE%/.fsopenai/poc_with_keys/ServiceSettings.json"
 
 //The root folder for client files. These will be copied to client wwwroot. Contains:
 //- appSettings.json - this may contain Azure Entra ID config for authentication
@@ -88,7 +89,7 @@ let acctAppCfg =
         SessionTableName = Some "sessions" // Some "sessions" persist sessions to CosmosDB
         AppBarType = Some (AppB_Base "FsOpenAI Chat") //Header bar style and title text
         Roles = [] //if not empty app will only allow users that have the listed roles (from AD; case sensitive)
-        RequireLogin = false //if true, requires AD login (via MSAL); needs valid appSettings.json (see above)
+        RequireLogin = true //if true, requires AD login (via MSAL); needs valid appSettings.json (see above)
         AssistantIcon = None
         AssistantIconColor = None
         LogoUrl = Some "https:/github.com/fwaris/FsOpenAI" //url associated with app logo (shown in the header)

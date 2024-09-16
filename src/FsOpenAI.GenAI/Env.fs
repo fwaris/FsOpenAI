@@ -80,6 +80,7 @@ module Env =
             EMBEDDING_ENDPOINTS = []
             BING_ENDPOINT = None
             OPENAI_KEY = None
+            GOOGLE_KEY = None
         }
 
     let loadSettingsAsync() = 
@@ -141,10 +142,12 @@ module Settings =
 
     let redactSearchEndpoints (xs:ApiEndpoint list) = xs |> List.map redactEndpoint
 
+    //redact secrets before sending settigns to client (client still needs some configuration info for UI)
     let redactKeys (sttngs:ServiceSettings) =
         {
             LOG_CONN_STR = None
             OPENAI_KEY = None
+            GOOGLE_KEY = None
             AZURE_OPENAI_ENDPOINTS = redactEndpoints sttngs.AZURE_OPENAI_ENDPOINTS
             AZURE_SEARCH_ENDPOINTS = redactSearchEndpoints sttngs.AZURE_SEARCH_ENDPOINTS
             EMBEDDING_ENDPOINTS = redactEndpoints sttngs.EMBEDDING_ENDPOINTS
@@ -170,4 +173,4 @@ module Settings =
     let updateKey sttngs = 
         match sttngs.OPENAI_KEY with 
         | None -> _cachedSettings.Value
-        | _    -> {_cachedSettings.Value with OPENAI_KEY = sttngs.OPENAI_KEY} //use openai from client, if provided
+        | _    -> {_cachedSettings.Value with OPENAI_KEY = sttngs.OPENAI_KEY; GOOGLE_KEY = sttngs.GOOGLE_KEY} //use openai, google from client, if provided

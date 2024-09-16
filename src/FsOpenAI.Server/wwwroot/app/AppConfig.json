@@ -38,7 +38,7 @@
       "FsOpenAI Chat"
     ]
   },
-  "RequireLogin": false,
+  "RequireLogin": true,
   "AssistantIcon": null,
   "AssistantIconColor": null,
   "LogoUrl": "https:/github.com/fwaris/FsOpenAI",

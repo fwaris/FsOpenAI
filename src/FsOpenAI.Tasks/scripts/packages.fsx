@@ -41,6 +41,7 @@
 #load "Env.fs"
 #load "Connection.fs"
 #load "Monitoring.fs"
+#load "Sessions.fs"
 #load "Gen/GenUtils.fs"
 #load "Gen/Prompts.fs"
 #load "Gen/Indexes.fs"

@@ -290,19 +290,11 @@ module Interaction =
                 )
         }
 
-    let removeDocumentText ch =
-        {ch with Types = 
-                    ch.Types 
-                    |> List.map (function 
-                        | QnADoc dc  -> QnADoc {dc with DocumentText = None; Status = No_Document}
-                        | x -> x)
-        }
-
     let sessionSerialize ch =
         {ch with Notifications=[]; IsBuffering=false}
         |> removeUIState
         |> keepMessages 4
-        |> removeDocumentText
+        |> clearDocContent
         |> removeReferencesText
 
     //trim state that is not required for processing chat

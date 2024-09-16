@@ -45,7 +45,7 @@ module GenUtils =
             Messages = 
                 ch.Messages 
                 |> Seq.filter (fun m -> not(Utils.isEmpty m.Message))
-                |> Seq.map(fun m -> {Role = (match m.Role with User -> "User" | _ -> "Assistant"); Content = m.Message}) 
+                |> Seq.map(fun m -> {ChatLogMsg.Role = (match m.Role with User -> "User" | _ -> "Assistant"); ChatLogMsg.Content = m.Message}) 
                 |> Seq.toList
             Temperature = ch.Parameters.Mode |> temperature |> float
             MaxTokens = ch.Parameters.MaxTokens

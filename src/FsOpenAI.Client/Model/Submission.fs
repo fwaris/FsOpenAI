@@ -61,7 +61,7 @@ module Submission =
         | Some ch -> 
             not ch.IsBuffering && 
                 (Interaction.docContent ch
-                |> Option.map(fun d -> d.Status = DocumentStatus.Ready)
+                |> Option.map(fun d -> d.Status = DocumentStatus.Ready || d.Status = DocumentStatus.No_Document) 
                 |> Option.defaultValue true)
         | None -> false
 

@@ -23,10 +23,11 @@ type ModelDeployments =
 
 type ServiceSettings = 
     {
-        OPENAI_KEY : string option
-        LOG_CONN_STR : string option
-        BING_ENDPOINT : ApiEndpoint option
         AZURE_SEARCH_ENDPOINTS: ApiEndpoint list
         AZURE_OPENAI_ENDPOINTS: AzureOpenAIEndpoints list
         EMBEDDING_ENDPOINTS : AzureOpenAIEndpoints list
+        BING_ENDPOINT : ApiEndpoint option
+        GOOGLE_KEY : string option
+        OPENAI_KEY : string option
+        LOG_CONN_STR : string option
     }

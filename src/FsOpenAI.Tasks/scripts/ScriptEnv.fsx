@@ -35,6 +35,7 @@ let defaultSettings() =
         EMBEDDING_ENDPOINTS = []
         BING_ENDPOINT = None
         OPENAI_KEY = None
+        GOOGLE_KEY = None
         LOG_CONN_STR = None
     }
 
