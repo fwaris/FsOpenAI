@@ -10,6 +10,7 @@ open Blazored.LocalStorage
 open FsOpenAI.Shared
 open FsOpenAI.Shared.Interactions
 open Radzen
+open Radzen.Blazor
 
 type UpdateParms =
     {
@@ -25,6 +26,9 @@ type UpdateParms =
 
 module Init =
     open Bolero.Html
+    open Bolero
+    open Radzen.Blazor
+    open System.Collections.Generic
 
     let private (===) (a:string) (b:string) = a.Equals(b,StringComparison.InvariantCultureIgnoreCase)
 
@@ -38,6 +42,13 @@ module Init =
         }
         |> Async.StartImmediate
 
+
+    let inline delay (time:int,ret) = 
+        async{
+            do! Async.Sleep time
+            return ret
+        }
+
     ///Invoked after all init. data has been sent by server to a newly connected client.
     ///Includes: service parameters, app configuration, and samples.
     ///Begin rest of the client initialization process
@@ -48,9 +59,10 @@ module Init =
             [
                 Cmd.ofMsg GetOpenAIKey
                 match persistingChats, model.appConfig.RequireLogin with
-                | true, true  -> Cmd.ofMsg (FlashInfo "Please login to continue")
+                | true, true  -> Cmd.none
                 | true, false -> Cmd.ofMsg Ia_Session_Load
-                | false, _    -> Cmd.ofMsg Ia_Local_Load                
+                | false, _    -> Cmd.ofMsg Ia_Local_Load  
+                Cmd.OfAsync.perform delay (2000,()) CloseBanner                
             ]
         model,Cmd.batch postInitMsgs
 
@@ -137,49 +149,44 @@ module Init =
         with ex ->
             model,Cmd.ofMsg(ShowError ex.Message)
 
-    let flashBanner (uparms:UpdateParms) model msg =
-        div{
-            text "work in progress ..."
-        }
-    (*
-        let txClr = Colors.Pink.Lighten3
-        let msgClr = Colors.Gray.Lighten3
-        let n =
-            div {
-                comp<MudPaper> {
-                    "Class" => "d-flex align-center flex-row"
-                    "Style" => "background:transparent; box-shadow:none;"
-                    comp<MudPaper> {
-                        "Class" => "d-flex flex-column"
-                        "Style" => "background:transparent; box-shadow:none; justify-content: space-around;"
-                        comp<MudImage> {
-                            "Style" => "height: 5rem; width: 5rem; object-fit: contain; border-radius:25px"
-                            "Elevation" => 5
-                            "Src" => "app/imgs/persona.png"
-                        }
-                        comp<MudText> {
-                            "Style" => $"color:{txClr}"
-                            "Typo" => Typo.subtitle1
-                            text (model.appConfig.PersonaText |> Option.defaultValue "Welcome!")
-                        }
-                        match model.appConfig.PersonaSubText with
-                        | Some t ->
-                            comp<MudText> {
-                                "Style" => $"color:{txClr}"
-                                "Typo" => Typo.body2
-                                text t
-                            }
-                        | None -> ()
+    type FlashBanner() =
+        inherit ElmishComponent<Model,Message>()
+
+        override this.View model dispatch =
+            comp<RadzenCard> {
+                comp<RadzenStack> {
+                    "Orientation" => Orientation.Vertical
+                    "AlignItems" => AlignItems.Center
+                    comp<RadzenImage> {
+                        "Style" => "height: 10rem; width: 10rem; object-fit: contain; border-radius:25px;"
+                        "Src" => "app/imgs/persona.png"
                     }
-                    comp<MudText> {
-                        "Style" => $"color:{msgClr}; max-width:10rem"
-                        text msg
+                    comp<RadzenText> {
+                        "Text" => (model.appConfig.PersonaText |> Option.defaultValue "Welcome!")
                     }
+                    match model.appConfig.PersonaSubText with
+                    | Some t -> 
+                        comp<RadzenText> { 
+                            "TextStyle" => TextStyle.Caption
+                            "Text" => t 
+                        }
+                    | None -> ()
                 }
             }
-        let rf = RenderFragment(fun (t) -> n.Invoke(null,t,0) |> ignore)
-        uparms.snkbar.Add(rf)
-        |> ignore
-    *)
 
+    let flashBanner (uparms:UpdateParms) model =
+        let opts = DialogOptions( ShowTitle = false, Style = "min-height:auto;min-width:auto;width:auto;background:transparent;top:7rem", CloseDialogOnEsc = true)
+        let dummyDispatch (m:Message) = ()
+        let parms = ["Model", model :> obj; "Dispatch", dummyDispatch] |> dict |> Dictionary
+        uparms.dialogService.OpenAsync<FlashBanner>("", parameters=parms, options=opts) |> ignore
+        // task {
+        //     uparms.dialogService.OpenAsync<FlashBanner>("", parameters=parms, options=opts) |> ignore
+        //     do! Async.Sleep 2000
+        //     uparms.dialogService.Close()
+        // }
+
+    let checkStartBanner (uparms:UpdateParms) model =
+       if model.flashBanner && model.appConfig.PersonaText.IsSome then flashBanner uparms model
+       let model = {model with flashBanner=false}
+       model,Cmd.none
 

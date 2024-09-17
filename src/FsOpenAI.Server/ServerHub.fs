@@ -45,23 +45,25 @@ module Inititalizaiton =
                 dispatch (Srv_Error ex.Message)
         }
 
-    let initClient sttngs dispatch =
+    let initClient dispatch =
+        let cfgMissingMsg = "No application configuration found. Using default config"
         task {
             try
                 match Env.appConfig.Value with
                 | Some cfg ->
                     dispatch (Srv_SetConfig cfg)
+                    do! Settings.refreshSettings dispatch
+                    let sttngs = Settings.getSettings().Value
                     match cfg.MetaIndex with
                     | Some metaIndex -> do! initIndexes sttngs cfg.IndexGroups metaIndex dispatch
                     | None -> ()
                     do! initTemplates dispatch
                     do! initSamples dispatch
                 | None ->
-                    dispatch (Srv_Info "No application configuration found. Using default config")
-                dispatch (Srv_DoneInit ())
+                    dispatch (Srv_Info cfgMissingMsg)
             with ex ->
                 dispatch(Srv_Parameters (Env.defaultSettings()))
-                dispatch (Srv_Info "No service configuration information found. Initialized with default OpenAI config.")
+                dispatch (Srv_Info cfgMissingMsg)
         }
 
 ///For websocket connection, token is passed as query parameter. This handler copies it to header
@@ -93,14 +95,15 @@ type ServerHub() =
         task {
             try
                 match msg with
-
                 | Clnt_Connected _ ->
-                    do! Settings.refreshSettings dispatch  //we refresh keys at client connect time 
+                    do! Inititalizaiton.initClient dispatch
                     try Monitoring.ensureConnection() with ex -> dispatch (Srv_Error ex.Message)
                     try Sessions.ensureConnection() with ex ->  dispatch (Srv_Error ex.Message)
-                    do! Inititalizaiton.initClient (Settings.getSettings().Value) dispatch
+                    dispatch (Srv_DoneInit ())
                 | _ -> dispatch (Srv_Error "Unauthorized access")
             with ex -> 
+                dispatch (Srv_DoneInit ())
+                dispatch (Srv_Error ex.Message)
                 Env.logError ex.Message
         }
 

@@ -44,8 +44,8 @@
   "LogoUrl": "https:/github.com/fwaris/FsOpenAI",
   "AppName": "FsOpenAI Chat",
   "AppId": "default",
-  "PersonaText": null,
-  "PersonaSubText": null,
+  "PersonaText": "This is the text",
+  "PersonaSubText": "This is the sub text",
   "Disclaimer": null,
   "MetaIndex": "fsopenai-meta",
   "IndexGroups": [

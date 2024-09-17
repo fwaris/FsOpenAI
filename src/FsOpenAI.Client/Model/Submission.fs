@@ -213,7 +213,7 @@ module Submission =
             let cs = model.interactions
             let firstChat = cs |> List.tryHead
             let model = {model with selectedChatId = firstChat |> Option.map (fun c -> c.Id)}
-            model,Cmd.ofMsg (FlashInfo msg)
+            model,Cmd.none
         with ex ->
             model,Cmd.ofMsg (ShowError ex.Message)
 

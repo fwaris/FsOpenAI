@@ -13,21 +13,12 @@ module Update =
 //      | <handle typed exceptions>
         | _ -> model, Cmd.ofMsg (ShowError exn.Message)
 
-    let flashMessage uparms model msg =
-        uparms.notificationService.Notify(detail=msg, severity=NotificationSeverity.Info, duration=1000.) |> ignore
-        let model =
-            if model.flashBanner && model.appConfig.PersonaText.IsSome then
-                Init.flashBanner uparms model msg
-                {model with flashBanner = false}
-            else
-                //uparms.snkbar.Add(
-                //        msg,
-                //        configure = fun o ->
-                //            o.VisibleStateDuration<-500
-                //            o.HideTransitionDuration<-100
-                //        ) |> ignore
-                model
-        model,Cmd.none
+    // let flashMessage (uparms,model,msg) = 
+    //     task {
+    //         if model.flashBanner && model.appConfig.PersonaText.IsSome then
+    //             do! Init.flashBanner uparms model
+    //         return msg
+    //     }
 
     //if there is an exception when processing a message, the Elmish message loop terminates
     let update (uparms:UpdateParms) message model =
@@ -96,11 +87,11 @@ module Update =
         | Ia_ToggleFeedback(id) -> TmpState.toggleFeedback id model, Cmd.none
         | Ia_Feedback_Submit id -> Submission.submitFeedback uparms.serverDispatch id model; model,Cmd.none
         //session and state
-        | CloseDialog -> uparms.dialogService.Close(); model,Cmd.none
+        | CloseBanner _ -> uparms.dialogService.Close(); model, if model.appConfig.RequireLogin then Cmd.ofMsg (ShowInfo "Please login to continue") else Cmd.none
         | Error exn -> handleError exn model
         | ShowError str -> uparms.notificationService.Notify(detail=str, severity=NotificationSeverity.Error) |> ignore; model,Cmd.none
         | ShowInfo str -> uparms.notificationService.Notify(detail=str) |> ignore; model,Cmd.none
-        | FlashInfo str -> flashMessage uparms model str
+        | FlashBanner -> Init.checkStartBanner uparms model
         | Nop () -> model,Cmd.none
         | ClearError -> {model with error = None},Cmd.none
         | ToggleSideBar -> TmpState.toggle C.SIDE_BAR_EXPANDED model,Cmd.none
@@ -126,7 +117,7 @@ module Update =
 
         //server initiated
         | FromServer (Srv_DoneInit _) -> Init.postServerInit model
-        | FromServer (Srv_SetConfig appConfig) -> {model with appConfig=appConfig; (*theme=Init.AppConfig.toTheme appConfig*)},Cmd.none
+        | FromServer (Srv_SetConfig appConfig) -> {model with appConfig=appConfig},Cmd.ofMsg FlashBanner
         | FromServer (Srv_IndexesRefreshed idxTrs) -> {model with busy=false; indexTrees=idxTrs},Cmd.none
         | FromServer (Srv_Parameters p) -> {model with serviceParameters=Some p;}, Cmd.none
         | FromServer (Srv_SetTemplates templates) -> {model with templates = templates},Cmd.none

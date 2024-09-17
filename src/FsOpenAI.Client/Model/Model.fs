@@ -119,7 +119,7 @@ type Message =
     //common
     | SidebarExpanded of bool
     | ToggleSideBar
-    | CloseDialog
+    | CloseBanner of unit
     | SaveUIState
     | LoadUIState
     | LoadedUIState of bool //darkTheme
@@ -128,7 +128,7 @@ type Message =
     | Error of exn
     | ShowError of string
     | ShowInfo of string
-    | FlashInfo of string
+    | FlashBanner
     | ClearError
     | OpenCloseSettings of string
     | FromServer of ServerInitiatedMessages

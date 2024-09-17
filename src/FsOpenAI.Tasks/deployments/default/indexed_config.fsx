@@ -26,8 +26,8 @@ let keyVault = "your-keyvault-name"
 //The location of the settings file for this config.
 //It will be copied to %USERPROFILE%/.fsopenai/ServiceSettings.json so that it is 'in-effect'
 //for local development.
-//let baseSettingsFile = @"%USERPROFILE%/.fsopenai/poc/ServiceSettings.json"
-let baseSettingsFile = @"%USERPROFILE%/.fsopenai/poc_with_keys/ServiceSettings.json"
+let baseSettingsFile = @"%USERPROFILE%/.fsopenai/poc/ServiceSettings.json"
+//let baseSettingsFile = @"%USERPROFILE%/.fsopenai/poc_with_keys/ServiceSettings.json"
 
 //The root folder for client files. These will be copied to client wwwroot. Contains:
 //- appSettings.json - this may contain Azure Entra ID config for authentication
@@ -95,8 +95,8 @@ let acctAppCfg =
         LogoUrl = Some "https:/github.com/fwaris/FsOpenAI" //url associated with app logo (shown in the header)
         AppName = Some "FsOpenAI Chat" //shows as tab text in the browser
         AppId = Some "default" //unique id for the app for logging purposes
-        PersonaText = None      //if set the persona image along with text (sub text, next) will be 'flashed' at startup.
-        PersonaSubText = None
+        PersonaText = Some "This is the text"      //if set the persona image along with text (sub text, next) will be 'flashed' at startup.
+        PersonaSubText = Some "This is the sub text" //if set the persona image along with text (sub text, next) will be 'flashed' at startup.  
         Disclaimer = None   //text show in the footer (e.g . "LLM answers may not be accurate and should be validated")
         IndexGroups = ["default"] //list of index groups that the app will show in the index dropdown
         DefaultMaxDocs = 10

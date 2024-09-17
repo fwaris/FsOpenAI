@@ -17,7 +17,7 @@ module Auth =
 
     let checkAuth model apply  =
         match model.appConfig.RequireLogin, model.user with
-        | true,Unauthenticated                         -> model, Cmd.batch [Cmd.ofMsg (FlashInfo "Authenticating..."); (Cmd.OfAsync.perform initiateLogin () id) ]
+        | true,Unauthenticated                         -> model, Cmd.batch [Cmd.ofMsg (ShowInfo "Authenticating..."); (Cmd.OfAsync.perform initiateLogin () id) ]
         | true,Authenticated u when not u.IsAuthorized -> model, Cmd.ofMsg (ShowInfo "User not authorized")
         | _,_                                          -> apply model
 
