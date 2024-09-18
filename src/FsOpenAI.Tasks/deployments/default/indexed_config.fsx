@@ -89,14 +89,14 @@ let acctAppCfg =
         SessionTableName = Some "sessions" // Some "sessions" persist sessions to CosmosDB
         AppBarType = Some (AppB_Base "FsOpenAI Chat") //Header bar style and title text
         Roles = [] //if not empty app will only allow users that have the listed roles (from AD; case sensitive)
-        RequireLogin = true //if true, requires AD login (via MSAL); needs valid appSettings.json (see above)
+        RequireLogin = false //if true, requires AD login (via MSAL); needs valid appSettings.json (see above)
         AssistantIcon = None
         AssistantIconColor = None
         LogoUrl = Some "https:/github.com/fwaris/FsOpenAI" //url associated with app logo (shown in the header)
         AppName = Some "FsOpenAI Chat" //shows as tab text in the browser
         AppId = Some "default" //unique id for the app for logging purposes
-        PersonaText = Some "This is the text"      //if set the persona image along with text (sub text, next) will be 'flashed' at startup.
-        PersonaSubText = Some "This is the sub text" //if set the persona image along with text (sub text, next) will be 'flashed' at startup.  
+        PersonaText = Some "FsOpenAI Chat"      //if set the persona image along with text (sub text, next) will be 'flashed' at startup.
+        PersonaSubText = Some "Loading ..." //if set the persona image along with text (sub text, next) will be 'flashed' at startup.  
         Disclaimer = None   //text show in the footer (e.g . "LLM answers may not be accurate and should be validated")
         IndexGroups = ["default"] //list of index groups that the app will show in the index dropdown
         DefaultMaxDocs = 10
@@ -165,7 +165,6 @@ let run() =
     ScriptEnv.Config.installServerAppSettings serverPath
 
     ScriptEnv.Config.installTemplates templatesPath
-
 
 (* uncomment to copy baseSettings file to default location so the running app can find it
 *)

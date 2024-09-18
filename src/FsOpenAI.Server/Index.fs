@@ -18,6 +18,8 @@ let page = doctypeHtml {
         script {attr.src "scripts/utils.js"}
         //authentication
         script {attr.src "_content/Microsoft.Authentication.WebAssembly.Msal/AuthenticationService.js" }
+        link { attr.rel "stylesheet"; attr.href "css/theme-override.css" }
+
     }
     body {
         div { 

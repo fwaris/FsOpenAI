@@ -30,8 +30,8 @@ module Update =
             Initalization Flow:
                 Client   <---------->  Server
                 Clnt_Connected --->
-                                <--- Srv_Parameters
                                 <--- Srv_SetConfig
+                                <--- Srv_Parameters
                                 <--- Srv_IndexesRefreshed
                                 <--- Srv_SetTemplates
                                 <--- Srv_LoadSamples

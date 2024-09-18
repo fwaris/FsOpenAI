@@ -129,9 +129,11 @@ module Config =
         printfn $"saved samples {Path.GetFullPath(file)}"
 
     let installClientFiles sourcePath =        
+        let srcAppSettings = sourcePath @@ "appSettings.json"
         let destAppSettings = CLIENT_ROOT @@ "appSettings.json"
-        File.Copy(sourcePath @@ "appSettings.json", destAppSettings,true)
-        printfn $"Copied {destAppSettings}"
+        if File.Exists srcAppSettings then  
+            File.Copy(srcAppSettings, destAppSettings,true)
+            printfn $"Copied {destAppSettings}"            
         let destImgsPath = CLIENT_ROOT @@ "app" @@ "imgs"
         Directory.GetFiles destImgsPath |> Seq.iter File.Delete
         Directory.GetFiles(sourcePath @@ "app" @@ "imgs")
@@ -139,6 +141,11 @@ module Config =
             let dst = destImgsPath @@ (Path.GetFileName(f))
             File.Copy(f,dst,true)
             printfn $"Copied {dst}")
+        let srcCss = sourcePath @@  "theme-override.css"
+        let destCss = CLIENT_ROOT @@ "theme-override.css"
+        if File.Exists srcCss then
+            File.Copy(srcCss, destCss,true)
+            printfn $"Copied {destCss}"
 
     let installServerAppSettings sourcePath = 
         let serverProjPath = Path.GetFullPath(SERVER_ROOT @@ "..")       

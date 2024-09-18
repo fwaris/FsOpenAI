@@ -38,14 +38,14 @@
       "FsOpenAI Chat"
     ]
   },
-  "RequireLogin": true,
+  "RequireLogin": false,
   "AssistantIcon": null,
   "AssistantIconColor": null,
   "LogoUrl": "https:/github.com/fwaris/FsOpenAI",
   "AppName": "FsOpenAI Chat",
   "AppId": "default",
-  "PersonaText": "This is the text",
-  "PersonaSubText": "This is the sub text",
+  "PersonaText": "FsOpenAI Chat",
+  "PersonaSubText": "Loading ...",
   "Disclaimer": null,
   "MetaIndex": "fsopenai-meta",
   "IndexGroups": [

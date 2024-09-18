@@ -91,7 +91,7 @@ module Submission =
         | M_Plain -> serverDispatch (Clnt_Run_Plain(model.serviceParameters.Value,IO.invocationContext model,ch))
         | M_Doc -> serverDispatch (Clnt_Run_QnADoc(model.serviceParameters.Value,IO.invocationContext model,ch))
         | M_Doc_Index -> serverDispatch (Clnt_Run_IndexQnADoc(model.serviceParameters.Value,IO.invocationContext model,ch))
-        | M_CodeEval -> serverDispatch (Clnt_Run_EvalCode(model.serviceParameters.Value,IO.invocationContext model,ch,(Interaction.code ch).CodeEvalParms))
+        | M_CodeEval -> serverDispatch (Clnt_Run_EvalCode(model.serviceParameters.Value,IO.invocationContext model,ch,(Interaction.code ch |> Option.map (_.CodeEvalParms) |> Option.defaultValue CodeEvalParms.Default)))
 
     let checkSubmission prompt id model = 
         let ch = model.interactions |> List.tryFind (fun c -> c.Id = id)

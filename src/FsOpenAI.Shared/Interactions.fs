@@ -30,7 +30,7 @@ module Interaction =
             | M_Doc             -> "Doc."
             | M_Index           -> "Q&A"
             | M_Doc_Index       -> "Doc.+ "
-            | M_CodeEval        -> "Wholesale"
+            | M_CodeEval        -> "CodeEval"
         $"{cType} [{ch.Parameters.Backend}] ..."
 
     let systemMessage (c:Interaction) = c.SystemMessage
