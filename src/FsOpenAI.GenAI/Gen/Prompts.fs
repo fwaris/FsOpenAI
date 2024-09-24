@@ -6,9 +6,9 @@ open System
 module Prompts =
 
     ///Prompts for web search chat mode
-    module WebSearch = 
+    module WebSearch =
 
-        ///prompts model to answer question or, if it cannot answer, 
+        ///prompts model to answer question or, if it cannot answer,
         ///ask it to generate a search query for web search
         let answerQuestionOrDoSearch = """
 Answer questions only when you know the facts or the information is provided.
@@ -69,9 +69,9 @@ Answer:
 Question: {{ $input }}.
 Answer: "
     """
-    
+
     ///Prompts for Q&A chat mode
-    module QnA = 
+    module QnA =
 
         let refineQueryAlt = """
 [Question]
@@ -84,7 +84,7 @@ Rewrite the QUESTION to reflect the user's intent, taking into consideration the
 
 REWRITTEN INTENT WITH EMBEDDED CONTEXT:
     """
-        
+
         let refineQueryFallback = """
 CHAT HISTORY:'''
 {{$chatHistory}}
@@ -99,7 +99,7 @@ Generate a search query based on the CHAT HISTORY and the new question.
 DO NOT generate SQL. JUST LIST THE TERMS AS COMMA-SEPARATED VALUES.
 IF the question is cryptic text THEN:
     - leave it as-is
-OTHERWISE: 
+OTHERWISE:
     - Include in the search query any special terms mentioned in the question text so the right items in the knowlege base are included in the search response.
     - Elaborate on the question to include any related terms and concepts that may aid in the search.
     - Thoroughly explore all implications and related concepts of the question.
@@ -130,7 +130,7 @@ The instructions for each task is below:
     - DO NOT generate SQL. JUST LIST THE TERMS AS COMMA-SEPARATED VALUES.
     - IF the question is cryptic text THEN:
         - leave it as-is
-      OTHERWISE: 
+      OTHERWISE:
         - Include in the search query any special terms mentioned in the question text so the right items in the knowlege base are included in the search response.
         - Elaborate on the question to include any related terms and concepts that may aid in the search.
         - Thoroughly explore all implications and related concepts of the question.
@@ -138,9 +138,9 @@ The instructions for each task is below:
 
 [SEARCH MODE]
 There are 2 possible search modes: 'Semantic', 'Keyword'
-Determine the search mode based the Question. 
-- If question that requires a deep understanding of the context, output 'Semantic' search mode.
-- If the question mainly contains cryptic alphanumeric codes or acronyms, output 'Keyword' search mode.  
+Determine the search mode based the Question only.
+- If the question mainly contains cryptic alphanumeric codes or acronyms, output 'Keyword' search mode.
+- If the question is mainly general text then output 'Semantic' search mode.
 
 Response Format:
 ```
@@ -158,7 +158,7 @@ SEARCH DOCUMENTS: '''
 {{$documents}}
 '''
 SEARCH DOCUMENTS is a collection of documents that match the queries in QUESTION.
-Derive the best possible answers to the posed QUESTION from the content in SEARCH DOCUMENTS. 
+Derive the best possible answers to the posed QUESTION from the content in SEARCH DOCUMENTS.
 BE BRIEF AND TO THE POINT, BUT WHEN SUPPLYING OPINION, IF YOU SEE THE NEED, YOU CAN BE LONGER.
 WHEN ANSWERING QUESTIONS, GIVING YOUR OPINION OR YOUR RECOMMENDATIONS, BE CONTEXTUAL.
 If you don't know, ask.
@@ -174,7 +174,7 @@ ANSWER:
 """
 
     ///Prompts for Q&A chat mode
-    module SiteQnA = 
+    module SiteQnA =
 
 
         let questionAnswerPrompt = """
@@ -185,7 +185,7 @@ SITE IDS: '''
 {{$site_ids}}
 '''
 SEARCH DOCUMENTS is a collection of documents that contain information about cellular sites identified by SITE IDS.
-Derive the best possible answers to the posed QUESTION from the content in SEARCH DOCUMENTS. 
+Derive the best possible answers to the posed QUESTION from the content in SEARCH DOCUMENTS.
 BE BRIEF AND TO THE POINT, BUT WHEN SUPPLYING OPINION, IF YOU SEE THE NEED, YOU CAN BE LONGER.
 WHEN ANSWERING QUESTIONS, GIVING YOUR OPINION OR YOUR RECOMMENDATIONS, BE CONTEXTUAL.
 If you don't know, ask.
@@ -200,8 +200,8 @@ QUESTION: '''
 ANSWER:
 """
 
-    ///Prompts for Document query chat mode 
-    module DocQnA = 
+    ///Prompts for Document query chat mode
+    module DocQnA =
 
         let summarizeDocument = """[SUMMARIZATION RULES]
 DONT WASTE WORDS
@@ -289,9 +289,9 @@ ANSWER:
 [Text]:
 """
 
-        let imageClassification = """Analyze the image carefully. Is the image a technical drawing or a flowchart? 
-Note: 
-An image is a technical drawing if it contains many lines and shapes. 
+        let imageClassification = """Analyze the image carefully. Is the image a technical drawing or a flowchart?
+Note:
+An image is a technical drawing if it contains many lines and shapes.
 A flowchart is a diagram that represents a workflow or process with lines connected boxes and shapes.
 Only answer with yes or no.
 [Answer]:
