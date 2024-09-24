@@ -62,7 +62,7 @@ module Init =
                 | true, true  -> Cmd.none
                 | true, false -> Cmd.ofMsg Ia_Session_Load
                 | false, _    -> Cmd.ofMsg Ia_Local_Load  
-                Cmd.OfAsync.perform delay (2000,()) CloseBanner                
+                Cmd.OfAsync.perform delay (1000,()) CloseBanner                
             ]
         model,Cmd.batch postInitMsgs
 
@@ -179,11 +179,6 @@ module Init =
         let dummyDispatch (m:Message) = ()
         let parms = ["Model", model :> obj; "Dispatch", dummyDispatch] |> dict |> Dictionary
         uparms.dialogService.OpenAsync<FlashBanner>("", parameters=parms, options=opts) |> ignore
-        // task {
-        //     uparms.dialogService.OpenAsync<FlashBanner>("", parameters=parms, options=opts) |> ignore
-        //     do! Async.Sleep 2000
-        //     uparms.dialogService.Close()
-        // }
 
     let checkStartBanner (uparms:UpdateParms) model =
        if model.flashBanner && model.appConfig.PersonaText.IsSome then flashBanner uparms model

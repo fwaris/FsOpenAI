@@ -13,13 +13,6 @@ module Update =
 //      | <handle typed exceptions>
         | _ -> model, Cmd.ofMsg (ShowError exn.Message)
 
-    // let flashMessage (uparms,model,msg) = 
-    //     task {
-    //         if model.flashBanner && model.appConfig.PersonaText.IsSome then
-    //             do! Init.flashBanner uparms model
-    //         return msg
-    //     }
-
     //if there is an exception when processing a message, the Elmish message loop terminates
     let update (uparms:UpdateParms) message model =
         //printfn "%A" message
