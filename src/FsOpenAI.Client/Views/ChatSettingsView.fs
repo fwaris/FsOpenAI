@@ -67,7 +67,8 @@ type ChatSettingsView() =
         let searchTooltip = function
             | SearchMode.Semantic -> "Search with meaning, e.g. 'small' should match 'tiny', 'little', 'not big', etc."
             | SearchMode.Keyword -> "Search using exact keyword matches. Useful for product codes, acronyms, etc. USE only if other modes not effective."
-            | SearchMode.Hybrid -> "A mix of Semantic and Keyword (default, generally best)"
+            | SearchMode.Hybrid -> "A mix of Semantic and Keyword"
+            | SearchMode.Auto -> "Let the system decide the best mode based on the query text"
 
         concat {
             comp<RadzenButton> {

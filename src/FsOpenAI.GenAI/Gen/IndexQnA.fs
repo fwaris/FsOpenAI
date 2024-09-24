@@ -6,6 +6,7 @@ open Microsoft.SemanticKernel.Memory
 open FsOpenAI.Shared.Interactions
 open SemanticVectorSearch
 open FsOpenAI.Shared
+open Microsoft.SemanticKernel.Connectors.OpenAI
 
 module IndexQnA =
 
@@ -59,7 +60,7 @@ module IndexQnA =
         }
 
     ///semantic memory supporting chatpdf format
-    let chatPdfMemories (parms:ServiceSettings) (invCtx:InvocationContext) (ch:Interaction) : ISemanticTextMemory list =        
+    let chatPdfMemories (parms:ServiceSettings) (invCtx:InvocationContext) (ch:Interaction) (mode:SemanticVectorSearch.SearchMode): ISemanticTextMemory list =        
         let embModel = invCtx.ModelsConfig.EmbeddingsModels.Head.Model
         let bag = Interaction.qaBag ch |> Option.defaultWith (fun _ -> failwith "no indexes selected")
         if bag.Indexes.IsEmpty then failwith "No indexes selected"
@@ -70,18 +71,45 @@ module IndexQnA =
             let idxClient = Indexes.searchServiceClient parms
             let srchClient = idxClient.GetSearchClient(idx.Name)
             let openAIClient,_ = GenUtils.getEmbeddingsClient parms ch embModel
-            let mode = match bag.SearchMode with
-                        | Hybrid    -> SemanticVectorSearch.SearchMode.Hybrid
-                        | Semantic  -> SemanticVectorSearch.SearchMode.Semantic            
-                        | Keyword   -> SemanticVectorSearch.SearchMode.Plain
             SemanticVectorSearch.CognitiveSearch(mode,srchClient,openAIClient,["contentVector"],"content","sourcefile","title"))
+
+    type RefinedQuery =         
+        {
+            searchQuery: string
+            searchMode: string
+        }
+
+    let fallbackRefineQuery (k:Kernel) userMessage chatHistory = 
+        async {
+            let args = GenUtils.kernelArgsDefault ["question",userMessage; "chatHistory",chatHistory]
+            let! rslt = k.InvokePromptAsync(Prompts.QnA.refineQueryFallback,arguments=args) |> Async.AwaitTask
+            return rslt.GetValue<string>()
+        }
 
     let runRefineQuery (k:Kernel) userMessage chatHistory = 
         async {
-            let args = GenUtils.kernelArgsDefault ["question",userMessage; "chatHistory",chatHistory]
-            let! rslt = k.InvokePromptAsync(Prompts.QnA.refineQuery,arguments=args) |> Async.AwaitTask
-            return rslt.GetValue<string>()
+            try
+                let args = GenUtils.kernelArgsDefault ["question",userMessage; "chatHistory",chatHistory]
+                match args.ExecutionSettings with 
+                | :? OpenAIPromptExecutionSettings as settings -> settings.ResponseFormat  <- "json_object" 
+                | _ -> ()
+                let! rslt = k.InvokePromptAsync(Prompts.QnA.refineQuery_IdSearchMode,arguments=args) |> Async.AwaitTask
+                let resp = rslt.GetValue<OpenAIChatMessageContent>()
+                let respStr = GenUtils.extractTripleQuoted resp.Content |> Seq.collect id |> String.concat "\n"
+                return System.Text.Json.JsonSerializer.Deserialize<RefinedQuery>(respStr)                
+            with ex -> 
+                printfn "Error in runRefineQuery: %s" ex.Message
+                let! refinedQuery = fallbackRefineQuery k userMessage chatHistory
+                return {searchQuery=refinedQuery;searchMode="Hybrid"}                
         }
+
+    let transform (r:RefinedQuery) =  
+        let mode = 
+            if r.searchMode.Trim().Equals("Keyword",StringComparison.OrdinalIgnoreCase) then
+                SemanticVectorSearch.SearchMode.Plain
+            else
+               SemanticVectorSearch.SearchMode.Hybrid
+        r.searchQuery,mode
 
     let refineQuery parms modelsConfig (ch:Interaction) = 
         task {
@@ -93,20 +121,35 @@ module IndexQnA =
             let tokenSize = 
                 GenUtils.tokenSize userMessage.Message 
                 + GenUtils.tokenSize chatHistory 
-                + GenUtils.tokenSize Prompts.QnA.refineQuery
+                + GenUtils.tokenSize Prompts.QnA.refineQuery_IdSearchMode
             let bestModel = GenUtils.optimalModel modelRefs tokenSize
             let k = (GenUtils.baseKernel parms [bestModel] ch).Build()                           
             let! query = runRefineQuery k userMessage.Message chatHistory
-            return query
+            return transform query
         }
+
+    let mapMode chatMode suggestedMode =
+        match chatMode with
+        | Auto -> suggestedMode
+        | Hybrid -> SemanticVectorSearch.SearchMode.Hybrid
+        | Keyword -> SemanticVectorSearch.SearchMode.Plain
+        | Semantic -> SemanticVectorSearch.SearchMode.Semantic
+
+    let modeLabel = function 
+        | SemanticVectorSearch.SearchMode.Semantic -> "Semantic"
+        | SemanticVectorSearch.SearchMode.Hybrid -> "Hybrid"
+        | SemanticVectorSearch.SearchMode.Plain -> "Keyword"
 
     let runPlan (parms:ServiceSettings) (invCtx:InvocationContext) (ch:Interaction) dispatch =
         async {  
             try
-                let cogMems = chatPdfMemories parms invCtx ch   
+                let! query,suggestedMode = refineQuery parms invCtx ch |> Async.AwaitTask
+                let chatMode  = Interaction.qaBag ch |> Option.map (fun x -> x.SearchMode) |>  Option.defaultValue SearchMode.Auto
+                let mode = mapMode chatMode suggestedMode
+                let cogMems = chatPdfMemories parms invCtx ch mode
                 let maxDocs = Interaction.maxDocs 1 ch
-                let! query = refineQuery parms invCtx ch |> Async.AwaitTask
                 dispatch (Srv_Ia_Notification (ch.Id,$"Searching with: {query}"))
+                dispatch (Srv_Ia_Notification (ch.Id,$"Search mode: {modeLabel mode}"))
                 let docs = 
                     cogMems
                     |> AsyncSeq.ofSeq

@@ -275,8 +275,9 @@ module DocQnA =
                     |> Option.bind (fun d -> d.SearchTerms ) 
                 match cachedTerms with 
                 | None -> docSearchTerms parms modelsConfig ch dispatch |> Async.AwaitTask
-                | Some x -> async{return x}                
-            let cogMems = IndexQnA.chatPdfMemories parms modelsConfig ch   
+                | Some x -> async{return x}
+            let docSearchMode = SemanticVectorSearch.SearchMode.Hybrid  //default to hybrid mode for document based search
+            let cogMems = IndexQnA.chatPdfMemories parms modelsConfig ch docSearchMode
             let maxDocs = Interaction.maxDocs 1 ch
             let qMsg = query.Substring(0,min 100 (query.Length-1))  
             dispatch (Srv_Ia_Notification (ch.Id,$"Document + index search mode ..."))
@@ -285,7 +286,10 @@ module DocQnA =
             let! rephrasedQuestion =
                 if ch.Messages.Length > 2 then 
                     dispatch (Srv_Ia_Notification(ch.Id,"Rephrasing question based on chat history ..."))
-                    IndexQnA.refineQuery parms modelsConfig ch |> Async.AwaitTask
+                    async {
+                        let! r = IndexQnA.refineQuery parms modelsConfig ch |> Async.AwaitTask
+                        return fst r
+                    }     
                 else
                     async{return ""}
 

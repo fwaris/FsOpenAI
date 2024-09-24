@@ -1,5 +1,7 @@
 ﻿namespace FsOpenAI.GenAI
 
+open System
+
 //based on prompts from the co-pilot chat
 module Prompts =
 
@@ -82,8 +84,8 @@ Rewrite the QUESTION to reflect the user's intent, taking into consideration the
 
 REWRITTEN INTENT WITH EMBEDDED CONTEXT:
     """
-
-        let refineQuery = """
+        
+        let refineQueryFallback = """
 CHAT HISTORY:'''
 {{$chatHistory}}
 '''
@@ -104,6 +106,51 @@ OTHERWISE:
     -You may step back and paraphrase the question to a more generic step-back question, before generating a response.
 
 Search query:
+"""
+
+        let refineQuery_IdSearchMode = """
+CHAT HISTORY:'''
+{{$chatHistory}}
+'''
+
+Question:'''
+{{$question}}
+'''
+
+Above is a history of the conversation so far, and a new question asked by the user that needs to be answered by searching in a knowledge base.
+
+There are two tasks to perform:
+a) generate a search query
+b) determine the search mode
+
+The instructions for each task is below:
+
+[SEARCH QUERY]
+    - Generate a search query based on the CHAT HISTORY and the new question.
+    - DO NOT generate SQL. JUST LIST THE TERMS AS COMMA-SEPARATED VALUES.
+    - IF the question is cryptic text THEN:
+        - leave it as-is
+      OTHERWISE: 
+        - Include in the search query any special terms mentioned in the question text so the right items in the knowlege base are included in the search response.
+        - Elaborate on the question to include any related terms and concepts that may aid in the search.
+        - Thoroughly explore all implications and related concepts of the question.
+        -You may step back and paraphrase the question to a more generic step-back question, before generating a response.
+
+[SEARCH MODE]
+There are 2 possible search modes: 'Semantic', 'Keyword'
+Determine the search mode based the Question. 
+- If question that requires a deep understanding of the context, output 'Semantic' search mode.
+- If the question mainly contains cryptic alphanumeric codes or acronyms, output 'Keyword' search mode.  
+
+Response Format:
+```
+{
+    "searchQuery": "search query",
+    "searchMode": "search mode"
+}
+```
+
+```json
 """
 
         let questionAnswerPrompt = """

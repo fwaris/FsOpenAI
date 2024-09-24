@@ -15,7 +15,7 @@ let settings =
             EMBEDDING_ENDPOINTS = []
             BING_ENDPOINT = None // Some {API_KEY = "bing key"; ENDPOINT="https://bing.com"}
             OPENAI_KEY = None
-            GOOGLE_KEY = None
+           // GOOGLE_KEY = None
         }
 let str = JsonSerializer.Serialize(settings,serOpts)
 printfn $"{str}"

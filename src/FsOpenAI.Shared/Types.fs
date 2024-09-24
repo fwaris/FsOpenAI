@@ -18,7 +18,7 @@ type InteractionMessage = {MsgId:string; Role:MessageRole; Message: string}
 
 type ExplorationMode = Factual | Exploratory | Creative
 
-type SearchMode = Semantic | Hybrid | Keyword
+type SearchMode = Semantic | Hybrid | Keyword | Auto
 
 type DocType = DT_Pdf | DT_Word | DT_Powerpoint | DT_Excel | DT_Text | DT_RTF | DT_Image
 
@@ -64,7 +64,7 @@ type QABag =
             {
                 Indexes = []
                 MaxDocs = 10
-                SearchMode = Hybrid
+                SearchMode = Auto
             }
 
 type DocumentStatus = No_Document | Uploading | Receiving | ExtractingTerms | Ready
