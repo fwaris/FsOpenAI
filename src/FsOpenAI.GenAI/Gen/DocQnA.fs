@@ -6,6 +6,7 @@ open Microsoft.SemanticKernel
 open FsOpenAI.Shared
 open FsOpenAI.Shared.Interactions
 open Microsoft.SemanticKernel.Text
+open FsOpenAI.Vision
 open AsyncExts
 
 module DocQnA =
@@ -83,7 +84,7 @@ module DocQnA =
 
     let isDrawing parms (img:byte[]) =
         async {
-            let! resp = VisionApi.processImage parms ("",Prompts.DocQnA.imageClassification,img)
+            let! resp = GenUtils.processImage parms ("",Prompts.DocQnA.imageClassification,img)
             return 
                 match resp with
                 | Some r -> 
@@ -101,13 +102,29 @@ module DocQnA =
             //printfn "isDrawing: %b" isDrawing
             let! resp = 
                 if isDrawing then
-                    VisionApi.processImage parms ("",Prompts.DocQnA.imageDescription,img)
+                    GenUtils.processImage parms ("",Prompts.DocQnA.imageDescription,img)
                 else
-                    VisionApi.processImage parms ("",Prompts.DocQnA.imageToTtext,img)
+                    GenUtils.processImage parms ("",Prompts.DocQnA.imageToTtext,img)
             return 
                 match resp with
                 | Some r -> r.choices |> List.map (fun x -> x.message.content)
                 | None -> ["no content extracted from image"]
+        }
+
+    let videoToText parms filePath dispatch = 
+        async {
+            dispatch "Extracting frames..."
+            let frames,fps,w,h,format = Video.getInfo filePath
+            let msg = $"{frames} frames, %0.0f{fps} fps, {w}x{h}, {format}"
+            printfn $"{msg}"
+            dispatch msg
+            let frames = Video.getFrames filePath C.MAX_VIDEO_FRAMES |> AsyncSeq.choose id |> AsyncSeq.toBlockingSeq |> Seq.toList
+            printf $"Using frames: {frames.Length}"
+            let! resp = GenUtils.processVideo parms ("",Prompts.DocQnA.videoDescription,frames)
+            return 
+                match resp with
+                | Some r -> r.choices |> List.map (fun x -> x.message.content)
+                | None -> ["no content extracted from video"]
         }
 
     let extract parms (id,fileId,docType) dispatch =
@@ -122,6 +139,8 @@ module DocQnA =
                 | Some DT_Text       -> async{return extractPlainTexts fn}
                 | Some DT_Image      -> dispatch (Srv_Ia_Notification (id,"Extracting text from image..."))
                                         imageToText parms fn
+                | Some DT_Video      -> dispatch (Srv_Ia_Notification (id,"Describing video..."))
+                                        videoToText parms fn (fun m -> dispatch (Srv_Ia_Notification (id,m)))
                 | Some x             -> async{return failwith $"unsupported document type {x}"}
             match! Async.Catch texts with
             | Choice1Of2 xs ->  

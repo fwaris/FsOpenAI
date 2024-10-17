@@ -19,6 +19,7 @@ type OpenAIKey() =
                 "AlignItems" => AlignItems.Center
                 comp<RadzenLabel> {"Text" => "OpenAI Key"}
                 comp<RadzenTextBox> {
+                    attr.style "display: flex; flex-grow:1;"
                     "Placeholder" => "OpenAI Key"
                     "Value" => (model.serviceParameters |> Option.bind(fun p -> p.OPENAI_KEY) |> Option.defaultValue null)
                     attr.callback "ValueChanged" (fun e -> dispatch (UpdateOpenKey e))

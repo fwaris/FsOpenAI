@@ -13,6 +13,7 @@ open Microsoft.SemanticKernel.ChatCompletion
 open FSharp.Control
 open FsOpenAI.Shared
 open FsOpenAI.Shared.Interactions
+open FsOpenAI.Vision
 
 module GenUtils =
     open Microsoft.SemanticKernel.Memory
@@ -368,6 +369,47 @@ module GenUtils =
         extractTripleQuoted inp
         |> Seq.collect id
         |> fun xs -> String.Join("\n",xs)
+
+    let processImage (parms:ServiceSettings,invCtx:InvocationContext,backend:Backend) (sysMsg:string, userPrompt:string, img:byte[]) =
+        match visionModel backend invCtx.ModelsConfig with
+        | Some model ->
+            async {
+                let endpoint,key = servceEndpoint parms backend model.Model
+                let user = userAgent invCtx
+                let imageBytes = img |> System.Convert.ToBase64String
+                let imgUri = $"data:image/jpeg;base64,{imageBytes}"
+                let chat = [Message("user", [ImageContent(imgUri); TextContent(userPrompt)])]
+                let chat = if String.IsNullOrWhiteSpace sysMsg |> not then Message("system", [TextContent(sysMsg)])::chat else chat
+                let payload = Payload(chat)
+                payload.model <- model.Model
+                payload.max_tokens <- 2000
+                return! VisionApi.processVision (Uri endpoint) key user payload |> Async.AwaitTask
+            }
+        | None -> async { return failwith "No vision model configured" }
+
+    let processVideo (parms:ServiceSettings,invCtx:InvocationContext,backend:Backend) (sysMsg:string, userPrompt:string, frames:byte[] list) =
+        match visionModel backend invCtx.ModelsConfig with
+        | Some model ->
+            async {
+                let endpoint,key = servceEndpoint parms backend model.Model
+                let user = userAgent invCtx
+                let imageContents = 
+                    frames 
+                    |> Seq.map(fun img -> 
+                        let imageBytes = img |> System.Convert.ToBase64String
+                        let imgUri = $"data:image/png;base64,{imageBytes}"
+                        ImageContent(imgUri) :> Content)
+                    |> List.ofSeq
+                let textContent : Content =  TextContent(userPrompt)
+                let chat = [Message("user", imageContents @ [textContent])]
+                let chat = if String.IsNullOrWhiteSpace sysMsg |> not then Message("system", [TextContent(sysMsg)])::chat else chat
+                let payload = Payload(chat)
+                payload.model <- model.Model
+                payload.max_tokens <- 2000
+                return! VisionApi.processVision (Uri endpoint) key user payload |> Async.AwaitTask
+            }
+        | None -> async { return failwith "No vision model configured" }
+
 
 module TemplateParser =    
     type Block = VarBlock of string | FuncBlock of string*string option

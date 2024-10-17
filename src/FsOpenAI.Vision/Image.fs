@@ -1,4 +1,4 @@
-﻿namespace FsOpenAI.GenAI.Image
+﻿namespace FsOpenAI.Vision
 open System
 open System.IO
 
@@ -66,7 +66,7 @@ module Extraction =
             for i in images do
             let mutable pngBytes: byte[] = Unchecked.defaultof<_>
             let d = i.TryGetPng(&pngBytes)
-            use stream = new MemoryStream(if pngBytes = null then i.RawBytes |> Seq.toArray else pngBytes);
+            use stream = new MemoryStream(if pngBytes = null then i.RawBytes.ToArray() else pngBytes)
             use image = Image.FromStream(stream, false, false);
             let fn = ImageUtils.imagePath path page.Number j
             image.Save(fn, jpegEncoder, null);

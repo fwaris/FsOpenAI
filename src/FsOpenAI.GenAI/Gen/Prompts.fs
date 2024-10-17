@@ -300,3 +300,6 @@ Only answer with yes or no.
         let imageDescription = """Describe the image in detail. Include any text in the image.
 [Description]:
 """
+
+        let videoDescription = """Watch the attached frames of a video and provide a detailed, comprehensive description of its contents. Include information on the setting, characters, actions, dialogue, and any significant events or themes. Ensure the description captures the essence and key points of the video without omitting important details. Focus on being clear, concise, and objective
+"""

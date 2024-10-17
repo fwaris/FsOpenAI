@@ -1,12 +1,9 @@
-﻿namespace FsOpenAI.GenAI
+﻿namespace FsOpenAI.Vision
 open System
 open System.Net.Http
 open System.Text
 open System.Text.Json
-open Azure.Core
 open System.Text.Json.Serialization
-open FsOpenAI.Shared
-open FsOpenAI.GenAI
 
 type ImageUrl(url:string) =
     member val url : string = url with get, set
@@ -93,29 +90,3 @@ module VisionApi =
                 return None
         }
 
-    // let processImage (endpoint:AzureOpenAIEndpoints) (model:string) (sysMsg:string, userPrompt:string, img:byte[]) =
-    //     async {
-    //         let imageBytes = img |> System.Convert.ToBase64String
-    //         let imgUri = $"data:image/jpeg;base64,{imageBytes}"
-    //         let chat = [Message("user", [ImageContent(imgUri); TextContent(userPrompt)])]
-    //         let chat = if String.IsNullOrWhiteSpace sysMsg |> not then Message("system", [TextContent(sysMsg)])::chat else chat
-    //         let payload = Payload(chat)
-    //         return! processVision endpoint model payload |> Async.AwaitTask
-    //     }
-
-    let processImage (parms:ServiceSettings,invCtx:InvocationContext,backend:Backend) (sysMsg:string, userPrompt:string, img:byte[]) =
-        match GenUtils.visionModel backend invCtx.ModelsConfig with
-        | Some model ->
-            async {
-                let endpoint,key = GenUtils.servceEndpoint parms backend model.Model
-                let user = GenUtils.userAgent invCtx
-                let imageBytes = img |> System.Convert.ToBase64String
-                let imgUri = $"data:image/jpeg;base64,{imageBytes}"
-                let chat = [Message("user", [ImageContent(imgUri); TextContent(userPrompt)])]
-                let chat = if String.IsNullOrWhiteSpace sysMsg |> not then Message("system", [TextContent(sysMsg)])::chat else chat
-                let payload = Payload(chat)
-                payload.model <- model.Model
-                payload.max_tokens <- 2000
-                return! processVision (Uri endpoint) key user payload |> Async.AwaitTask
-            }
-        | None -> async { return failwith "No vision model configured" }

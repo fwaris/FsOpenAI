@@ -27,7 +27,10 @@ module IO =
             | ".jpg" 
             | ".jpeg" 
             | ".png"            -> Some DT_Image
-            | _                -> None
+            | ".mp4"
+            | ".avi"
+            | ".mov"            -> Some DT_Video
+            | _                 -> None
         printfn $"document type: {docType}"
         docType
 
