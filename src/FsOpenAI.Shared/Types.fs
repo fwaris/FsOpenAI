@@ -20,8 +20,7 @@ type ExplorationMode = Factual | Exploratory | Creative
 
 type SearchMode = Semantic | Hybrid | Keyword | Auto
 
-type DocType = DT_Pdf | DT_Word | DT_Powerpoint | DT_Excel | DT_Text | DT_RTF | DT_Image | DT_Video
-
+type DocType = DT_Pdf | DT_Word | DT_Powerpoint | DT_Excel | DT_Text | DT_RTF | DT_Image | DT_Video | DT_Html
 type InteractionParameters =
     {
         Backend             : Backend

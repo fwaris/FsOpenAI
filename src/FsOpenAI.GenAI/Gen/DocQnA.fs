@@ -8,6 +8,7 @@ open FsOpenAI.Shared.Interactions
 open Microsoft.SemanticKernel.Text
 open FsOpenAI.Vision
 open AsyncExts
+open FSharp.Data
 
 module DocQnA =
     open System.Data
@@ -82,6 +83,16 @@ module DocQnA =
         |> Seq.map(fun rs -> String.Join(" ", rs))
         |> Seq.toList
 
+    let extractHtmlTexts (filePath:String)  =
+        let html = File.ReadAllText filePath
+        let doc = HtmlDocument.Parse html
+        let txt = doc.Body().InnerText()
+        let txt = try System.Text.RegularExpressions.Regex.Unescape(txt) with _ -> txt
+        txt
+        |> Seq.chunkBySize 1000
+        |> Seq.map (fun xs -> String(xs |> Seq.toArray))
+        |> Seq.toList
+
     let isDrawing parms (img:byte[]) =
         async {
             let! resp = GenUtils.processImage parms ("",Prompts.DocQnA.imageClassification,img)
@@ -137,6 +148,7 @@ module DocQnA =
                 | Some DT_Powerpoint -> async{return extractTextPptx fn}
                 | Some DT_Excel      -> async{return extractExcelTexts fn}
                 | Some DT_Text       -> async{return extractPlainTexts fn}
+                | Some DT_Html       -> async{return extractHtmlTexts fn}
                 | Some DT_Image      -> dispatch (Srv_Ia_Notification (id,"Extracting text from image..."))
                                         imageToText parms fn
                 | Some DT_Video      -> dispatch (Srv_Ia_Notification (id,"Describing video..."))

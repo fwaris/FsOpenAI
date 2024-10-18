@@ -12,6 +12,7 @@
 	<None Include="deployments\default\config_default.fsx" />
 	<None Include="deployments\default\indexed_config.fsx" />
 	<None Include="deployments\default\indexed_create.fsx" />
+	<None Include="scripts\Sandbox.fsx" />
 	<None Include="scripts\packages.fsx" />
     <None Include="scripts\ScriptEnv.fsx" />
     <None Include="scripts\CreateSettings.fsx" />

@@ -15,9 +15,6 @@
 #r "nuget: DocumentFormat.OpenXml"
 #r "nuget: OpenCvSharp4.Windows"
 #r "nuget: OpenCvSharp4.Extensions"
-//#r "nuget: Bolero"
-//#r "nuget: MudBlazor"
-//#r "nuget: Plotly.NET"
 #r "nuget: Azure.Identity"
 #r "nuget: azure.security.keyvault.secrets"
 #r "nuget: FSharp.CosmosDb"
@@ -25,7 +22,7 @@
 #r "nuget: ExcelDataReader.DataSet"
 #r "nuget: FSharp.Compiler.Service"
 #r "nuget: System.Text.Encoding.CodePages"
-//#r "nuget: FSharp.Core, 8.0.400"
+#r "nuget: FSharp.Data.Html.Core"
 
 
 #I "../../FsOpenAI.Shared"

@@ -18,8 +18,6 @@ type QuestionView() =
 
     [<Inject>] member val JSRuntime : IJSRuntime = Unchecked.defaultof<_> with get, set
 
-    [<Inject>] member val TooltipService : TooltipService = Unchecked.defaultof<_> with get, set
-
     member this.GetText() = 
         task{
             let! text = this.JSRuntime.InvokeAsync<string>("eval", """document.getElementById("idQuestion").value""")

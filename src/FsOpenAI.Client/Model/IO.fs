@@ -30,6 +30,7 @@ module IO =
             | ".mp4"
             | ".avi"
             | ".mov"            -> Some DT_Video
+            | ".html" | ".htm"  -> Some DT_Html
             | _                 -> None
         printfn $"document type: {docType}"
         docType
