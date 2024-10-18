@@ -13,6 +13,8 @@
 #r "nuget: Docnet.Core"
 #r "nuget: PdfPig, *-*"
 #r "nuget: DocumentFormat.OpenXml"
+#r "nuget: OpenCvSharp4.Windows"
+#r "nuget: OpenCvSharp4.Extensions"
 //#r "nuget: Bolero"
 //#r "nuget: MudBlazor"
 //#r "nuget: Plotly.NET"
@@ -35,6 +37,11 @@
 #load "Interactions.Core.fs"
 #load "Interactions.fs"
 
+#I "../../FsOpenAI.Vision"
+#load "Image.fs"
+#load "Video.fs"
+#load "VisionApi.fs"
+
 
 #I "../../FsOpenAI.GenAI"
 #load "AsyncExts.fs"
@@ -49,6 +56,4 @@
 #load "Gen/Completions.fs"
 #load "Gen/WebCompletion.fs"
 #load "Gen/IndexQnA.fs"
-#load "Gen/Vision/VisionApi.fs"
-//#load "Gen/Vision/Image.fs"
 #load "Gen/DocQnA.fs"
