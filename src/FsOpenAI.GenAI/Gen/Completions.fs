@@ -117,9 +117,33 @@ module Completions =
 
     let private completeLogicChat (parms:ServiceSettings) (invCtx:InvocationContext) (ch:Interaction) dispatch modelSelector =
         async {
-            let! resp = completeChat parms invCtx ch dispatch modelSelector
-            dispatch (Srv_Ia_Delta(ch.Id,0,resp.Content))
-            dispatch (Srv_Ia_Done(ch.Id,None))
+            let caller,msgs,opts,de = buildCall parms invCtx ch modelSelector
+            try
+                Srv_Ia_Notification(ch.Id,$"using model: {de.Model}") |> dispatch
+                let! resp = caller.GetChatMessageContentsAsync(msgs,opts) |> Async.AwaitTask
+                let respMsg = resp.[0]
+                match respMsg.Metadata.TryGetValue("FinishReason") with
+                | true,n when n = "Length" && Utils.isEmpty respMsg.Content-> 
+                    let msg = "No model output due to output token limit. Increase max tokens in chat settings"
+                    return failwith msg
+                | _ -> ()
+                do! 
+                    respMsg.Content
+                    |> AsyncSeq.ofSeq
+                    |> AsyncSeq.bufferByCountAndTime 1000 500
+                    |> AsyncSeq.indexed
+                    |> AsyncSeq.iter (fun (i,xs) -> dispatch(Srv_Ia_Delta(ch.Id,int i,String(xs))))
+                dispatch (Srv_Ia_Done(ch.Id,None))
+                let de =
+                    {de with
+                        Response = respMsg.Content
+                        OutputTokens = GenUtils.tokenSize respMsg.Content |> int
+                    }
+                Monitoring.write (Diag de)
+                Srv_Ia_SetSubmissionId(ch.Id,de.id) |> dispatch            
+            with ex ->
+                Monitoring.write (Diag {de with Error = ex.Message})
+                return raise ex
         }
 
     let checkStreamCompleteChat (parms:ServiceSettings) (invCtx:InvocationContext) (ch:Interaction) dispatch modelSelector =

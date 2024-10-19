@@ -82,7 +82,7 @@ module Update =
         //session and state
         | CloseBanner _ -> uparms.dialogService.Close(); model, if model.appConfig.RequireLogin then Cmd.ofMsg (ShowInfo "Please login to continue") else Cmd.none
         | Error exn -> handleError exn model
-        | ShowError str -> uparms.notificationService.Notify(detail=str, severity=NotificationSeverity.Error) |> ignore; model,Cmd.none
+        | ShowError str -> uparms.notificationService.Notify(detail=str, severity=NotificationSeverity.Error, duration=3000.) |> ignore; model,Cmd.none
         | ShowInfo str -> uparms.notificationService.Notify(detail=str) |> ignore; model,Cmd.none
         | FlashBanner -> Init.checkStartBanner uparms model
         | Nop () -> model,Cmd.none
