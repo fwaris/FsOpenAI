@@ -153,7 +153,7 @@ type ChatSettingsView() =
                             comp<RadzenNumeric<int>> {     
                                 "ReadOnly" => true
                                 "ShowUpDown" => false
-                                "Style" => "width: 4rem; background-color:var(--rz-panel-background-color);"
+                                "Style" => "width: 4.3rem; background-color:var(--rz-panel-background-color);"
                                 Bind.InputExpression.intRaw <@ Func<_>(fun () -> this.Model.Parms.MaxTokens) @> (fun v -> ())                                                                   
                             }
                             // }
