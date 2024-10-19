@@ -142,9 +142,9 @@ type ChatSettingsView() =
                             "AlignItems" => AlignItems.Center
                             comp<RadzenLabel> {"Text" => "Max Tokens"}
                             comp<RadzenSlider<int>> {
-                                "Min" => 600m
-                                "Max" => 4096m
-                                "Step" => "300"
+                                "Min" => 500m
+                                "Max" => 10000m
+                                "Step" => "500"
                                 "Value" => this.Model.Parms.MaxTokens
                                 Bind.InputExpression.intRaw 
                                     <@ Func<_>(fun () -> this.Model.Parms.MaxTokens) @> 

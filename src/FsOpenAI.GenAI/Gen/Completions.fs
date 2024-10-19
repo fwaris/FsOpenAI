@@ -17,10 +17,12 @@ module Completions =
         let caller,resource =  GenUtils.getClient parms ch modelRef.Model
         let opts = OpenAIPromptExecutionSettings()
         match ch.Parameters.ModelType with 
-        | MT_Logic -> ()
-        | MT_Chat -> opts.Temperature <- float <| GenUtils.temperature ch.Parameters.Mode
+        | MT_Logic -> 
+            opts.MaxTokens <- ch.Parameters.MaxTokens + int tokenEstimate
+        | MT_Chat -> 
+            opts.MaxTokens <- ch.Parameters.MaxTokens
+            opts.Temperature <- float <| GenUtils.temperature ch.Parameters.Mode
         opts.User <- GenUtils.userAgent invCtx
-        opts.MaxTokens <- ch.Parameters.MaxTokens
         let de = GenUtils.diaEntryChat ch invCtx modelRef.Model resource
         caller,messages,opts,de
 
