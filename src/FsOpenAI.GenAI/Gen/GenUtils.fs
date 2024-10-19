@@ -21,20 +21,6 @@ module GenUtils =
     let rng = Random()
     let randSelect (ls:_ list) = ls.[rng.Next(ls.Length)]
 
-    let buildHistory (sysMsg:string) (msgs:string seq) = 
-        let ch = 
-            if String.IsNullOrWhiteSpace sysMsg then 
-                ChatHistory() 
-            else 
-                ChatHistory(sysMsg)
-        msgs 
-        |> Seq.indexed
-        |> Seq.iter (fun (i,m) -> 
-            let role = if i%2=0 then AuthorRole.User else AuthorRole.Assistant
-            ch.Add(ChatMessageContent(role, m)))
-        ch
-
-
     let temperature = function 
         | Factual -> 0.f
         | Exploratory -> 0.2f
@@ -86,26 +72,35 @@ module GenUtils =
         |> List.tryFind (fun m -> float m.TokenLimit > tokenSize)
         |> Option.defaultValue (modelRefs |> List.maxBy _.TokenLimit)
 
-    let chatModels (invCtx:InvocationContext) backend =
+    let private chatModels (invCtx:InvocationContext) backend =
         let modelsConfig = invCtx.ModelsConfig
-        let mShort = 
-            modelsConfig.ShortChatModels 
+        let modelRefs = 
+            modelsConfig.ChatModels
             |> List.tryFind (fun m -> m.Backend = backend)
             |> Option.map(fun x -> [x])
             |> Option.defaultValue []
-        let mLong = 
-            modelsConfig.LongChatModels
-            |> List.tryFind (fun m -> m.Backend = backend)
-            |> Option.map(fun x -> [x])
-            |> Option.defaultValue []
-        let modelRefs = mShort @ mLong
         if modelRefs.IsEmpty then failwith $"No chat model(s) configured for backend '{backend}'"
+        modelRefs    
+        
+    let private logicModels (invCtx:InvocationContext) backend =
+        let modelsConfig = invCtx.ModelsConfig
+        let modelRefs = 
+            modelsConfig.LogicModels
+            |> List.tryFind (fun m -> m.Backend = backend)
+            |> Option.map(fun x -> [x])
+            |> Option.defaultValue (chatModels invCtx backend)
+        if modelRefs.IsEmpty then failwith $"No logic or chat model(s) configured for backend '{backend}'"
         modelRefs
+
+    let getModels (ch:InteractionParameters) invCtx backend = 
+        match ch.ModelType with 
+        | MT_Chat -> chatModels invCtx backend
+        | MT_Logic -> logicModels invCtx backend
 
     let lowcostModels (invCtx:InvocationContext) backend =
         let modelsConfig = invCtx.ModelsConfig
         let modelRefs = 
-            modelsConfig.LongChatModels 
+            modelsConfig.ChatModels 
             |> List.tryFind (fun m -> m.Backend = backend)
             |> Option.map(fun x -> [x])
             |> Option.defaultValue []
@@ -114,7 +109,7 @@ module GenUtils =
 
     let toChatHistory (ch:Interaction) =
         let h = ChatHistory() 
-        if String.IsNullOrWhiteSpace ch.SystemMessage |> not then
+        if ch.Parameters.ModelType <> MT_Logic  && Utils.notEmpty ch.SystemMessage then //o1 does not support system messages
             h.AddSystemMessage(ch.SystemMessage)
         for m in ch.Messages do
             let role = if m.IsUser then AuthorRole.User else AuthorRole.Assistant
@@ -151,9 +146,7 @@ module GenUtils =
 
     let visionModel (backend:Backend) (modelConfig:ModelsConfig) =
         let filter (m:ModelRef) = if m.Backend = backend then Some m else None
-        (modelConfig.LongChatModels |> List.choose filter)
-        @ (modelConfig.ShortChatModels |> List.choose filter)
-        @ (modelConfig.LongChatModels |> List.choose filter)
+        (modelConfig.ChatModels |> List.choose filter)
         |> List.filter (fun x->x.Model.Contains("-4o")) 
         |> List.tryHead
 
@@ -209,9 +202,14 @@ module GenUtils =
         }
 
     let promptSettings (parms:ServiceSettings) (ch:Interaction) =
-        new OpenAIPromptExecutionSettings(
-            MaxTokens = ch.Parameters.MaxTokens, 
-            Temperature = (temperature ch.Parameters.Mode |> float)) 
+        match ch.Parameters.ModelType with 
+        | MT_Chat -> 
+            new OpenAIPromptExecutionSettings(
+                MaxTokens = ch.Parameters.MaxTokens, 
+                Temperature = (temperature ch.Parameters.Mode |> float), 
+                TopP = 1)
+        | MT_Logic ->
+            new OpenAIPromptExecutionSettings(MaxTokens = ch.Parameters.MaxTokens, Temperature=1.0)        
 
     let baseKernel (parms:ServiceSettings) (modelRefs:ModelRef list) (ch:Interaction) = 
         let chatModel = modelRefs.Head.Model

@@ -127,8 +127,7 @@ module Init =
         if Model.isEnabled M_Index model && not aiSearchConfigured then failwith "Index endpoints not configured"
 
         let chatModels =
-            model.appConfig.ModelsConfig.ShortChatModels
-            @ model.appConfig.ModelsConfig.LongChatModels
+            model.appConfig.ModelsConfig.ChatModels
 
         let availableModels =
             match backend with

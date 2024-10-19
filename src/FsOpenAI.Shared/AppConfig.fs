@@ -21,24 +21,21 @@ type ModelsConfig =
         ///List of models that can be used to generated embeddings
         EmbeddingsModels : ModelRef list
 
-        ///List of models that will be used for shorter input sequences
-        ShortChatModels : ModelRef list
-
         ///List of models that may be used when input is longer than the context length of short models
-        LongChatModels : ModelRef list
+        ChatModels : ModelRef list
 
-        ///List of models that may be used for completion
-        CompletionModels : ModelRef list
+        ///List of models that may be used for complex logic processing
+        LogicModels : ModelRef list
 
+        ///List of models that may be used for ancillary tasks (e.g. summarization to reduce token count)   
         LowCostModels : ModelRef list
     }
     with
             static member Default =
                 {
                     EmbeddingsModels = []
-                    ShortChatModels  = []
-                    LongChatModels   = [ModelRef.Default]
-                    CompletionModels = []
+                    ChatModels   = [ModelRef.Default]
+                    LogicModels     = []
                     LowCostModels    = []
                 }
 

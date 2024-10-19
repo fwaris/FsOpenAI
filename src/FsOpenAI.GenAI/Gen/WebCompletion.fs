@@ -53,7 +53,7 @@ module WebCompletion =
             let args = GenUtils.kernelArgsDefault ["input",question] 
             let! prompt = GenUtils.renderPrompt Prompts.WebSearch.answerQuestionOrDoSearch args |> Async.AwaitTask
             let ch = Interaction.setUserMessage prompt ch
-            let! rslt = Completions.completeChat parms invCtx ch None dispatch
+            let! rslt = Completions.completeChat parms invCtx ch dispatch None
             return (rslt.Content,question)
         }
 
@@ -92,7 +92,7 @@ module WebCompletion =
                     let args = GenUtils.kernelArgsFrom parms ch ["input",question; "externalInformation",information]
                     let! prompt = GenUtils.renderPrompt Prompts.WebSearch.answerQuestion args |> Async.AwaitTask
                     let ch = Interaction.setUserMessage prompt ch                   
-                    do! Completions.streamCompleteChat parms invCtx ch dispatch None
+                    do! Completions.checkStreamCompleteChat parms invCtx ch dispatch None
                 else
                     dispatch (Srv_Ia_Notification(ch.Id,"Model was able to answer query by itself"))
 

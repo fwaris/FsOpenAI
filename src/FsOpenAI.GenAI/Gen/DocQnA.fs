@@ -176,7 +176,7 @@ module DocQnA =
     let docSearchTerms parms modelsConfig ch dispatch =
         task {
             try 
-                let modelRefs = GenUtils.chatModels modelsConfig ch.Parameters.Backend
+                let modelRefs = (GenUtils.getModels ch.Parameters) modelsConfig ch.Parameters.Backend
                 let document = 
                     Interaction.docContent ch 
                     |> Option.bind (fun d-> d.DocumentText) 
@@ -259,12 +259,12 @@ module DocQnA =
                 ]
             let! renderedPrompt = GenUtils.kernelArgsDefault args |>  GenUtils.renderPrompt prompt
             let ch = Interaction.setUserMessage renderedPrompt ch
-            do! Completions.streamCompleteChat parms modelsConfig ch dispatch None
+            do! Completions.checkStreamCompleteChat parms modelsConfig ch dispatch None
         }
 
     let rec answerQuestion i parms invCtx (ch:Interaction) document memories dispatch = 
         task {
-            let tknBudget = GenUtils.chatModels invCtx ch.Parameters.Backend |> List.map (_.TokenLimit) |> List.max |> float
+            let tknBudget = (GenUtils.getModels ch.Parameters) invCtx ch.Parameters.Backend |> List.map (_.TokenLimit) |> List.max |> float
             let tknsDoc =  GenUtils.tokenSize document
             let combinedSearch = IndexQnA.combineSearchResults tknBudget memories
             let tknsSearch = GenUtils.tokenSize combinedSearch 

@@ -42,7 +42,7 @@ module IndexQnA =
     let answerQuestion parms invCtx (ch:Interaction) docs dispatch = 
         task {
             try
-                let tknBudget = GenUtils.chatModels invCtx ch.Parameters.Backend |> List.map (_.TokenLimit) |> List.max |> float
+                let tknBudget = (GenUtils.getModels ch.Parameters) invCtx ch.Parameters.Backend |> List.map (_.TokenLimit) |> List.max |> float
                 let tknsSearch = tknBudget - 500.
                 let combinedSearch = combineSearchResults tknsSearch docs
                 let question = Interaction.lastNonEmptyUserMessageText ch
@@ -54,7 +54,7 @@ module IndexQnA =
                                 ]
                 let! prompt = GenUtils.renderPrompt Prompts.QnA.questionAnswerPrompt qargs
                 let ch = Interaction.setUserMessage prompt ch
-                do! Completions.streamCompleteChat parms invCtx ch dispatch None
+                do! Completions.checkStreamCompleteChat parms invCtx ch dispatch None
             with ex -> 
                 raise ex
         }
@@ -96,6 +96,7 @@ module IndexQnA =
                 let! rslt = k.InvokePromptAsync(Prompts.QnA.refineQuery_IdSearchMode,arguments=args) |> Async.AwaitTask
                 let resp = rslt.GetValue<OpenAIChatMessageContent>()
                 let respStr = GenUtils.extractTripleQuoted resp.Content |> Seq.collect id |> String.concat "\n"
+                let respStr = if Utils.isEmpty respStr then resp.Content else respStr //sometimes the response is not triple quoted
                 return System.Text.Json.JsonSerializer.Deserialize<RefinedQuery>(respStr)                
             with ex -> 
                 printfn "Error in runRefineQuery: %s" ex.Message
@@ -113,7 +114,7 @@ module IndexQnA =
 
     let refineQuery parms modelsConfig (ch:Interaction) = 
         task {
-            let modelRefs = GenUtils.chatModels modelsConfig ch.Parameters.Backend 
+            let modelRefs = (GenUtils.getModels {ch.Parameters with ModelType=MT_Chat}) modelsConfig ch.Parameters.Backend  //use chat model type to refine query
             let nonEmptyMsgs = ch.Messages |> List.rev |> List.skipWhile (fun x-> not x.IsUser)
             let userMessage,historyMessages = List.head nonEmptyMsgs, List.tail nonEmptyMsgs
             let tknBudget =  float modelRefs.Head.TokenLimit - (GenUtils.tokenSize userMessage.Message)
@@ -123,7 +124,7 @@ module IndexQnA =
                 + GenUtils.tokenSize chatHistory 
                 + GenUtils.tokenSize Prompts.QnA.refineQuery_IdSearchMode
             let bestModel = GenUtils.optimalModel modelRefs tokenSize
-            let k = (GenUtils.baseKernel parms [bestModel] ch).Build()                           
+            let k = (GenUtils.baseKernel parms [bestModel] ch).Build()
             let! query = runRefineQuery k userMessage.Message chatHistory
             return transform query
         }
@@ -172,7 +173,7 @@ module IndexQnA =
 
     let answerQuestionTest parms (invCtx:InvocationContext) (ch:Interaction) docs  = 
         task {
-            let modelRefs = GenUtils.chatModels invCtx ch.Parameters.Backend
+            let modelRefs = (GenUtils.getModels ch.Parameters) invCtx ch.Parameters.Backend
             let tknBudget = float modelRefs.Head.TokenLimit
             let tknsSearch = tknBudget - 500.
             let combinedSearch = combineSearchResults tknsSearch docs
@@ -185,7 +186,7 @@ module IndexQnA =
                             ]
             let! prompt = GenUtils.renderPrompt Prompts.QnA.questionAnswerPrompt qargs
             let ch = Interaction.setUserMessage prompt ch
-            let! resp = Completions.completeChat parms invCtx ch None (fun _ -> ())
+            let! resp = Completions.completeChat parms invCtx ch (fun _ -> ()) None
             return resp.Content
         }
 

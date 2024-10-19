@@ -82,7 +82,7 @@ module CodeEval =
                 let ch = codeParms.RegenSystemPrompt 
                         |> Option.map(fun p -> ch |> Interaction.setSystemMessage p) 
                         |> Option.defaultValue ch
-                let! resp = Completions.completeChat parms invCtx ch None dispatch
+                let! resp = Completions.completeChat parms invCtx ch dispatch None
                 let reCode = GenUtils.extractCode resp.Content
                 return reCode
             }
@@ -94,7 +94,7 @@ module CodeEval =
         let private _genAndEval parms invCtx ch codeParms sendResults dispatch =
             async {
                 dispatch (Srv_Ia_Notification (ch.Id, $"Calling LLM to generate code..."))
-                let! resp = Completions.completeChat parms invCtx ch None dispatch
+                let! resp = Completions.completeChat parms invCtx ch dispatch None
                 let code = GenUtils.extractCode resp.Content
                 printfn "%s" code
                 dispatch (Srv_Ia_Notification (ch.Id, $"Evaluing code..."))

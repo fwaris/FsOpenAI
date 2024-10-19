@@ -37,6 +37,7 @@ type ChatSettingsView() =
     let mutable initMaxDocs = 0
     let mutable initMaxTokens = 0
 
+
     //Note: dispatch re-renders the page and changes are lost - 
     //*dispatch should be the very last step(s) at popup close*
     member this.Close() =         
@@ -59,16 +60,13 @@ type ChatSettingsView() =
         this.Model.Parms.MaxTokens <> initMaxTokens
         || base.ShouldRender()
 
+    member this.RenderItem (args:DropDownItemRenderEventArgs<ModelType>) =
+        args.Attributes.Add("title", (args.Item :?> ModelType).Tooltip)
+
     override this.View mdl (dispatch:Message -> unit) =
         let backends = this.Model.Model.appConfig.EnabledBackends
         let height = if this.Model.QaBag.IsSome then "36rem" else "28rem"
         let width = "30rem"
-    
-        let searchTooltip = function
-            | SearchMode.Semantic -> "Search with meaning, e.g. 'small' should match 'tiny', 'little', 'not big', etc."
-            | SearchMode.Keyword -> "Search using exact keyword matches. Useful for product codes, acronyms, etc. USE only if other modes not effective."
-            | SearchMode.Hybrid -> "A mix of Semantic and Keyword"
-            | SearchMode.Auto -> "Let the system decide the best mode based on the query text"
 
         concat {
             comp<RadzenButton> {
@@ -113,13 +111,31 @@ type ChatSettingsView() =
                         }
                         comp<RadzenStack> {
                             "Orientation" => Orientation.Horizontal
-                            "AlignItems" => AlignItems.Center
-                            comp<RadzenLabel> {"Text" => "Backend"}
-                            comp<RadzenDropDown<Backend>> {
-                                "Data" => backends
-                                "Value" => this.Model.Parms.Backend
-                                attr.callback "ValueChanged"  (fun b -> this.Model.Parms <- {this.Model.Parms with Backend = b})
+                            "AlignItems" => AlignItems.Center                            
+                            comp<RadzenStack> {
+                                "Orientation" => Orientation.Horizontal
+                                "AlignItems" => AlignItems.Center
+                                comp<RadzenLabel> {"Text" => "Backend"}
+                                comp<RadzenDropDown<Backend>> {
+                                    "Style" => "width: 5rem;"
+                                    "Data" => backends
+                                    "Value" => this.Model.Parms.Backend
+                                    attr.callback "ValueChanged"  (fun b -> this.Model.Parms <- {this.Model.Parms with Backend = b})
+                                }
                             }
+                            comp<RadzenStack> {
+                                "Orientation" => Orientation.Horizontal
+                                "AlignItems" => AlignItems.Center
+                                comp<RadzenLabel> {"Text" => "Model Type"}
+                                comp<RadzenDropDown<ModelType>> {
+                                    "Data" => (Interaction.getModelTypeCases())
+                                    "Style" => "width: 5rem;"
+                                    "Value" => this.Model.Parms.ModelType      
+                                    "TextProperty" => "Text"
+                                    "ItemRender" => Action<_>(this.RenderItem)
+                                    attr.callback "ValueChanged"  (fun b -> this.Model.Parms <- {this.Model.Parms with ModelType = b})
+                                }
+                            }                            
                         }
                         comp<RadzenStack> {
                             "Orientation" => Orientation.Horizontal
@@ -156,7 +172,7 @@ type ChatSettingsView() =
                                                 let uc,vs = Interaction.getSearchModeCase this.Model.QaBag.Value.SearchMode
                                                 let c = FSharpValue.MakeUnion (m,vs) :?> SearchMode
                                                 comp<RadzenRadioButtonListItem<SearchMode>> {
-                                                        attr.title (searchTooltip c)
+                                                        attr.title c.Tooltip
                                                         "Value" => c
                                                         "Text" => m.Name                            
                                                     }

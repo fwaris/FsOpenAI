@@ -19,11 +19,31 @@ type InteractionMessage = {MsgId:string; Role:MessageRole; Message: string}
 type ExplorationMode = Factual | Exploratory | Creative
 
 type SearchMode = Semantic | Hybrid | Keyword | Auto
+    with
+        member this.Tooltip =
+            match this with
+            | SearchMode.Semantic -> "Search with meaning, e.g. 'small' should match 'tiny', 'little', 'not big', etc."
+            | SearchMode.Keyword -> "Search using exact keyword matches. Useful for product codes, acronyms, etc. USE only if other modes not effective."
+            | SearchMode.Hybrid -> "A mix of Semantic and Keyword"
+            | SearchMode.Auto -> "Let the system decide the best mode based on the query text"
 
 type DocType = DT_Pdf | DT_Word | DT_Powerpoint | DT_Excel | DT_Text | DT_RTF | DT_Image | DT_Video | DT_Html
+
+type ModelType = MT_Chat | MT_Logic
+    with 
+        member this.Text =
+            match this with
+            | MT_Chat -> "Chat"
+            | MT_Logic -> "Logic"
+        member this.Tooltip =
+            match this with
+            | MT_Chat -> "Responds faster to user queries, suitable general use"
+            | MT_Logic -> "Takes longer to respond but can perform more complex reasoning (defaults to Chat type if not configured)"
+
 type InteractionParameters =
     {
         Backend             : Backend
+        ModelType           : ModelType
         Mode                : ExplorationMode
         MaxTokens           : int
     }
@@ -31,6 +51,7 @@ type InteractionParameters =
     static member Default =
         {
             Backend = AzureOpenAI
+            ModelType = MT_Chat
             Mode = Factual
             MaxTokens = 1000
         }

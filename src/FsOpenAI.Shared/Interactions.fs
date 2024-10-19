@@ -43,8 +43,7 @@ module Interaction =
         |> Option.defaultWith (fun _ -> failwith "unexpected chat type")
 
     let configuredChatBackends (cfg:AppConfig) =
-        (cfg.ModelsConfig.LongChatModels |> List.map _.Backend)
-        @ (cfg.ModelsConfig.ShortChatModels |> List.map _.Backend)
+        (cfg.ModelsConfig.ChatModels |> List.map _.Backend)
         |> List.distinct
 
     let getExplorationModeCases() = FSharpType.GetUnionCases typeof<ExplorationMode>
@@ -52,6 +51,10 @@ module Interaction =
 
     let getSearchModeCases() = FSharpType.GetUnionCases typeof<SearchMode>
     let getSearchModeCase (mode:SearchMode) = FSharpValue.GetUnionFields(mode,typeof<SearchMode>)
+
+    let getModelTypeCases() = 
+        FSharpType.GetUnionCases typeof<ModelType> 
+        |> Array.map(fun x  -> FSharpValue.MakeUnion (x,[||]) :?> ModelType)
 
     let maxDocs defaultVal (ch:Interaction) = 
         ch.Types

@@ -426,33 +426,29 @@ module MetaIndex =
 module ModelDefs =
     let embedding =
         [
-            {Backend=AzureOpenAI; Model="text-embedding-ada-002"; TokenLimit=8192} //only azure is supported for embeddings
+            {Backend=AzureOpenAI; Model="text-embedding-ada-002"; TokenLimit=8192} 
+            {Backend=OpenAI; Model="text-embedding-ada-002"; TokenLimit=8192} 
         ]
-    let shortChat =
-        [
-            {Backend=AzureOpenAI; Model="gpt-4o"; TokenLimit=8000};
-            {Backend=OpenAI; Model="gpt-4o"; TokenLimit=127000};
-        ]
-    let shortChatMini =
-        [
-            {Backend=AzureOpenAI; Model="gpt-4o-mini"; TokenLimit=8000};
-            {Backend=OpenAI; Model="gpt-4o-mini"; TokenLimit=127000};
-        ]
-    let longChat =
+    let chat =
         [
             {Backend=AzureOpenAI; Model="gpt-4o"; TokenLimit=30000}
             {Backend=OpenAI; Model="gpt-4o"; TokenLimit=127000}
         ]
-    let longChatMini =
+    let chatMini =
         [
             {Backend=AzureOpenAI; Model="gpt-4o-mini"; TokenLimit=30000}
             {Backend=OpenAI; Model="gpt-4o-mini"; TokenLimit=127000}
         ]
-    let completion =
+    let logic =
         [
-            {Backend=AzureOpenAI; Model="text-davinci-003"; TokenLimit=4000}
-            {Backend=OpenAI; Model="gpt-4o-mini"; TokenLimit=4000}
+            {Backend=AzureOpenAI; Model="o1-preview"; TokenLimit=127000}
+            {Backend=OpenAI; Model="o1-preview"; TokenLimit=127000}
         ]
+    let logicMini =
+        [
+            {Backend=AzureOpenAI; Model="o1-mini"; TokenLimit=127000}
+            {Backend=OpenAI; Model="o1-mini"; TokenLimit=127000}
+        ]    
     let lowcost =
         [
             {Backend=AzureOpenAI; Model="gpt-4o-mini"; TokenLimit=8000}
@@ -461,18 +457,31 @@ module ModelDefs =
     let modelsConfig =
         {
             EmbeddingsModels = embedding
-            ShortChatModels = shortChat
-            LongChatModels = longChat
-            CompletionModels = completion
+            ChatModels = chat
             LowCostModels = lowcost
+            LogicModels = []
         }
 
     let modelsConfigMini =
         {
             EmbeddingsModels = embedding
-            ShortChatModels = shortChatMini
-            LongChatModels = longChatMini
-            CompletionModels = completion
+            ChatModels = chatMini
             LowCostModels = lowcost
+            LogicModels = []
+        }
+    let modelsConfigLogic =
+        {
+            EmbeddingsModels = embedding
+            ChatModels = chat
+            LowCostModels = lowcost
+            LogicModels = logic
+        }
+
+    let modelsConfigMiniLlogic =
+        {
+            EmbeddingsModels = embedding
+            ChatModels = chatMini
+            LowCostModels = lowcost
+            LogicModels = logicMini
         }
 

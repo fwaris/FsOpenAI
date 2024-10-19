@@ -101,7 +101,8 @@ let acctAppCfg =
         IndexGroups = ["default"] //list of index groups that the app will show in the index dropdown
         DefaultMaxDocs = 10
         MetaIndex = metaIndexName
-        ModelsConfig = ScriptEnv.ModelDefs.modelsConfig //model and token limits for different backends
+        //ModelsConfig = ScriptEnv.ModelDefs.modelsConfig //model and token limits for different backends
+        ModelsConfig = ScriptEnv.ModelDefs.modelsConfigLogic //model and token limits for different backends
     }
 
 //samples
@@ -175,7 +176,7 @@ File.Copy(
 (*
 //run this line to actually deploy, configuration, samples and templates to under wwwroots
 run()
-
+D
 //run only if needed
 ScriptEnv.installSettings settings //'install' settings so script can use the api keys, etc.
 installMetaIndex()

@@ -59,25 +59,16 @@
         },
         "Model": "text-embedding-ada-002",
         "TokenLimit": 8192
-      }
-    ],
-    "ShortChatModels": [
-      {
-        "Backend": {
-          "Case": "AzureOpenAI"
-        },
-        "Model": "gpt-4o",
-        "TokenLimit": 8000
       },
       {
         "Backend": {
           "Case": "OpenAI"
         },
-        "Model": "gpt-4o",
-        "TokenLimit": 127000
+        "Model": "text-embedding-ada-002",
+        "TokenLimit": 8192
       }
     ],
-    "LongChatModels": [
+    "ChatModels": [
       {
         "Backend": {
           "Case": "AzureOpenAI"
@@ -93,20 +84,20 @@
         "TokenLimit": 127000
       }
     ],
-    "CompletionModels": [
+    "LogicModels": [
       {
         "Backend": {
           "Case": "AzureOpenAI"
         },
-        "Model": "text-davinci-003",
-        "TokenLimit": 4000
+        "Model": "o1-preview",
+        "TokenLimit": 127000
       },
       {
         "Backend": {
           "Case": "OpenAI"
         },
-        "Model": "gpt-4o-mini",
-        "TokenLimit": 4000
+        "Model": "o1-preview",
+        "TokenLimit": 127000
       }
     ],
     "LowCostModels": [

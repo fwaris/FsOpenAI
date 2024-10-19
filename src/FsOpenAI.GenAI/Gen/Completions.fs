@@ -9,14 +9,16 @@ module Completions =
     open Microsoft.SemanticKernel
     ///Construct a call to LLM service (but not invoke it yet, as the results may be streamed later)
     let buildCall parms (invCtx:InvocationContext) ch modelSelector =
-        let modelSelector = defaultArg modelSelector GenUtils.chatModels
+        let modelSelector = defaultArg modelSelector (GenUtils.getModels ch.Parameters)
         let modelRefs = modelSelector invCtx ch.Parameters.Backend
         let messages = GenUtils.toChatHistory ch
         let tokenEstimate = GenUtils.tokenEstimate ch
         let modelRef = GenUtils.optimalModel modelRefs tokenEstimate
         let caller,resource =  GenUtils.getClient parms ch modelRef.Model
         let opts = OpenAIPromptExecutionSettings()
-        opts.Temperature <- float <| GenUtils.temperature ch.Parameters.Mode
+        match ch.Parameters.ModelType with 
+        | MT_Logic -> ()
+        | MT_Chat -> opts.Temperature <- float <| GenUtils.temperature ch.Parameters.Mode
         opts.User <- GenUtils.userAgent invCtx
         opts.MaxTokens <- ch.Parameters.MaxTokens
         let de = GenUtils.diaEntryChat ch invCtx modelRef.Model resource
@@ -56,11 +58,12 @@ module Completions =
             | Choice2Of2 ex -> dispatch (Srv_Ia_Done(ch.Id,Some ex.Message))
         }
 
-    let streamCompleteChat (parms:ServiceSettings) (invCtx:InvocationContext) (ch:Interaction) dispatch modelSelector =
+    let private streamCompleteChat (parms:ServiceSettings) (invCtx:InvocationContext) (ch:Interaction) dispatch modelSelector =
         async {
             let comp =
                async {
                     let! de,resps = streamChat parms invCtx ch modelSelector
+                    Srv_Ia_Notification(ch.Id,$"using model: {de.Model}") |> dispatch
                     let mutable rs = []
                     let comp =
                         resps
@@ -92,10 +95,11 @@ module Completions =
                 dispatch (Srv_Ia_Done(ch.Id,Some ex.Message))
         }
 
-    let completeChat parms invCtx ch modelSelector dispatch =
+    let completeChat parms invCtx ch dispatch modelSelector =
         async {
             let caller,msgs,opts,de = buildCall parms invCtx ch modelSelector
             try
+                Srv_Ia_Notification(ch.Id,$"using model: {de.Model}") |> dispatch
                 let! resp = caller.GetChatMessageContentsAsync(msgs,opts) |> Async.AwaitTask
                 let respMsg = resp.[0]
                 let de =
@@ -110,3 +114,15 @@ module Completions =
                 Monitoring.write (Diag {de with Error = ex.Message})
                 return raise ex
         }
+
+    let private completeLogicChat (parms:ServiceSettings) (invCtx:InvocationContext) (ch:Interaction) dispatch modelSelector =
+        async {
+            let! resp = completeChat parms invCtx ch dispatch modelSelector
+            dispatch (Srv_Ia_Delta(ch.Id,0,resp.Content))
+            dispatch (Srv_Ia_Done(ch.Id,None))
+        }
+
+    let checkStreamCompleteChat (parms:ServiceSettings) (invCtx:InvocationContext) (ch:Interaction) dispatch modelSelector =
+        match ch.Parameters.ModelType with
+        | MT_Logic -> completeLogicChat parms invCtx ch dispatch modelSelector
+        | MT_Chat -> streamCompleteChat parms invCtx ch dispatch modelSelector
