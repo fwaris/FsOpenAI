@@ -88,7 +88,7 @@ module CodeEval =
             }
 
         let sendResults ch answer dispatch =
-            dispatch (Srv_Ia_Delta(ch.Id,0,answer))
+            dispatch (Srv_Ia_Delta(ch.Id,answer))
             dispatch (Srv_Ia_Done (ch.Id, None))
 
         let private _genAndEval parms invCtx ch codeParms sendResults dispatch =

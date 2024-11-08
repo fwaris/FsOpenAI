@@ -115,7 +115,7 @@ module Update =
         | FromServer (Srv_Parameters p) -> {model with serviceParameters=Some p;}, Cmd.none
         | FromServer (Srv_SetTemplates templates) -> {model with templates = templates},Cmd.none
         | FromServer (Srv_LoadSamples (lbl,samples)) -> {model with samples = (lbl,samples)::model.samples}, Cmd.none
-        | FromServer (Srv_Ia_Delta(id,i,d)) -> model,Cmd.ofMsg(Ia_AddDelta(id,d))
+        | FromServer (Srv_Ia_Delta(id,d)) -> model,Cmd.ofMsg(Ia_AddDelta(id,d))
         | FromServer (Srv_Ia_Done(id,err)) -> model, Cmd.ofMsg(Ia_Completed(id,err))
         | FromServer (Srv_Error err) -> model,Cmd.ofMsg (ShowError err)
         | FromServer (Srv_Info err) -> model,Cmd.ofMsg (ShowInfo err)

@@ -10,6 +10,7 @@
 		<Compile Include="Sessions.fs" />
 		<Compile Include="Monitoring.fs" />
 		<Compile Include="Gen\SemanticVectorSearch.fs" />
+		<Compile Include="Gen\StreamParser.fs" />
 		<Compile Include="Gen\GenUtils.fs" />
 		<Compile Include="Gen\Indexes.fs" />
 		<Compile Include="Gen\Prompts.fs" />

@@ -35,8 +35,8 @@ module Completions =
             let xs =
                 resp
                 |> AsyncSeq.ofAsyncEnum
-                |> AsyncSeq.map(fun cs -> cs.ChoiceIndex, cs.Content)
-                |> AsyncSeq.filter(fun (i,x) -> x <> null)
+                |> AsyncSeq.map(fun cs -> cs.Content)
+                |> AsyncSeq.filter(fun x -> x <> null)
             return (de,xs)
         }
 
@@ -51,11 +51,11 @@ module Completions =
                 resultSeq
                 |> AsyncSeq.ofAsyncEnum
                 |> AsyncSeq.map(fun x -> x :?> OpenAIStreamingChatMessageContent)
-                |> AsyncSeq.map(fun cs -> cs.ChoiceIndex, cs.Content)
-                |> AsyncSeq.filter(fun (i,x) -> x <> null)
+                |> AsyncSeq.map(fun cs -> cs.Content)
+                |> AsyncSeq.filter(fun x -> x <> null)
                 |> AsyncSeq.bufferByCountAndTime 1 C.CHAT_RESPONSE_TIMEOUT
                 |> AsyncSeq.collect(fun xs -> if xs.Length > 0 then AsyncSeq.ofSeq xs else failwith C.TIMEOUT_MSG)
-                |> AsyncSeq.iter(fun(i,x) -> dispatch(Srv_Ia_Delta(ch.Id, i, x)))
+                |> AsyncSeq.iter(fun x -> dispatch(Srv_Ia_Delta(ch.Id, x)))
             match! Async.Catch comp with
             | Choice1Of2 _ -> dispatch (Srv_Ia_Done(ch.Id,None))
             | Choice2Of2 ex -> dispatch (Srv_Ia_Done(ch.Id,Some ex.Message))
@@ -67,6 +67,8 @@ module Completions =
             Answer : string
         }
 
+    let escapeString (s:string) = s.Replace("\"","\\\"").Replace("\n","\\n")
+
     let private streamCompleteChat (parms:ServiceSettings) (invCtx:InvocationContext) (ch:Interaction) dispatch modelSelector hasCitations =
         async {
             let comp =
@@ -74,17 +76,26 @@ module Completions =
                     let responseFormat = if hasCitations then Some typeof<AnswerWithCitations> else None
                     let! de,resps = streamChat parms invCtx ch modelSelector responseFormat
                     Srv_Ia_Notification(ch.Id,$"using model: {de.Model}") |> dispatch
-                    let mutable rs = []
-                    let comp =
+                    let mutable rs : string list = []
+                    let compPre =
                         resps
                         |> AsyncSeq.bufferByCountAndTime 1 C.CHAT_RESPONSE_TIMEOUT
                         |> AsyncSeq.collect(fun xs -> if xs.Length > 0 then AsyncSeq.ofSeq xs else failwith C.TIMEOUT_MSG)
                         |> AsyncSeq.bufferByCountAndTime 10 1000
                         |> AsyncSeq.filter(fun xs -> xs.Length > 0)                        
-                        |> AsyncSeq.map(fun xs -> xs |> Seq.last |> fst, xs |> Seq.map snd |> String.concat "")
-                        |> AsyncSeq.iter (fun (i,x) -> rs<-x::rs; dispatch(Srv_Ia_Delta(ch.Id, i, x)))
+                        |> AsyncSeq.map(String.concat "") 
+                    let comp =
+                        if hasCitations then
+                            compPre
+                            |> AsyncSeq.scan StreamParser.updateState (StreamParser.exp,(StreamParser.State.Empty,StreamParser.Done,[])) 
+                            |> AsyncSeq.collect (fun (_,(_,_,os)) -> os |> List.rev |> AsyncSeq.ofSeq)
+                            |> AsyncSeq.iter (fun x -> rs<-x::rs; dispatch(Srv_Ia_Delta(ch.Id,x)))
+                        else
+                            compPre
+                            |> AsyncSeq.iter (fun x -> rs<-x::rs; dispatch(Srv_Ia_Delta(ch.Id,x)))
                     match! Async.Catch comp with
                     | Choice1Of2 _ ->
+                        //System.IO.File.WriteAllLines(@"C:\temp\chat.text",List.rev rs |> List.map escapeString)
                         //System.IO.File.WriteAllText(@"C:\temp\chat.json",System.Text.Json.JsonSerializer.Serialize(List.rev rs))
                         let resp = String.Join("",rs |> List.rev)
                         let de =

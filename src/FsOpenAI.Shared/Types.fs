@@ -216,7 +216,7 @@ type UserState = Authenticated of AuthUser | Unauthenticated
 
 type ServerInitiatedMessages =
     | Srv_Parameters of ServiceSettings
-    | Srv_Ia_Delta of string*int*string   //chat id,index,delta
+    | Srv_Ia_Delta of string*string   //chat id,index,delta
     | Srv_Ia_SetSearch of string*string
     | Srv_Ia_SetDocs of string*DocRef list
     | Srv_Ia_Done of string*string option //chat id, optional log id, optional error
