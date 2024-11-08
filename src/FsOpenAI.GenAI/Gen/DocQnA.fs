@@ -259,7 +259,7 @@ module DocQnA =
                 ]
             let! renderedPrompt = GenUtils.kernelArgsDefault args |>  GenUtils.renderPrompt prompt
             let ch = Interaction.setUserMessage renderedPrompt ch
-            do! Completions.checkStreamCompleteChat parms modelsConfig ch dispatch None
+            do! Completions.checkStreamCompleteChat parms modelsConfig ch dispatch None true
         }
 
     let rec answerQuestion i parms invCtx (ch:Interaction) document memories dispatch = 

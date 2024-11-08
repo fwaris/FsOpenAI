@@ -123,7 +123,7 @@ type ServerHub() =
                     if (Interaction.cBag chat).UseWeb then
                         WebCompletion.processWebChat settings invCtx chat dispatch |> Async.Start
                     else
-                        Completions.checkStreamCompleteChat settings invCtx chat dispatch None |> Async.Start
+                        Completions.checkStreamCompleteChat settings invCtx chat dispatch None false |> Async.Start
 
                 | Clnt_RefreshIndexes (settings,initial,templates,metaIndex) ->
                     let settings = Settings.updateKey settings

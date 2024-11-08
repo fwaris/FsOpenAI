@@ -104,7 +104,7 @@ module GenUtils =
             |> List.tryFind (fun m -> m.Backend = backend)
             |> Option.map(fun x -> [x])
             |> Option.defaultValue []
-        if modelRefs.IsEmpty then failwith $"No lowcost chat model(s) configured for backend '{backend}' (these primarily be used for summarization)"
+        if modelRefs.IsEmpty then failwith $"No lowcost chat model(s) configured for backend '{backend}' (primarily used ancilary tasks)"
         modelRefs
 
     let toChatHistory (ch:Interaction) =

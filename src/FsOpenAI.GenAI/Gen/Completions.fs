@@ -8,7 +8,7 @@ open Microsoft.SemanticKernel.Connectors.OpenAI
 module Completions =
     open Microsoft.SemanticKernel
     ///Construct a call to LLM service (but not invoke it yet, as the results may be streamed later)
-    let buildCall parms (invCtx:InvocationContext) ch modelSelector =
+    let buildCall parms (invCtx:InvocationContext) ch modelSelector (responseFormat:Type option) =
         let modelSelector = defaultArg modelSelector (GenUtils.getModels ch.Parameters)
         let modelRefs = modelSelector invCtx ch.Parameters.Backend
         let messages = GenUtils.toChatHistory ch
@@ -23,13 +23,14 @@ module Completions =
             opts.MaxTokens <- ch.Parameters.MaxTokens
             opts.Temperature <- float <| GenUtils.temperature ch.Parameters.Mode
         opts.User <- GenUtils.userAgent invCtx
+        responseFormat |> Option.iter(fun rf -> opts.ResponseFormat <- rf)
         let de = GenUtils.diaEntryChat ch invCtx modelRef.Model resource
         caller,messages,opts,de
 
     ///Stream complete chat. Returns async seq of chat completion responses
-    let streamChat parms (invCtx:InvocationContext) ch modelSelector =
+    let streamChat parms (invCtx:InvocationContext) ch modelSelector responseFormat =
         async {
-            let caller,msgs,opts,de = buildCall parms invCtx ch modelSelector
+            let caller,msgs,opts,de = buildCall parms invCtx ch modelSelector responseFormat
             let resp = caller.GetStreamingChatMessageContentsAsync(msgs,executionSettings=opts) 
             let xs =
                 resp
@@ -60,11 +61,18 @@ module Completions =
             | Choice2Of2 ex -> dispatch (Srv_Ia_Done(ch.Id,Some ex.Message))
         }
 
-    let private streamCompleteChat (parms:ServiceSettings) (invCtx:InvocationContext) (ch:Interaction) dispatch modelSelector =
+    type AnswerWithCitations = 
+        {
+            Citations : string list
+            Answer : string
+        }
+
+    let private streamCompleteChat (parms:ServiceSettings) (invCtx:InvocationContext) (ch:Interaction) dispatch modelSelector hasCitations =
         async {
             let comp =
                async {
-                    let! de,resps = streamChat parms invCtx ch modelSelector
+                    let responseFormat = if hasCitations then Some typeof<AnswerWithCitations> else None
+                    let! de,resps = streamChat parms invCtx ch modelSelector responseFormat
                     Srv_Ia_Notification(ch.Id,$"using model: {de.Model}") |> dispatch
                     let mutable rs = []
                     let comp =
@@ -77,6 +85,7 @@ module Completions =
                         |> AsyncSeq.iter (fun (i,x) -> rs<-x::rs; dispatch(Srv_Ia_Delta(ch.Id, i, x)))
                     match! Async.Catch comp with
                     | Choice1Of2 _ ->
+                        //System.IO.File.WriteAllText(@"C:\temp\chat.json",System.Text.Json.JsonSerializer.Serialize(List.rev rs))
                         let resp = String.Join("",rs |> List.rev)
                         let de =
                             {de with
@@ -97,9 +106,9 @@ module Completions =
                 dispatch (Srv_Ia_Done(ch.Id,Some ex.Message))
         }
 
-    let completeChat parms invCtx ch dispatch modelSelector =
+    let completeChat parms invCtx ch dispatch modelSelector responseFormat =
         async {
-            let caller,msgs,opts,de = buildCall parms invCtx ch modelSelector
+            let caller,msgs,opts,de = buildCall parms invCtx ch modelSelector responseFormat
             try
                 Srv_Ia_Notification(ch.Id,$"using model: {de.Model}") |> dispatch
                 let! resp = caller.GetChatMessageContentsAsync(msgs,opts) |> Async.AwaitTask
@@ -117,9 +126,10 @@ module Completions =
                 return raise ex
         }
 
-    let private completeLogicChat (parms:ServiceSettings) (invCtx:InvocationContext) (ch:Interaction) dispatch modelSelector =
+    let private completeLogicChat (parms:ServiceSettings) (invCtx:InvocationContext) (ch:Interaction) dispatch modelSelector haveCitations =
         async {
-            let caller,msgs,opts,de = buildCall parms invCtx ch modelSelector
+            let responseFormat = if haveCitations then Some typeof<AnswerWithCitations> else None
+            let caller,msgs,opts,de = buildCall parms invCtx ch modelSelector responseFormat
             try
                 Srv_Ia_Notification(ch.Id,$"using model: {de.Model}") |> dispatch
                 let! resp = caller.GetChatMessageContentsAsync(msgs,opts) |> Async.AwaitTask
@@ -148,7 +158,7 @@ module Completions =
                 return raise ex
         }
 
-    let checkStreamCompleteChat (parms:ServiceSettings) (invCtx:InvocationContext) (ch:Interaction) dispatch modelSelector =
+    let checkStreamCompleteChat (parms:ServiceSettings) (invCtx:InvocationContext) (ch:Interaction) dispatch modelSelector hasCitations =
         match ch.Parameters.ModelType with
-        | MT_Logic -> completeLogicChat parms invCtx ch dispatch modelSelector
-        | MT_Chat -> streamCompleteChat parms invCtx ch dispatch modelSelector
+        | MT_Logic -> completeLogicChat parms invCtx ch dispatch modelSelector hasCitations
+        | MT_Chat -> streamCompleteChat parms invCtx ch dispatch modelSelector hasCitations

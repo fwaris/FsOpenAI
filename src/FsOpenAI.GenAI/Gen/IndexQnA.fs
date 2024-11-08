@@ -54,7 +54,7 @@ module IndexQnA =
                                 ]
                 let! prompt = GenUtils.renderPrompt Prompts.QnA.questionAnswerPrompt qargs
                 let ch = Interaction.setUserMessage prompt ch
-                do! Completions.checkStreamCompleteChat parms invCtx ch dispatch None
+                do! Completions.checkStreamCompleteChat parms invCtx ch dispatch None true
             with ex -> 
                 raise ex
         }
@@ -186,7 +186,7 @@ module IndexQnA =
                             ]
             let! prompt = GenUtils.renderPrompt Prompts.QnA.questionAnswerPrompt qargs
             let ch = Interaction.setUserMessage prompt ch
-            let! resp = Completions.completeChat parms invCtx ch (fun _ -> ()) None
+            let! resp = Completions.completeChat parms invCtx ch (fun _ -> ()) None None 
             return resp.Content
         }
 
