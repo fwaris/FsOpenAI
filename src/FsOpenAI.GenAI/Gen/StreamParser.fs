@@ -95,7 +95,7 @@ module StreamParser =
         match s.Current with 
         | None      -> s, Empty p_strm_quoted_string, None
         | Some '"'  -> s.Step, Next(None,Some p_strm_quoted_string_cont), (Some "\"")
-        | _         -> fail s "p_quoted_string: Expected '\"'"
+        | Some c    -> fail s $"p_strm_quoted_string: Expected '\"' but got {c}"
     and p_strm_quoted_string_cont s =         
         match stringEnd s.SourceChunk s.Index with 
         | Continues      -> s, Empty p_strm_quoted_string_cont, Some (s.SourceChunk.Substring(s.Index))
@@ -112,7 +112,7 @@ module StreamParser =
         match s.Current with 
         | None      -> s, Empty p_quoted_string, None
         | Some '"'  -> s.Step, Next("",Some (p_quoted_string_cont "")), None
-        | _         -> fail s "p_quoted_string: Expected '\"'"
+        | Some c    -> fail s $"p_quoted_string: Expected '\"' but got {c}"
     and p_quoted_string_cont acc s =         
         match stringEnd s.SourceChunk s.Index with 
         | Continues      -> s, Empty (p_quoted_string_cont (acc + s.SourceChunk.Substring(s.Index))), None
@@ -131,7 +131,7 @@ module StreamParser =
         | Some c when Char.IsWhiteSpace c   -> s.Step, Next(acc, Some(p_string_list_cont acc)), None
         | Some c when c = ','               -> s.Step, Next(acc, Some(p_string_list_cont acc)), None
         | Some '"'                          -> 
-            match p_quoted_string s.Step with
+            match p_quoted_string s with
             | s, Next(str,None), o   -> s, Next([], Some(p_string_list_cont (str::acc))), o
             | s, Next(_,Some p), o   -> s, Next([], Some(p .>> ((fun x->[x]), p_string_list_cont acc))), o
             | s, Empty p, o          -> s, Next([], Some(p .>> ((fun x->[x]), p_string_list_cont acc))), o
@@ -142,17 +142,15 @@ module StreamParser =
         match s.Current with 
         | None -> s, Empty p_string_list, None
         | Some '[' -> s.Step, Next([], Some (p_string_list_cont [])), None
-        | _ -> fail s "p_string_list: Expected '['"
+        | Some c -> fail s "p_string_list: Expected '[' but got {c}"
 
     //above is generic, below is specific to response json
     
     let p_brace1  = pchar '{' 
     let p_brace2  = pchar '}'
-    let p_bracket = pchar '['
     let p_done s = s, Next(None,None), None
     let p_colon = pchar ':'
     let p_comma = pchar ','
-    let p_quote : Parser<string option> = pchar '"'
     let p_citations = pstring "\"Citations\""
     let p_answer = pstring "\"Answer\""
 
@@ -162,7 +160,7 @@ module StreamParser =
     let exp cits = 
         p_ws .> p_brace1 .> p_ws 
         .> p_citations .> p_ws .> p_colon .> p_ws 
-        .> p_bracket .> p_ws .> (p_citations_list cits)
+        .> (p_citations_list cits)
         .> p_comma .> p_ws
         .> p_answer .> p_ws .> p_colon .> p_ws
         .> p_strm_quoted_string .> p_ws .> p_brace2
@@ -178,7 +176,7 @@ module StreamParser =
         | s, Fail msg, _        -> fail s msg
         | s, Empty p, o         -> d s "Empty"; p, (s, append acc o)
 
-    let updateState (p,(s:State,acc)) str = step (p,(s.NextChunk str,acc))
+    let updateState (p,(s:State,acc)) str = step (p,(s.NextChunk str,[]))
 
     let test source =
         let cits = ref []
