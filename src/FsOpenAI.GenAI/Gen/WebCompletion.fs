@@ -95,8 +95,7 @@ module WebCompletion =
                     do! Completions.checkStreamCompleteChat parms invCtx ch dispatch None true
                 else
                     dispatch (Srv_Ia_Notification(ch.Id,"Model was able to answer query by itself"))
-
-                    dispatch (Srv_Ia_Delta(ch.Id,0,answer))
+                    dispatch (Srv_Ia_Delta(ch.Id,answer))
                 dispatch(Srv_Ia_Done(ch.Id,None))
             with ex -> 
                 dispatch(Srv_Ia_Done(ch.Id,Some ex.Message))

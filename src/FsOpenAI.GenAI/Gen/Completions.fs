@@ -77,6 +77,7 @@ module Completions =
                     let! de,resps = streamChat parms invCtx ch modelSelector responseFormat
                     Srv_Ia_Notification(ch.Id,$"using model: {de.Model}") |> dispatch
                     let mutable rs : string list = []
+                    let cits = ref []
                     let compPre =
                         resps
                         |> AsyncSeq.bufferByCountAndTime 1 C.CHAT_RESPONSE_TIMEOUT
@@ -87,8 +88,8 @@ module Completions =
                     let comp =
                         if hasCitations then
                             compPre
-                            |> AsyncSeq.scan StreamParser.updateState (StreamParser.exp,(StreamParser.State.Empty,StreamParser.Done,[])) 
-                            |> AsyncSeq.collect (fun (_,(_,_,os)) -> os |> List.rev |> AsyncSeq.ofSeq)
+                            |> AsyncSeq.scan StreamParser.updateState (StreamParser.exp cits,(StreamParser.State.Empty,[])) 
+                            |> AsyncSeq.collect (fun (_,(_,os)) -> os |> List.rev |> AsyncSeq.ofSeq)
                             |> AsyncSeq.iter (fun x -> rs<-x::rs; dispatch(Srv_Ia_Delta(ch.Id,x)))
                         else
                             compPre
@@ -154,8 +155,7 @@ module Completions =
                     respMsg.Content
                     |> AsyncSeq.ofSeq
                     |> AsyncSeq.bufferByCountAndTime 1000 500
-                    |> AsyncSeq.indexed
-                    |> AsyncSeq.iter (fun (i,xs) -> dispatch(Srv_Ia_Delta(ch.Id,int i,String(xs))))
+                    |> AsyncSeq.iter (fun xs -> dispatch(Srv_Ia_Delta(ch.Id,String(xs))))
                 dispatch (Srv_Ia_Done(ch.Id,None))
                 let de =
                     {de with

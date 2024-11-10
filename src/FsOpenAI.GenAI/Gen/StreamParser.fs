@@ -2,39 +2,38 @@
 open System
 
 module StreamParser = 
-
-//#load "ScriptEnv.fsx"
-
-//let source = (System.IO.File.ReadAllLines("C:/temp/chat.text")) |> Seq.toList
-
     type State = 
         {
-            Citations : string list
             SourceChunk : string
             Index : int
         }
         with 
             member this.Step = { this with Index = this.Index + 1 }
             member this.Current = if this.Index >= this.SourceChunk.Length then None else Some this.SourceChunk.[this.Index] 
-            // member this.Next s = { this with SourceChunk = s; Index = 0 }
-            // member this.Rest = if this.Current.IsNone then "" else this.SourceChunk.Substring(this.Index)
-            static member Empty = { Citations = []; SourceChunk = ""; Index = 0 }
+            member this.NextChunk s = { this with SourceChunk = s; Index = 0 }
+            static member Empty = {SourceChunk = ""; Index = 0 }
+
+    type Output<'a> = Empty of Parser<'a> | Next of 'a * Parser<'a> option | Fail of string
+    and Parser<'a> = State -> State * Output<'a> * string option
+
+    let rec combine (p1:Parser<'a>) (p2:Parser<'a>) s = 
+        match p1 s with 
+        | s, Next (v,Some p1), o -> s, Next (v,Some (combine p1 p2)), o
+        | s, Next (v,None), o    -> s, Next (v,Some p2), o
+        | s, Empty p1, o         -> s, Empty (combine p1 p2), o
+        | s, Fail msg, _         -> s, Fail msg, None
+
+    let rec map (p1:Parser<'a>) (p2:Parser<'b>) f s = 
+        match p1 s with 
+        | s, Next (v,Some p1), o  -> s, Next (f v,Some (map p1 p2 f)), o
+        | s, Next (v,None), o     -> s, Next (f v,Some p2), o
+        | s, Empty p1, o          -> s, Empty (map p1 p2 f), o
+        | s, Fail msg, _          -> s, Fail msg, None
+
+    let (.>) p1 p2 = combine p1 p2
+    let (.>>) p1 (f,p2) = map p1 p2 f
 
     let fail state msg = failwithf "Parse error at index %d: %s" state.Index msg
-
-    (*
-    a streaming parser is a list of functions that can be applied to a state
-    lower level parsers can be combined to higher level parsers using combinators
-    each parser can output 3 things - new state, Output, optional string
-    Output can be one of the following:
-        Empty parser - current chunk was consumed so continue from the given parser but wait for a new chunk to arrive
-        Cont  parser - part of the current chunk was consumed so continue from the given parser for the remaining chunk
-        Done         - parsing is complete
-        Fail         - parsing failed with error message
-    *)
-
-    type Output = Empty of Parser | Cont of Parser | Done | Fail of string
-    and Parser = State -> State * Output * string option
 
     let skipWhitespace state = 
         let rec loop (state:State) =  
@@ -43,124 +42,147 @@ module StreamParser =
             | _ -> state
         loop state 
 
-    let rec p_ws (state:State) = 
-        let state = skipWhitespace state
-        if state.Current = None then 
-            state, Empty p_ws, None
-        else 
-            state, Done, None
+    let rec p_ws : Parser<string option> = 
+        fun state ->
+            let state = skipWhitespace state
+            if state.Current = None then 
+                state, Empty p_ws, None
+            else 
+                state, Next (None,None), None
 
     let rec pchar (c:char) (s:State) =
         match s.Current with
         | None  -> s, Empty (pchar c), None
-        | Some c' when c = c' -> s.Step, Done, None
+        | Some c' when c = c' -> s.Step, Next (None,None), None
         | _ -> s, Fail $"pchar: Expected '{c}'", None
 
+    let rec private _pcharlist (state:State) xs = 
+        match state.Current, xs with 
+        | _,  []                         -> state, Next (None,None) 
+        | Some c1, c2::rest when c1 = c2 -> _pcharlist state.Step rest
+        | None, _                        -> state, Empty (pcharlist xs)
+        | Some c1, c2::_                 -> state, Fail $"pcharlist: Expected char {c2} got {c1}"
+    
     //look for a continuous sequence of characters
-    let rec pcharlist (xs:char list) (state:State) = 
-        let rec loop (state:State) xs = 
-            match state.Current, xs with 
-            | _,  [] -> state, Done
-            | Some c1, c2::rest when c1 = c2 -> loop state.Step rest
-            | None, _ -> state, Empty (pcharlist xs)
-            | _, _ -> state, Fail "pcharlist: Expected char list"
-        let s,o = loop state xs
+    and pcharlist (xs:char list) (state:State) = 
+        let s,o = _pcharlist state xs
         s, o, None
 
     let pstring (str:string) =  pcharlist (Seq.toList str) 
 
     type SEnd = 
-        | Continues         //quoted string does not end in this chunk
-        | Ends of string    //quoted string ends in this chunk, here is the remaining string
-        | Backslash         //current chunk ends with a backslash, treat first char of next chunk as part of this string
-
-    let stringEnd (s:string) = 
-        if s.Length = 0 then "", Continues
+        | Continues      //quoted string does not end in this chunk
+        | Ends of int    //quoted string ends in this chunk at this index
+        | Backslash
+        
+    let rec findFirstUnescapedQoute (s:string) i = 
+        if i >= s.Length then -1
         else 
-            let lastQuote = s.LastIndexOf('"')
-            if lastQuote = -1 then s, Continues
-            elif lastQuote = 0 then s, Ends ""
-            elif s.[lastQuote - 1] = '\\' then s, Backslash
-            elif lastQuote = s.Length - 1 then s, Ends ""
-            else s.Substring(0, lastQuote+1), Ends (s.Substring(lastQuote + 1))
+            let quote = s.IndexOf('"',i)
+            if quote = -1 then -1
+            elif quote = 0 then 0
+            elif s.[quote - 1] = '\\' then findFirstUnescapedQoute s (quote + 1)
+            else quote
 
-    let rec p_any_string s = 
-        match stringEnd s.SourceChunk with 
-        | _, Continues   -> s, Empty p_any_string, Some s.SourceChunk
-        | str, Ends rest -> {s with SourceChunk=rest; Index=0}, Done, Some str
-        | _, Backslash     -> s, Empty p_any_string, Some s.SourceChunk
-    and p_after_backslash (s:State) = 
+    let stringEnd (s:string) i = 
+        match findFirstUnescapedQoute s i, s.EndsWith('\\') with
+        | -1,true -> Backslash   //no end quote found but string ends with a backslash (consider that for next chunk)
+        | -1,false -> Continues  //no quote found and string does not end with backslash
+        | i, _     -> Ends i     //end quote found at i
+
+    /// stream out chunks of quoted string as they are processed
+    let rec p_strm_quoted_string (s:State) =
         match s.Current with 
-        | None -> s, Empty p_after_backslash, None
-        | Some c when c = '"' -> s.Step,Cont p_any_string, (Some "\"")
-        | _ -> s,Cont p_any_string, None
+        | None      -> s, Empty p_strm_quoted_string, None
+        | Some '"'  -> s.Step, Next(None,Some p_strm_quoted_string_cont), (Some "\"")
+        | _         -> fail s "p_quoted_string: Expected '\"'"
+    and p_strm_quoted_string_cont s =         
+        match stringEnd s.SourceChunk s.Index with 
+        | Continues      -> s, Empty p_strm_quoted_string_cont, Some (s.SourceChunk.Substring(s.Index))
+        | Ends i         -> {s with Index=i+1}, Next (None,None), Some (s.SourceChunk.Substring(s.Index,i-s.Index))
+        | Backslash      -> s, Empty p_strm_after_backslash, Some (s.SourceChunk.Substring(s.Index))
+    and p_strm_after_backslash (s:State) = 
+        match s.Current with 
+        | None                  -> s, Empty p_strm_after_backslash, None
+        | Some c when c = '"'   -> s.Step, Next(None, Some (p_strm_quoted_string_cont)), (Some "\"")
+        | _                     -> s,Next(None,Some (p_strm_quoted_string_cont)), None
 
-    let rec combine p1 p2 s = 
-        match p1 s with 
-        | s, Done, o -> printfn "done p1"; s, Cont p2, o
-        | s, Cont p1, o -> s, Cont (combine p1 p2), o
-        | s, Empty p1, o -> s, Empty (combine p1 p2), o
-        | s, r, o    -> s,r,o 
+    ///internally collect a compplete quoted string (don't stream out chunks)
+    let rec p_quoted_string (s:State) =
+        match s.Current with 
+        | None      -> s, Empty p_quoted_string, None
+        | Some '"'  -> s.Step, Next("",Some (p_quoted_string_cont "")), None
+        | _         -> fail s "p_quoted_string: Expected '\"'"
+    and p_quoted_string_cont acc s =         
+        match stringEnd s.SourceChunk s.Index with 
+        | Continues      -> s, Empty (p_quoted_string_cont (acc + s.SourceChunk.Substring(s.Index))), None
+        | Ends i         -> {s with Index=i+1}, Next (acc + s.SourceChunk.Substring(s.Index,i-s.Index),None), None
+        | Backslash      -> s, Empty (p_after_backslash (acc + s.SourceChunk.Substring(s.Index))), None
+    and p_after_backslash acc (s:State) = 
+        match s.Current with 
+        | None                  -> s, Empty (p_after_backslash acc), None
+        | Some c when c = '"'   -> s.Step, Next("", Some (p_quoted_string_cont (acc + "\""))), None
+        | _                     -> s,Next("",Some (p_quoted_string_cont acc)), None
 
-    let (.>) p1 p2 = combine p1 p2
+    let rec p_string_list_cont acc (s:State) = 
+        match s.Current with
+        | None                              -> s, Empty (p_string_list_cont acc), None
+        | Some ']'                          -> s.Step, Next(List.rev acc,None),None
+        | Some c when Char.IsWhiteSpace c   -> s.Step, Next(acc, Some(p_string_list_cont acc)), None
+        | Some c when c = ','               -> s.Step, Next(acc, Some(p_string_list_cont acc)), None
+        | Some '"'                          -> 
+            match p_quoted_string s.Step with
+            | s, Next(str,None), o   -> s, Next([], Some(p_string_list_cont (str::acc))), o
+            | s, Next(_,Some p), o   -> s, Next([], Some(p .>> ((fun x->[x]), p_string_list_cont acc))), o
+            | s, Empty p, o          -> s, Next([], Some(p .>> ((fun x->[x]), p_string_list_cont acc))), o
+            | s, Fail msg, o         -> s, Fail msg, o
+        | _                                 -> fail s $"p_string_list: Expected '\"' or ']' or ',' got {s.Current}"
 
+    let rec p_string_list (s:State) = 
+        match s.Current with 
+        | None -> s, Empty p_string_list, None
+        | Some '[' -> s.Step, Next([], Some (p_string_list_cont [])), None
+        | _ -> fail s "p_string_list: Expected '['"
+
+    //above is generic, below is specific to response json
+    
     let p_brace1  = pchar '{' 
     let p_brace2  = pchar '}'
     let p_bracket = pchar '['
-    let p_done s = s, Done, None
+    let p_done s = s, Next(None,None), None
     let p_colon = pchar ':'
     let p_comma = pchar ','
-    let p_quote = pchar '"'
-
-    //specific to response json
-
+    let p_quote : Parser<string option> = pchar '"'
     let p_citations = pstring "\"Citations\""
     let p_answer = pstring "\"Answer\""
 
-    let (++) acc c = match c with Some s -> acc + s | _ -> acc
+    let p_citations_list (cits:Ref<string list>) = p_string_list .>> ((fun xs -> cits.Value <- xs; None), p_ws)
 
-    let rec p_citations_list (s:State) = 
-        match s.Current with
-        | None                              -> s, Empty p_citations_list, None
-        | Some ']'                          -> s.Step, Done, None
-        | Some '"'                          -> s.Step, Cont (p_citations_string ""), None    
-        | Some c when Char.IsWhiteSpace c   -> s.Step, Cont p_citations_list, None
-        | Some c when c = ','               -> s.Step, Cont p_citations_list, None
-        | _                                 -> fail s $"p_citations_list: Expected '\"' or ']' or ',' got {s.Current}"
-
-    and p_citations_string acc (s:State) = 
-        match s.Current with
-        | None -> s, Empty (p_citations_string acc), None
-        | _ -> 
-            match p_any_string s with 
-            | s, Done, chnk     -> {s with Citations= (acc ++ chnk) :: s.Citations}, Cont p_citations_list, None
-            | s, Cont p, chnk   -> s, Cont (p .> p_citations_string (acc ++ chnk)), None
-            | s, Empty p, chnk  -> s, Empty (p .> p_citations_string (acc ++ chnk)), chnk
-            | s, Fail msg, _    -> fail s $"p_citations: {msg}"
-
-    let exp = p_ws .> p_brace1 .> p_ws 
-             .> p_citations .> p_ws .> p_colon .> p_ws 
-             .> p_bracket .> p_citations_list .> p_ws 
-             .> p_comma .> p_ws
-             .> p_answer .> p_ws .> p_colon .> p_ws .> p_quote
-             .> p_any_string .> p_ws .> p_brace2
+    //expression to parse response json to extract citations and stream out the answer
+    let exp cits = 
+        p_ws .> p_brace1 .> p_ws 
+        .> p_citations .> p_ws .> p_colon .> p_ws 
+        .> p_bracket .> p_ws .> (p_citations_list cits)
+        .> p_comma .> p_ws
+        .> p_answer .> p_ws .> p_colon .> p_ws
+        .> p_strm_quoted_string .> p_ws .> p_brace2
 
     let inline d s r = printfn "%A" (s,r)
 
     let append acc o = match o with Some s -> s::acc | _ -> acc
 
-    let rec step (p,(s,_,acc)) = 
+    let rec step (p,(s,acc)) = 
         match  p s with 
-        | s, Done, o        -> d s Done; p_done, (s,Done, append acc o)
-        | s, Fail msg, _    -> fail s msg
-        | s, Empty p, o     -> d s "Empty"; p,(s,Done, append acc o)
-        | s, Cont p, o      -> d s "Cont";  step (p, (s,Done,acc))
+        | s, Next(_,None), _    -> d s "Done"; p_done, (s,[])
+        | s, Next(_,Some p), o  -> d s "Next"; step (p, (s, append acc o))
+        | s, Fail msg, _        -> fail s msg
+        | s, Empty p, o         -> d s "Empty"; p, (s, append acc o)
 
-    let updateState (p,(s,o,acc)) str = step (p,({s with SourceChunk = str},o,acc))
+    let updateState (p,(s:State,acc)) str = step (p,(s.NextChunk str,acc))
 
     let test source =
-        ((exp,(State.Empty,Done,[])),source)
+        let cits = ref []
+        ((exp cits,(State.Empty,[])),source)
         ||> Seq.scan updateState
-        |> Seq.collect (fun (_,(_,_,os)) -> List.rev os)
+        |> Seq.collect (fun (_,(_,os)) -> List.rev os)
         |> Seq.iter (printfn "%s")
-
