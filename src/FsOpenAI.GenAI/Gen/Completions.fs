@@ -67,7 +67,6 @@ module Completions =
             Answer : string
         }
 
-    let escapeString (s:string) = s.Replace("\"","\\\"").Replace("\n","\\n")
 
     let private streamCompleteChat (parms:ServiceSettings) (invCtx:InvocationContext) (ch:Interaction) dispatch modelSelector hasCitations =
         async {
@@ -99,6 +98,7 @@ module Completions =
                         //System.IO.File.WriteAllLines(@"C:\temp\chat.text",List.rev rs |> List.map escapeString)
                         //System.IO.File.WriteAllText(@"C:\temp\chat.json",System.Text.Json.JsonSerializer.Serialize(List.rev rs))
                         let resp = String.Join("",rs |> List.rev)
+                        printfn "%A" cits
                         let de =
                             {de with
                                 Response = resp
