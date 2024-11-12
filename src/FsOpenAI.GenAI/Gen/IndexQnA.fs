@@ -24,27 +24,30 @@ module IndexQnA =
             |> List.map fst            
         String.Join("\n\n",hist)        
 
-    let trimMemories tknLimit (docs:MemoryQueryResult seq) =        
-        docs
-        |> Seq.sortByDescending(fun d->d.Relevance)
-        |> Seq.map(fun d -> d, GenUtils.tokenSize d.Metadata.Text)
+
+    let trimMemories tknLimit (docs:DocRef seq) =        
+        docs 
+        |> Seq.sortBy _.Relevance 
+        |> Seq.map(fun d -> d,Text.Json.JsonSerializer.Serialize{Id=d.Id;Title=d.Title;Text=d.Text}) |> Seq.toList
+        |> Seq.map(fun (d,t) -> d, GenUtils.tokenSize t)
         |> Seq.scan (fun (_,acc) (t,c) -> Some t,acc + c ) (None,0.)
         |> Seq.skip 1
         |> Seq.takeWhile (fun (_,c) -> c < tknLimit)
         |> Seq.choose fst
         |> Seq.toList
 
-    let combineSearchResults tknLimit (docs:MemoryQueryResult seq) = 
-        let docs = trimMemories tknLimit docs 
-        let docTexts = docs |> Seq.map(fun d -> d.Metadata.Text)
-        String.Join("\r\r", docTexts)
+    let combinedSearch tknLimit (docs:DocRef seq) =
+        let docs = trimMemories tknLimit docs
+        let sb = Text.StringBuilder()
+        docs |> Seq.iter (fun c -> sb.AppendLine(Text.Json.JsonSerializer.Serialize(c)) |> ignore)
+        sb.ToString()
 
     let answerQuestion parms invCtx (ch:Interaction) docs dispatch = 
         task {
             try
                 let tknBudget = (GenUtils.getModels ch.Parameters) invCtx ch.Parameters.Backend |> List.map (_.TokenLimit) |> List.max |> float
                 let tknsSearch = tknBudget - 500.
-                let combinedSearch = combineSearchResults tknsSearch docs
+                let combinedSearch = combinedSearch tknsSearch docs
                 let question = Interaction.lastNonEmptyUserMessageText ch
                 let qargs = GenUtils.kernelArgsDefault 
                                 [ 
@@ -150,22 +153,10 @@ module IndexQnA =
                 let cogMems = chatPdfMemories parms invCtx ch mode
                 let maxDocs = Interaction.maxDocs 1 ch
                 dispatch (Srv_Ia_Notification (ch.Id,$"Searching with: {query}"))
-                dispatch (Srv_Ia_Notification (ch.Id,$"Search mode: {modeLabel mode}"))
-                let docs = 
-                    cogMems
-                    |> AsyncSeq.ofSeq
-                    |> AsyncSeq.collect(fun cogMem -> cogMem.SearchAsync("",query,maxDocs) |> AsyncSeq.ofAsyncEnum)
-                    |> AsyncSeq.toBlockingSeq
-                    |> Seq.toList
-                let docs = docs |> List.sortByDescending (fun x->x.Relevance) |> List.truncate maxDocs
+                dispatch (Srv_Ia_Notification (ch.Id,$"Search mode: {modeLabel mode}"))               
+                let docs = GenUtils.searchResults maxDocs query cogMems
                 dispatch (Srv_Ia_Notification(ch.Id,$"{docs.Length} query results found. Generating answer..."))
-                dispatch (Srv_Ia_SetDocs (ch.Id,docs |> List.map(fun d -> 
-                    {
-                        Text=d.Metadata.Text
-                        Embedding= if d.Embedding.HasValue then d.Embedding.Value.ToArray() else [||] 
-                        Ref=d.Metadata.ExternalSourceName
-                        Title = d.Metadata.Description
-                        })))
+                dispatch (Srv_Ia_SetDocs (ch.Id,docs))
                 do! Async.Sleep 100
                 do! answerQuestion parms invCtx ch docs dispatch |> Async.AwaitTask
             with ex -> dispatch (Srv_Ia_Done(ch.Id, Some ex.Message))
@@ -176,7 +167,7 @@ module IndexQnA =
             let modelRefs = (GenUtils.getModels ch.Parameters) invCtx ch.Parameters.Backend
             let tknBudget = float modelRefs.Head.TokenLimit
             let tknsSearch = tknBudget - 500.
-            let combinedSearch = combineSearchResults tknsSearch docs
+            let combinedSearch = combinedSearch tknsSearch docs
             let question = Interaction.lastNonEmptyUserMessageText ch
             let qargs = GenUtils.kernelArgsDefault 
                             [ 

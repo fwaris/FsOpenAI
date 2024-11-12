@@ -255,13 +255,25 @@ module GenUtils =
             return rslt
         }
 
-    let searchResults parms ch maxDocs query (cogMems:ISemanticTextMemory seq) =
+    let searchResults maxDocs query (cogMems:ISemanticTextMemory seq) =
         cogMems
         |> AsyncSeq.ofSeq
         |> AsyncSeq.collect(fun cogMem ->             
             cogMem.SearchAsync("",query,maxDocs) |> AsyncSeq.ofAsyncEnum)
         |> AsyncSeq.toBlockingSeq
         |> Seq.toList
+        |> List.mapi(fun i d -> 
+            {
+                Text=d.Metadata.Text
+                Embedding= if d.Embedding.HasValue then d.Embedding.Value.ToArray() else [||] 
+                Ref=d.Metadata.ExternalSourceName
+                Title = d.Metadata.Description
+                Id = string i
+                Relevance = d.Relevance
+                SortOrder = None
+            })
+        |> List.sortByDescending (fun x->x.Relevance) 
+        |> List.truncate maxDocs            
 
     let toMIdxRefs ch = 
             Interaction.getIndexes ch

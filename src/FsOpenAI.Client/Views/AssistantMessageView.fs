@@ -9,6 +9,11 @@ module AssistantMessage =
 
     let view (msg:InteractionMessage) (chat:Interaction) lastMsg model dispatch =
         let docs = match msg.Role with Assistant r -> r.DocRefs | _ -> []
+        let docsr = 
+            if docs |> List.exists (fun x -> x.SortOrder.IsSome) then 
+                docs |> List.filter (fun x -> x.SortOrder.IsSome) |> List.sortBy (fun x -> x.SortOrder.Value) 
+            else 
+                docs
         comp<RadzenCard> {
             attr.``class`` $"rz-mt-1 rz-border-radius-3"
             comp<RadzenRow> {
@@ -41,7 +46,7 @@ module AssistantMessage =
                                         "Style" => "height: 3.5rem; overflow: auto;"
                                         "Orientation" => Orientation.Horizontal
                                         "Wrap" => FlexWrap.Wrap
-                                        for d in docs do
+                                        for d in docsr do
                                             comp<RadzenLink> {
                                                 attr.title (Utils.shorten 40 d.Text)
                                                 attr.``class`` "rz-ml-2 "

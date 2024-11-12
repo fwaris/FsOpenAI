@@ -26,6 +26,7 @@ type SearchResultsView() =
                 "Style" => "background:transparent;height:2rem;"
                 "Icon" => "snippet_folder"
                 "ButtonStyle" => ButtonStyle.Base
+                attr.title "Preview search results"
                 attr.callback "Click" (fun (e:MouseEventArgs) -> popup.Value |> Option.iter (fun p -> p.ToggleAsync(button.Value.Value.Element) |> ignore))
                 button
             }

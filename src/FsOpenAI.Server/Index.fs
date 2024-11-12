@@ -12,8 +12,6 @@ let page = doctypeHtml {
         ``base`` { attr.href "/" }
         link {attr.rel "short icon"; attr.``type`` "image/png"; attr.href "app/imgs/favicon.png"}
         link { attr.rel "stylesheet"; attr.href "css/index.css" }
-        //radzen 
-        script {attr.src "_content/Radzen.Blazor/Radzen.Blazor.js"}
         //utils
         script {attr.src "scripts/utils.js"}
         //authentication
@@ -28,4 +26,9 @@ let page = doctypeHtml {
             }
         boleroScript
     }
+
+    //radzen - note this needs to be after the body otherwise javascript does not find DOM elements
+    //update version to force reload over older scripts that may be cached
+    script {attr.src "_content/Radzen.Blazor/Radzen.Blazor.js?v=5.5.5"} 
+
 }

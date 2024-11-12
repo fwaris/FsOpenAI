@@ -248,7 +248,7 @@ module DocQnA =
                 | _ -> failwith "unexpected chat type for document query"
 
             let question = Interaction.lastNonEmptyUserMessageText ch
-            if Utils.isEmpty question then failwith "no question found"
+            if Utils.isEmpty question then failwith "no qupoestion found"
 
             let args = 
                 [
@@ -262,11 +262,11 @@ module DocQnA =
             do! Completions.checkStreamCompleteChat parms modelsConfig ch dispatch None true
         }
 
-    let rec answerQuestion i parms invCtx (ch:Interaction) document memories dispatch = 
+    let rec answerQuestion i parms invCtx (ch:Interaction) document (memories:DocRef seq) dispatch = 
         task {
             let tknBudget = (GenUtils.getModels ch.Parameters) invCtx ch.Parameters.Backend |> List.map (_.TokenLimit) |> List.max |> float
             let tknsDoc =  GenUtils.tokenSize document
-            let combinedSearch = IndexQnA.combineSearchResults tknBudget memories
+            let combinedSearch = IndexQnA.combinedSearch tknBudget memories
             let tknsSearch = GenUtils.tokenSize combinedSearch 
             if i < 3 then 
                 match reduceCheck tknsDoc tknsSearch tknBudget with 
@@ -329,16 +329,9 @@ module DocQnA =
 
             let query = query + " " + rephrasedQuestion
 
-            let docs = GenUtils.searchResults parms ch maxDocs query cogMems
-            let docs = docs |> List.sortByDescending (fun x->x.Relevance) |> List.truncate maxDocs
+            let docs = GenUtils.searchResults maxDocs query cogMems
             dispatch (Srv_Ia_Notification(ch.Id,$"{docs.Length} query results found. Generating answer..."))
-            dispatch (Srv_Ia_SetDocs (ch.Id,docs |> List.map(fun d -> 
-                {
-                    Text=d.Metadata.Text
-                    Embedding=if d.Embedding.HasValue then d.Embedding.Value.ToArray() else [||] 
-                    Ref=d.Metadata.ExternalSourceName
-                    Title = d.Metadata.Description
-                    })))
+            dispatch (Srv_Ia_SetDocs (ch.Id,docs))
             do! Async.Sleep 100
             do! answerQuestion 1 parms modelsConfig ch document docs dispatch |> Async.AwaitTask
         }

@@ -83,7 +83,7 @@ module WebCompletion =
                         match webRslt.webPages with 
                         | Some v when v.value.IsEmpty |> not ->
                             dispatch (Srv_Ia_Notification (ch.Id,"Got web search results. Querying model again with web data included"))
-                            let docs = v.value |> List.map(fun w -> {Text=w.snippet; Embedding=[||]; Ref=w.url; Title=w.name})
+                            let docs = v.value |> List.mapi(fun i w -> {Text=w.snippet; Embedding=[||]; Ref=w.url; Title=w.name; Id=string i; Relevance=0.0; SortOrder=None;})
                             dispatch (Srv_Ia_SetDocs(ch.Id,docs))
                             String.Join('\n', v.value |> List.map(fun w -> w.snippet))
                         | _ ->                        

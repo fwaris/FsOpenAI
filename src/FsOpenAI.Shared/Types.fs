@@ -2,7 +2,16 @@
 open System
 open System.Security.Claims
 
-type DocRef = {Text:string; Embedding:float32[]; Ref:string; Title:string}
+type DocRef = 
+    {
+        Text:string
+        Embedding:float32[]
+        Ref:string
+        Title:string
+        Id:string
+        Relevance: float
+        SortOrder : float option
+    }
 
 type QueriedDocuments = {SearchQuery:string option; DocRefs: DocRef list }
     with static member Empty = {SearchQuery=None; DocRefs=[]}
@@ -219,9 +228,11 @@ type ServerInitiatedMessages =
     | Srv_Ia_Delta of string*string   //chat id,index,delta
     | Srv_Ia_SetSearch of string*string
     | Srv_Ia_SetDocs of string*DocRef list
+    | Srv_Ia_Citations of string*string list
     | Srv_Ia_Done of string*string option //chat id, optional log id, optional error
     | Srv_Ia_SetSubmissionId of string*string
     | Srv_Ia_Notification of string*string //chat id (optional error)
+    | Srv_Ia_Reset of string
     | Srv_Ia_Session_Loaded of Interaction
     | Srv_Ia_Session_DoneLoading
     | Srv_Error of string

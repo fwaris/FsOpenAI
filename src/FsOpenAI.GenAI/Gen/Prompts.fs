@@ -47,10 +47,9 @@ Answer: "
 
         ///prompts model to answer question with web search results included
         let answerQuestion = """
-Answer questions only when you know the facts or the information is provided.
-When answering multiple questions, use a bullet point list.
 
-[INFORMATION PROVIDED]
+
+[Citations]
 {{ $externalInformation }}
 
 [EXAMPLE 1]
@@ -157,10 +156,13 @@ Response Format:
 SEARCH DOCUMENTS: '''
 {{$documents}}
 '''
-SEARCH DOCUMENTS is a collection of documents that match the queries in QUESTION.
+SEARCH DOCUMENTS is a collection of documents or citations that match the queries in QUESTION.
 Derive the best possible answers to the posed QUESTION from the content in SEARCH DOCUMENTS.
 BE BRIEF AND TO THE POINT, BUT WHEN SUPPLYING OPINION, IF YOU SEE THE NEED, YOU CAN BE LONGER.
 WHEN ANSWERING QUESTIONS, GIVING YOUR OPINION OR YOUR RECOMMENDATIONS, BE CONTEXTUAL.
+
+If citations ids are provided, also return citations ids for the documents that where used to generate the answer.
+
 If you don't know, ask.
 If you are not sure, ask.
 Based on calculates from TODAY
@@ -248,9 +250,13 @@ SEARCH RESULTS: '''
 {{$searchResults}}
 '''
 
-Analyze the DOCUMENT  in relation to SEARCH RESULTS for ANSWERING QUESTIONS.
+SEARCH DOCUMENTS is a collection of documents or citations that match the queries in QUESTION.
+Derive the best possible answers to the posed QUESTION from the content in SEARCH DOCUMENTS.
 BE BRIEF AND TO THE POINT, BUT WHEN SUPPLYING OPINION, IF YOU SEE THE NEED, YOU CAN BE LONGER.
 WHEN ANSWERING QUESTIONS, GIVING YOUR OPINION OR YOUR RECOMMENDATIONS, BE CONTEXTUAL.
+
+If citations ids are provided, also return citations ids for the documents that where used to generate the answer.
+
 If you don't know, ask.
 If you are not sure, ask.
 Based on calculates from TODAY

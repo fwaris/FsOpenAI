@@ -370,6 +370,35 @@ module Interaction =
 
     let removeDoc ch = {ch with Types = ch.Types |> List.filter (function QnADoc _ -> false | _ -> true)}
 
+    let resetChat ch = 
+        let msgsR = List.rev ch.Messages
+        let msgs = 
+            msgsR
+            |> List.tryHead 
+            |> Option.bind (fun m ->
+                match m.Role with 
+                | Assistant drefs -> Some {m with Message=""; Role =Assistant {drefs with DocRefs=[]}}
+                | _               -> None)
+            |> Option.map (fun m -> m::(List.tail msgsR))
+            |> Option.defaultValue msgsR            
+        {ch with Messages=List.rev msgs}
+
+    let setCitations xs ch = 
+        let msgsR = List.rev ch.Messages
+        let msgs = 
+            msgsR
+            |> List.tryHead 
+            |> Option.bind (fun m ->
+                match m.Role with 
+                | Assistant drefs -> 
+                    let xs = set xs
+                    let dx = drefs.DocRefs |> List.map (fun d -> if xs.Contains d.Id then {d with SortOrder = Some d.Relevance} else d)
+                    Some {m with Role =Assistant {drefs with DocRefs=dx}}
+                | _               -> None)
+            |> Option.map (fun m -> m::(List.tail msgsR))
+            |> Option.defaultValue msgsR            
+        {ch with Messages=List.rev msgs}
+
 module Interactions =
 
     let empty = []
@@ -441,3 +470,7 @@ module Interactions =
     let applyTemplate id (tpType,template) cs = updateWith (Interaction.applyTemplate (tpType,template)) id cs
 
     let removeDoc id cs = updateWith Interaction.removeDoc id cs
+
+    let resetChat id = updateWith Interaction.resetChat id
+
+    let setCitations id xs cs = updateWith (Interaction.setCitations xs) id cs
