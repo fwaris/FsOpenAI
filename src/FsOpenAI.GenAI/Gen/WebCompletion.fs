@@ -7,7 +7,8 @@ open FsOpenAI.Shared.Interactions
 open Microsoft.SemanticKernel
 
 module bingApi =
-    let private searchQuery s = $"https://api.bing.microsoft.com/v7.0/search?q={Uri.EscapeDataString(s)}&safeSearch=Strict&responseFilter=webPages&count=20"
+    let private searchQuery (s:string) = 
+        $"https://api.bing.microsoft.com/v7.0/search?q={Uri.EscapeDataString(s)}&safeSearch=Strict&responseFilter=webPages&count=20"
 
     type WebPage = 
         {

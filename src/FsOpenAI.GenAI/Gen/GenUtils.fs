@@ -262,17 +262,17 @@ module GenUtils =
             cogMem.SearchAsync("",query,maxDocs) |> AsyncSeq.ofAsyncEnum)
         |> AsyncSeq.toBlockingSeq
         |> Seq.toList
+        |> List.sortByDescending (fun x->x.Relevance) 
         |> List.mapi(fun i d -> 
             {
                 Text=d.Metadata.Text
                 Embedding= if d.Embedding.HasValue then d.Embedding.Value.ToArray() else [||] 
                 Ref=d.Metadata.ExternalSourceName
                 Title = d.Metadata.Description
-                Id = string i
+                Id = string (i + 1)
                 Relevance = d.Relevance
                 SortOrder = None
             })
-        |> List.sortByDescending (fun x->x.Relevance) 
         |> List.truncate maxDocs            
 
     let toMIdxRefs ch = 

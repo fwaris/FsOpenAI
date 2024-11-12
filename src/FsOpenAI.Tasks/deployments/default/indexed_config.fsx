@@ -176,7 +176,7 @@ File.Copy(
 (*
 //run this line to actually deploy, configuration, samples and templates to under wwwroots
 run()
-D
+
 //run only if needed
 ScriptEnv.installSettings settings //'install' settings so script can use the api keys, etc.
 installMetaIndex()

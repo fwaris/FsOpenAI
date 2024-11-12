@@ -11,7 +11,7 @@ module AssistantMessage =
         let docs = match msg.Role with Assistant r -> r.DocRefs | _ -> []
         let docsr = 
             if docs |> List.exists (fun x -> x.SortOrder.IsSome) then 
-                docs |> List.filter (fun x -> x.SortOrder.IsSome) |> List.sortBy (fun x -> x.SortOrder.Value) 
+                docs |> List.filter (fun x -> x.SortOrder.IsSome) 
             else 
                 docs
         comp<RadzenCard> {
@@ -48,14 +48,13 @@ module AssistantMessage =
                                         "Wrap" => FlexWrap.Wrap
                                         for d in docsr do
                                             comp<RadzenLink> {
-                                                attr.title (Utils.shorten 40 d.Text)
+                                                attr.title (Utils.shorten 40 d.Title)
                                                 attr.``class`` "rz-ml-2 "
                                                 "Style" => "max-width: 140px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; color: var(--rz-danger-light);"
                                                 "Path" => d.Ref
                                                 "Target" => "_blank"
-                                                d.Title
+                                                $"{d.Id}: {d.Title}"
                                             }
-
                                     }
                                 }
                             }

@@ -55,7 +55,7 @@ type SearchResultsView() =
                                         "Style" => "height:2rem;"
                                         "Path" => o.Ref
                                         "Target" => "_blank"
-                                        o.Title
+                                        $"{o.Id}: {o.Title}"
                                     }
                                     comp<RadzenRow> {
                                         attr.style "max-height:10rem; overflow:auto; white-space: pre-line;"

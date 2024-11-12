@@ -392,7 +392,10 @@ module Interaction =
                 match m.Role with 
                 | Assistant drefs -> 
                     let xs = set xs
-                    let dx = drefs.DocRefs |> List.map (fun d -> if xs.Contains d.Id then {d with SortOrder = Some d.Relevance} else d)
+                    let dx = 
+                        drefs.DocRefs 
+                        |> List.map (fun d -> if xs.Contains d.Id then {d with SortOrder = Some d.Relevance} else d)
+                        |> List.sortBy (fun d -> float d.Id)
                     Some {m with Role =Assistant {drefs with DocRefs=dx}}
                 | _               -> None)
             |> Option.map (fun m -> m::(List.tail msgsR))
