@@ -52,34 +52,34 @@ module Interaction =
     let getSearchModeCases() = FSharpType.GetUnionCases typeof<SearchMode>
     let getSearchModeCase (mode:SearchMode) = FSharpValue.GetUnionFields(mode,typeof<SearchMode>)
 
-    let getModelTypeCases() = 
-        FSharpType.GetUnionCases typeof<ModelType> 
+    let getModelTypeCases() =
+        FSharpType.GetUnionCases typeof<ModelType>
         |> Array.map(fun x  -> FSharpValue.MakeUnion (x,[||]) :?> ModelType)
 
-    let maxDocs defaultVal (ch:Interaction) = 
+    let maxDocs defaultVal (ch:Interaction) =
         ch.Types
         |> List.tryPick (function IndexQnA bag -> Some bag.MaxDocs | _ -> None)
         |> Option.defaultValue defaultVal
 
     let docContent (ch:Interaction) =
         ch.Types
-        |> List.tryPick (function 
-            | QnADoc dc -> Some dc 
+        |> List.tryPick (function
+            | QnADoc dc -> Some dc
             | _         -> None)
 
     let qaBag ch =
         ch.Types
-        |> List.tryPick (function 
-            | IndexQnA bag -> Some bag 
+        |> List.tryPick (function
+            | IndexQnA bag -> Some bag
             | _ -> None)
 
     let plainBag ch =
         ch.Types
-        |> List.tryPick (function 
-            | Plain bag -> Some bag 
+        |> List.tryPick (function
+            | Plain bag -> Some bag
             | _ -> None)
 
-    let useWeb (ch:Interaction) = 
+    let useWeb (ch:Interaction) =
         plainBag ch
         |> Option.map (fun bag -> bag.UseWeb)
         |> Option.defaultValue false
@@ -102,17 +102,17 @@ module Interaction =
 
     let getIndexes ch =
         ch.Types
-        |> List.collect (function 
+        |> List.collect (function
             | IndexQnA bag      -> bag.Indexes
             | _                 -> [])
 
     let setPlainBag bag ch =
-        match plainBag ch with 
+        match plainBag ch with
         | Some _ -> {ch with Types = ch.Types |> List.map (function Plain _ -> Plain bag | x -> x)}
         | None   -> {ch with Types = ch.Types @ [Plain bag]}
 
     let setQABag bag ch =
-        match qaBag ch with 
+        match qaBag ch with
         | Some _ -> {ch with Types = ch.Types |> List.map (function IndexQnA _ -> IndexQnA bag | x -> x)}
         | None   -> {ch with Types = ch.Types @ [IndexQnA bag]}
 
@@ -125,11 +125,11 @@ module Interaction =
 
     let addIndex idx ch =
         let updateBag (bag:QABag) = {bag with Indexes = bag.Indexes @ [idx]}
-        {ch with 
-            Types = 
-                ch.Types 
-                |> List.map (function 
-                    | IndexQnA bag -> IndexQnA (updateBag bag) 
+        {ch with
+            Types =
+                ch.Types
+                |> List.map (function
+                    | IndexQnA bag -> IndexQnA (updateBag bag)
                     | x -> x)
     }
 
@@ -173,16 +173,16 @@ module Interaction =
 
     let setSystemMessage msg (c:Interaction) = {c with SystemMessage = msg}
 
-    let setQuestion q (c:Interaction) = 
+    let setQuestion q (c:Interaction) =
         {c with Question = q}
 
     let setMaxDocs maxDocs ch =
         let updateBag (bag:QABag) = {bag with MaxDocs=maxDocs}
-        {ch with 
-            Types = 
-                ch.Types 
-                |> List.map (function 
-                    | IndexQnA bag -> IndexQnA (updateBag bag) 
+        {ch with
+            Types =
+                ch.Types
+                |> List.map (function
+                    | IndexQnA bag -> IndexQnA (updateBag bag)
                     | x -> x)
         }
 
@@ -227,27 +227,27 @@ module Interaction =
     let private setContents (dc:DocumentContent) (text,isDone) =
          let cnts = match dc.DocumentText with Some t -> String.Join("\r",[t;text]) | None -> text
          printfn "%A" isDone
-         let status = 
-            if isDone then 
-                Ready 
-            else 
+         let status =
+            if isDone then
+                Ready
+            else
                 dc.Status
          {dc with DocumentText = Some cnts; Status = status}
 
     let setFileContents (text,isDone) (ch:Interaction) =
-        {ch with 
-            Types = 
-                ch.Types 
-                |> List.map (function 
+        {ch with
+            Types =
+                ch.Types
+                |> List.map (function
                     | QnADoc dc -> QnADoc (setContents dc (text,isDone))
                     | x -> x)
         }
 
     let setDocumentStatus status (ch:Interaction) =
-        {ch with 
-            Types = 
-                ch.Types 
-                |> List.map (function 
+        {ch with
+            Types =
+                ch.Types
+                |> List.map (function
                     | QnADoc dc -> QnADoc {dc with Status = status}
                     | x -> x)
         }
@@ -264,11 +264,11 @@ module Interaction =
         }
 
     ///trim UI state that is not required for processing chat (cannot be serialized)
-    let removeUIState ch = 
-        {ch with 
-            Types = 
-                ch.Types 
-                |> List.map (function 
+    let removeUIState ch =
+        {ch with
+            Types =
+                ch.Types
+                |> List.map (function
                     | QnADoc dc  -> QnADoc {dc with DocumentRef = None; DocType=None}
                     | x -> x)
             Feedback = None
@@ -340,7 +340,7 @@ module Interaction =
 
     let setFeedback feedback c = {c with Feedback = feedback}
 
-    let setMode  desiredMode ch = 
+    let setMode  desiredMode ch =
         let currentMode = ch.Mode
         match currentMode,desiredMode with
         | x,y when x=y             -> ch
@@ -370,36 +370,36 @@ module Interaction =
 
     let removeDoc ch = {ch with Types = ch.Types |> List.filter (function QnADoc _ -> false | _ -> true)}
 
-    let resetChat ch = 
+    let resetChat ch =
         let msgsR = List.rev ch.Messages
-        let msgs = 
+        let msgs =
             msgsR
-            |> List.tryHead 
+            |> List.tryHead
             |> Option.bind (fun m ->
-                match m.Role with 
-                | Assistant drefs -> Some {m with Message=""; Role =Assistant {drefs with DocRefs=[]}}
+                match m.Role with
+                | Assistant drefs -> Some {m with Message=""}
                 | _               -> None)
             |> Option.map (fun m -> m::(List.tail msgsR))
-            |> Option.defaultValue msgsR            
+            |> Option.defaultValue msgsR
         {ch with Messages=List.rev msgs}
 
-    let setCitations xs ch = 
+    let setCitations xs ch =
         let msgsR = List.rev ch.Messages
-        let msgs = 
+        let msgs =
             msgsR
-            |> List.tryHead 
+            |> List.tryHead
             |> Option.bind (fun m ->
-                match m.Role with 
-                | Assistant drefs -> 
+                match m.Role with
+                | Assistant drefs ->
                     let xs = set xs
-                    let dx = 
-                        drefs.DocRefs 
+                    let dx =
+                        drefs.DocRefs
                         |> List.map (fun d -> if xs.Contains d.Id then {d with SortOrder = Some d.Relevance} else d)
                         |> List.sortBy (fun d -> float d.Id)
                     Some {m with Role =Assistant {drefs with DocRefs=dx}}
                 | _               -> None)
             |> Option.map (fun m -> m::(List.tail msgsR))
-            |> Option.defaultValue msgsR            
+            |> Option.defaultValue msgsR
         {ch with Messages=List.rev msgs}
 
 module Interactions =
