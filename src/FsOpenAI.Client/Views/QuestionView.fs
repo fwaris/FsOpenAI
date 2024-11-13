@@ -93,7 +93,7 @@ type QuestionView() =
                             }
                         }                        
                         comp<InputFile> {
-                            "Style" => "heigth: 0px; width: 0px; outline: none"
+                            "Style" => "position: absolute; height: 0px; width: 0px; outline: none; padding: 0; margin: -1px; overflow: hidden; border:0; clip: rect(0,0,0,0)"
                             attr.id "inputGroupFileAddon01"
                             attr.disabled  isNotReady
                             attr.callback "OnChange" (fun (e:InputFileChangeEventArgs) -> 
