@@ -93,14 +93,12 @@ module IndexQnA =
         async {
             try
                 let args = GenUtils.kernelArgsDefault ["question",userMessage; "chatHistory",chatHistory]
-                match args.ExecutionSettings with 
-                | :? OpenAIPromptExecutionSettings as settings -> settings.ResponseFormat  <- "json_object" 
-                | _ -> ()
+                match args.ExecutionSettings.["default"] with 
+                | :? OpenAIPromptExecutionSettings as settings -> settings.ResponseFormat  <- typeof<RefinedQuery>
+                | _ -> failwith "Unable to set response format for LLM call"
                 let! rslt = k.InvokePromptAsync(Prompts.QnA.refineQuery_IdSearchMode,arguments=args) |> Async.AwaitTask
                 let resp = rslt.GetValue<OpenAIChatMessageContent>()
-                let respStr = GenUtils.extractTripleQuoted resp.Content |> Seq.collect id |> String.concat "\n"
-                let respStr = if Utils.isEmpty respStr then resp.Content else respStr //sometimes the response is not triple quoted
-                return System.Text.Json.JsonSerializer.Deserialize<RefinedQuery>(respStr)                
+                return System.Text.Json.JsonSerializer.Deserialize<RefinedQuery>(resp.Content)                
             with ex -> 
                 printfn "Error in runRefineQuery: %s" ex.Message
                 let! refinedQuery = fallbackRefineQuery k userMessage chatHistory

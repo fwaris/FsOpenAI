@@ -140,16 +140,6 @@ There are 2 possible search modes: 'Semantic', 'Keyword'
 Determine the search mode based the Question only.
 - If the question mainly contains cryptic alphanumeric codes or acronyms, output 'Keyword' search mode.
 - If the question is mainly general text then output 'Semantic' search mode.
-
-Response Format:
-```
-{
-    "searchQuery": "search query",
-    "searchMode": "search mode"
-}
-```
-
-```json
 """
 
         let questionAnswerPrompt = """
