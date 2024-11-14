@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <PackageReference Include="FSharp.Compiler.Service" Version="43.8.401" />
+    <PackageReference Include="Microsoft.SemanticKernel" Version="1.29.0" />
   </ItemGroup>
 
   <ItemGroup>

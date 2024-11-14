@@ -42,7 +42,7 @@
     <PackageReference Include="Bolero.Build" Version="0.*" />
     <PackageReference Include="Bolero.HotReload" Version="0.*" />
     <!--<PackageReference Include="MudBlazor" Version="7.8.0" />-->
-    <PackageReference Include="Radzen.Blazor" Version="5.5.5" />
+    <PackageReference Include="Radzen.Blazor" Version="5.6.0" />
     <PackageReference Include="System.Text.Json" Version="8.0.5" />
     <PackageReference Include="System.Threading.Channels" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.1" />

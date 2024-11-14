@@ -16,10 +16,10 @@ module Completions =
         let modelRef = GenUtils.optimalModel modelRefs tokenEstimate
         let caller,resource =  GenUtils.getClient parms ch modelRef.Model
         let opts = OpenAIPromptExecutionSettings()
-        match ch.Parameters.ModelType with 
-        | MT_Logic -> 
+        match ch.Parameters.ModelType with
+        | MT_Logic ->
             opts.MaxTokens <- ch.Parameters.MaxTokens + int tokenEstimate
-        | MT_Chat -> 
+        | MT_Chat ->
             opts.MaxTokens <- ch.Parameters.MaxTokens
             opts.Temperature <- float <| GenUtils.temperature ch.Parameters.Mode
         opts.User <- GenUtils.userAgent invCtx
@@ -31,7 +31,7 @@ module Completions =
     let streamChat parms (invCtx:InvocationContext) ch modelSelector responseFormat =
         async {
             let caller,msgs,opts,de = buildCall parms invCtx ch modelSelector responseFormat
-            let resp = caller.GetStreamingChatMessageContentsAsync(msgs,executionSettings=opts) 
+            let resp = caller.GetStreamingChatMessageContentsAsync(msgs,executionSettings=opts)
             let xs =
                 resp
                 |> AsyncSeq.ofAsyncEnum
@@ -75,8 +75,8 @@ module Completions =
                         |> AsyncSeq.bufferByCountAndTime 1 C.CHAT_RESPONSE_TIMEOUT
                         |> AsyncSeq.collect(fun xs -> if xs.Length > 0 then AsyncSeq.ofSeq xs else failwith C.TIMEOUT_MSG)
                         |> AsyncSeq.bufferByCountAndTime 10 1000
-                        |> AsyncSeq.filter(fun xs -> xs.Length > 0)                        
-                        |> AsyncSeq.map(String.concat "") 
+                        |> AsyncSeq.filter(fun xs -> xs.Length > 0)
+                        |> AsyncSeq.map(String.concat "")
                         |> AsyncSeq.iter (fun x -> rs<-x::rs; dispatch(Srv_Ia_Delta(ch.Id,x)))
                     match! Async.Catch comp with
                     | Choice1Of2 _ ->
@@ -119,10 +119,10 @@ module Completions =
                         |> AsyncSeq.bufferByCountAndTime 1 C.CHAT_RESPONSE_TIMEOUT
                         |> AsyncSeq.collect(fun xs -> if xs.Length > 0 then AsyncSeq.ofSeq xs else failwith C.TIMEOUT_MSG)
                         |> AsyncSeq.bufferByCountAndTime 10 1000
-                        |> AsyncSeq.filter(fun xs -> xs.Length > 0)                        
-                        |> AsyncSeq.map(String.concat "") 
+                        |> AsyncSeq.filter(fun xs -> xs.Length > 0)
+                        |> AsyncSeq.map(String.concat "")
                         //----- use stream parser -----
-                        |> AsyncSeq.scan StreamParser.updateState (StreamParser.exp cits,(StreamParser.State.Empty,[])) 
+                        |> AsyncSeq.scan StreamParser.updateState (StreamParser.exp cits,(StreamParser.State.Empty,[]))
                         |> AsyncSeq.collect (fun (_,(_,os)) -> os |> List.rev |> AsyncSeq.ofSeq)
                         //-----------------------------
                         |> AsyncSeq.iter (fun x -> rs<-x::rs; dispatch(Srv_Ia_Delta(ch.Id,x)))
@@ -136,20 +136,20 @@ module Completions =
                             }
                         Monitoring.write (Diag de)
                         Srv_Ia_SetSubmissionId(ch.Id,de.id) |> dispatch
-                        match cits.Value with 
+                        match cits.Value with
                         | [] -> ()
                         | xs -> dispatch (Srv_Ia_Citations(ch.Id,xs))
                         dispatch (Srv_Ia_Done(ch.Id,None))
                     | Choice2Of2 ex ->
-                        //fallback 
-                        dispatch (Srv_Ia_Notification(ch.Id,"Unable to complete chat due to processing error. Reset and retry"))
+                        //fallback
+                        dispatch (Srv_Ia_Notification(ch.Id,"Unable to complete chat [no structured output]. Reset and retry"))
                         dispatch (Srv_Ia_Reset(ch.Id))
                         do! streamCompleteChat parms invCtx ch dispatch modelSelector
                 }
             match! Async.Catch comp with
             | Choice1Of2 _ -> ()
             | Choice2Of2 ex ->
-                Env.logException (ex,"streamCompleteChatFormated: ")
+                Env.logException (ex,"streamCompleteChatFormatted: ")
                 dispatch (Srv_Ia_Done(ch.Id,Some ex.Message))
         }
 
@@ -181,11 +181,11 @@ module Completions =
                 let! resp = caller.GetChatMessageContentsAsync(msgs,opts) |> Async.AwaitTask
                 let respMsg = resp.[0]
                 match respMsg.Metadata.TryGetValue("FinishReason") with
-                | true,n when n = "Length" && Utils.isEmpty respMsg.Content-> 
+                | true,n when n = "Length" && Utils.isEmpty respMsg.Content->
                     let msg = "No model output due to output token limit. Increase max tokens in chat settings"
                     return failwith msg
                 | _ -> ()
-                do! 
+                do!
                     respMsg.Content
                     |> AsyncSeq.ofSeq
                     |> AsyncSeq.bufferByCountAndTime 1000 500
@@ -197,7 +197,7 @@ module Completions =
                         OutputTokens = GenUtils.tokenSize respMsg.Content |> int
                     }
                 Monitoring.write (Diag de)
-                Srv_Ia_SetSubmissionId(ch.Id,de.id) |> dispatch            
+                Srv_Ia_SetSubmissionId(ch.Id,de.id) |> dispatch
             with ex ->
                 Monitoring.write (Diag {de with Error = ex.Message})
                 return raise ex
@@ -206,7 +206,7 @@ module Completions =
     let checkStreamCompleteChat (parms:ServiceSettings) (invCtx:InvocationContext) (ch:Interaction) dispatch modelSelector haveCitations =
         match ch.Parameters.ModelType with
         | MT_Logic -> completeLogicChat parms invCtx ch dispatch modelSelector
-        | MT_Chat -> 
+        | MT_Chat ->
             if haveCitations then
                 streamCompleteChatFormatted parms invCtx ch dispatch modelSelector
             else

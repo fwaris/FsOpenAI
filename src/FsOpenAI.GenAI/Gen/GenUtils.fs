@@ -21,7 +21,7 @@ module GenUtils =
     let rng = Random()
     let randSelect (ls:_ list) = ls.[rng.Next(ls.Length)]
 
-    let temperature = function 
+    let temperature = function
         | Factual -> 0.f
         | Exploratory -> 0.2f
         | Creative -> 0.7f
@@ -29,16 +29,16 @@ module GenUtils =
     let serializeChat (ch:Interaction) : ChatLog =
         {
             SystemMessge = ch.SystemMessage
-            Messages = 
-                ch.Messages 
+            Messages =
+                ch.Messages
                 |> Seq.filter (fun m -> not(Utils.isEmpty m.Message))
-                |> Seq.map(fun m -> {ChatLogMsg.Role = (match m.Role with User -> "User" | _ -> "Assistant"); ChatLogMsg.Content = m.Message}) 
+                |> Seq.map(fun m -> {ChatLogMsg.Role = (match m.Role with User -> "User" | _ -> "Assistant"); ChatLogMsg.Content = m.Message})
                 |> Seq.toList
             Temperature = ch.Parameters.Mode |> temperature |> float
             MaxTokens = ch.Parameters.MaxTokens
         }
 
-    let tokenSize (s:string) = 
+    let tokenSize (s:string) =
         let tokenizer = TokenizerBuilder.CreateByModelNameAsync("gpt-4").GetAwaiter().GetResult();
         let tokens = tokenizer.Encode(s, new System.Collections.Generic.HashSet<string>());
         float tokens.Count
@@ -46,7 +46,7 @@ module GenUtils =
     let msgRole (m:InteractionMessage) = if m.IsUser then "User" else "Assistant"
 
     let tokenEstimateMessages (msgs:InteractionMessage seq) =
-        let xs = 
+        let xs =
             seq {
                 for m in msgs do
                     yield $"[{msgRole m}]"
@@ -56,7 +56,7 @@ module GenUtils =
         |> tokenSize
 
     let tokenEstimate ch =
-        let xs = 
+        let xs =
             seq {
                 yield "[System]"
                 yield ch.SystemMessage
@@ -66,25 +66,25 @@ module GenUtils =
             }
         String.Join("\n",xs)
         |> tokenSize
-        
-    let optimalModel modelRefs tokenSize = 
-        modelRefs 
+
+    let optimalModel modelRefs tokenSize =
+        modelRefs
         |> List.tryFind (fun m -> float m.TokenLimit > tokenSize)
         |> Option.defaultValue (modelRefs |> List.maxBy _.TokenLimit)
 
     let private chatModels (invCtx:InvocationContext) backend =
         let modelsConfig = invCtx.ModelsConfig
-        let modelRefs = 
+        let modelRefs =
             modelsConfig.ChatModels
             |> List.tryFind (fun m -> m.Backend = backend)
             |> Option.map(fun x -> [x])
             |> Option.defaultValue []
         if modelRefs.IsEmpty then failwith $"No chat model(s) configured for backend '{backend}'"
-        modelRefs    
-        
+        modelRefs
+
     let private logicModels (invCtx:InvocationContext) backend =
         let modelsConfig = invCtx.ModelsConfig
-        let modelRefs = 
+        let modelRefs =
             modelsConfig.LogicModels
             |> List.tryFind (fun m -> m.Backend = backend)
             |> Option.map(fun x -> [x])
@@ -92,15 +92,15 @@ module GenUtils =
         if modelRefs.IsEmpty then failwith $"No logic or chat model(s) configured for backend '{backend}'"
         modelRefs
 
-    let getModels (ch:InteractionParameters) invCtx backend = 
-        match ch.ModelType with 
+    let getModels (ch:InteractionParameters) invCtx backend =
+        match ch.ModelType with
         | MT_Chat -> chatModels invCtx backend
         | MT_Logic -> logicModels invCtx backend
 
     let lowcostModels (invCtx:InvocationContext) backend =
         let modelsConfig = invCtx.ModelsConfig
-        let modelRefs = 
-            modelsConfig.ChatModels 
+        let modelRefs =
+            modelsConfig.ChatModels
             |> List.tryFind (fun m -> m.Backend = backend)
             |> Option.map(fun x -> [x])
             |> Option.defaultValue []
@@ -108,7 +108,7 @@ module GenUtils =
         modelRefs
 
     let toChatHistory (ch:Interaction) =
-        let h = ChatHistory() 
+        let h = ChatHistory()
         if ch.Parameters.ModelType <> MT_Logic  && Utils.notEmpty ch.SystemMessage then //o1 does not support system messages
             h.AddSystemMessage(ch.SystemMessage)
         for m in ch.Messages do
@@ -116,11 +116,11 @@ module GenUtils =
             h.AddMessage(role,m.Message)
         h
 
-    let tokenBudget modelsConfig ch = 
+    let tokenBudget modelsConfig ch =
         chatModels modelsConfig ch.Parameters.Backend
         |> List.map (_.TokenLimit) |> List.max |> float
 
-    let asAsyncSeq<'t> (xs:System.Collections.Generic.IAsyncEnumerable<'t>) = 
+    let asAsyncSeq<'t> (xs:System.Collections.Generic.IAsyncEnumerable<'t>) =
         asyncSeq {
             let mutable hs = false
             let xs = xs.GetAsyncEnumerator()
@@ -147,37 +147,37 @@ module GenUtils =
     let visionModel (backend:Backend) (modelConfig:ModelsConfig) =
         let filter (m:ModelRef) = if m.Backend = backend then Some m else None
         (modelConfig.ChatModels |> List.choose filter)
-        |> List.filter (fun x->x.Model.Contains("-4o")) 
+        |> List.filter (fun x->x.Model.Contains("-4o"))
         |> List.tryHead
 
     let servceEndpoint (parms:ServiceSettings) (backend:Backend) (model:string) =
-        match backend with 
-        | AzureOpenAI -> 
+        match backend with
+        | AzureOpenAI ->
             let rg,url,key = getAzureEndpoint parms.AZURE_OPENAI_ENDPOINTS
             let url = $"https://{rg}.openai.azure.com/openai/deployments/{model}/chat/completions?api-version=2023-07-01-preview";
             url,key
-        | OpenAI -> 
-            match parms.OPENAI_KEY with 
+        | OpenAI ->
+            match parms.OPENAI_KEY with
             | Some key when Utils.notEmpty key -> "https://api.openai.com/v1/chat/completions",key
             | _ -> raise (NoOpenAIKey "No OpenAI Key found")
 
     let getClientFor (parms:ServiceSettings) backend model : (IChatCompletionService*string) =
-            match backend with 
-            | AzureOpenAI -> 
+            match backend with
+            | AzureOpenAI ->
                 let rg,url,key = getAzureEndpoint parms.AZURE_OPENAI_ENDPOINTS
                 let clr = Connectors.AzureOpenAI.AzureOpenAIChatCompletionService(model,url,key)
                 clr,rg
-            | OpenAI  ->     
+            | OpenAI  ->
                 let key = match parms.OPENAI_KEY with Some key when Utils.notEmpty key -> key | _ -> failwith "OpenAI Key not set"
                 OpenAIChatCompletionService(model,key),"OpenAI"
-                
+
     let getEmbeddingsClientFor (parms:ServiceSettings) backend model : (ITextEmbeddingGenerationService*string)=
-            match backend with 
-            | AzureOpenAI -> 
+            match backend with
+            | AzureOpenAI ->
                 let rg,url,key = getAzureEndpoint parms.AZURE_OPENAI_ENDPOINTS
                 let clr = Connectors.AzureOpenAI.AzureOpenAITextEmbeddingGenerationService(model,url,key)
                 clr,rg
-            | OpenAI  ->     
+            | OpenAI  ->
                 let key = match parms.OPENAI_KEY with Some key when Utils.notEmpty key -> key | _ -> failwith "OpenAI Key not set"
                 OpenAITextEmbeddingGenerationService(model,key),"OpenAI"
 
@@ -185,16 +185,16 @@ module GenUtils =
 
     let getEmbeddingsClient (parms:ServiceSettings) (ch:Interaction) model = getEmbeddingsClientFor parms ch.Parameters.Backend model
 
-    let logger = 
+    let logger =
         {new ILogger with
              member this.BeginScope(state) = raise (System.NotImplementedException())
              member this.IsEnabled(logLevel) = true
-             member this.Log(logLevel, eventId, state, ``exception``, formatter) = 
+             member this.Log(logLevel, eventId, state, ``exception``, formatter) =
                 let msg = formatter.Invoke(state,``exception``)
                 printfn "Kernel: %s" msg
         }
 
-    let loggerFactory = 
+    let loggerFactory =
         {new ILoggerFactory with
              member this.AddProvider(provider) = ()
              member this.CreateLogger(categoryName) = logger
@@ -202,23 +202,23 @@ module GenUtils =
         }
 
     let promptSettings (parms:ServiceSettings) (ch:Interaction) =
-        match ch.Parameters.ModelType with 
-        | MT_Chat -> 
+        match ch.Parameters.ModelType with
+        | MT_Chat ->
             new OpenAIPromptExecutionSettings(
-                MaxTokens = ch.Parameters.MaxTokens, 
-                Temperature = (temperature ch.Parameters.Mode |> float), 
+                MaxTokens = ch.Parameters.MaxTokens,
+                Temperature = (temperature ch.Parameters.Mode |> float),
                 TopP = 1)
         | MT_Logic ->
-            new OpenAIPromptExecutionSettings(MaxTokens = ch.Parameters.MaxTokens, Temperature=1.0)        
+            new OpenAIPromptExecutionSettings(MaxTokens = ch.Parameters.MaxTokens, Temperature=1.0)
 
-    let baseKernel (parms:ServiceSettings) (modelRefs:ModelRef list) (ch:Interaction) = 
+    let baseKernel (parms:ServiceSettings) (modelRefs:ModelRef list) (ch:Interaction) =
         let chatModel = modelRefs.Head.Model
         let builder = Kernel.CreateBuilder()
         builder.Services.AddLogging(fun c -> c.AddConsole().SetMinimumLevel(LogLevel.Information) |>ignore) |> ignore
-        match ch.Parameters.Backend with 
+        match ch.Parameters.Backend with
         | AzureOpenAI ->
             let rg,uri,key = getAzureEndpoint parms.AZURE_OPENAI_ENDPOINTS
-            builder.AddAzureOpenAIChatCompletion(deploymentName = chatModel,endpoint = uri, apiKey = key)            
+            builder.AddAzureOpenAIChatCompletion(deploymentName = chatModel,endpoint = uri, apiKey = key)
         | OpenAI ->
             let key = match parms.OPENAI_KEY with Some k -> k | None -> raise (NoOpenAIKey "No OpenAI Key found")
             builder.AddOpenAIChatCompletion(chatModel,key)
@@ -239,17 +239,17 @@ module GenUtils =
 
     let kernelArgs (args:(string*string) seq) (overrides:OpenAIPromptExecutionSettings->unit) =
         let args = kernelArgsDefault args
-        args.ExecutionSettings 
-        |> Seq.iter(fun kv -> 
+        args.ExecutionSettings
+        |> Seq.iter(fun kv ->
             let sttngs = (kv.Value :?> OpenAIPromptExecutionSettings)
             overrides sttngs)
         args
 
     let renderPrompt (prompt:string) (args:KernelArguments) =
-        task {            
+        task {
             let k = Kernel.CreateBuilder().Build()
             let fac = KernelPromptTemplateFactory()
-            let cfg = PromptTemplateConfig(template = prompt)            
+            let cfg = PromptTemplateConfig(template = prompt)
             let pt = fac.Create(cfg)
             let! rslt = pt.RenderAsync(k,args) |> Async.AwaitTask
             return rslt
@@ -258,26 +258,26 @@ module GenUtils =
     let searchResults maxDocs query (cogMems:ISemanticTextMemory seq) =
         cogMems
         |> AsyncSeq.ofSeq
-        |> AsyncSeq.collect(fun cogMem ->             
+        |> AsyncSeq.collect(fun cogMem ->
             cogMem.SearchAsync("",query,maxDocs) |> AsyncSeq.ofAsyncEnum)
         |> AsyncSeq.toBlockingSeq
         |> Seq.toList
-        |> List.sortByDescending (fun x->x.Relevance) 
-        |> List.mapi(fun i d -> 
+        |> List.sortByDescending (fun x->x.Relevance)
+        |> List.mapi(fun i d ->
             {
                 Text=d.Metadata.Text
-                Embedding= if d.Embedding.HasValue then d.Embedding.Value.ToArray() else [||] 
+                Embedding= if d.Embedding.HasValue then d.Embedding.Value.ToArray() else [||]
                 Ref=d.Metadata.ExternalSourceName
                 Title = d.Metadata.Description
-                Id = string (i + 1)
+                Id = $"{i+1}"
                 Relevance = d.Relevance
                 SortOrder = None
             })
-        |> List.truncate maxDocs            
+        |> List.truncate maxDocs
 
-    let toMIdxRefs ch = 
+    let toMIdxRefs ch =
             Interaction.getIndexes ch
-            |> List.map (function 
+            |> List.map (function
                 | Azure idx -> {Backend="Azure"; Name = idx}
                 | Virtual idx -> {Backend="OpenAI"; Name = idx})
 
@@ -301,7 +301,7 @@ module GenUtils =
         }
 
     let diaEntryChat (ch:Interaction) (invCtx:InvocationContext) model resource  =
-        let prompt = serializeChat ch 
+        let prompt = serializeChat ch
         let inputTokens = tokenEstimate ch
         {
             id = Utils.newId()
@@ -320,29 +320,29 @@ module GenUtils =
             Error = ""
             Timestamp = DateTime.UtcNow
         }
-    
+
     let getEmbeddings (parms:ServiceSettings) (invCtx:InvocationContext) (ch:Interaction) query =
-        let embModel = 
-            invCtx.ModelsConfig.EmbeddingsModels 
-            |> List.tryFind (fun m -> m.Backend = ch.Parameters.Backend) 
+        let embModel =
+            invCtx.ModelsConfig.EmbeddingsModels
+            |> List.tryFind (fun m -> m.Backend = ch.Parameters.Backend)
             |> Option.defaultValue (invCtx.ModelsConfig.EmbeddingsModels.Head)
         let embClient,resource = getEmbeddingsClient parms ch embModel.Model
         let de = diaEntryEmbeddings ch invCtx embModel.Model resource query
         task {
             try
-                let! resp = embClient.GenerateEmbeddingsAsync(ResizeArray[query])                
+                let! resp = embClient.GenerateEmbeddingsAsync(ResizeArray[query])
                 Monitoring.write (Diag de)
                 return resp
-            with ex -> 
-                Env.logException (ex,"getEmbeddings")                
+            with ex ->
+                Env.logException (ex,"getEmbeddings")
                 Monitoring.write (Diag {de with Error = ex.Message})
                 return raise ex
         }
 
     let userAgent (invCtx:InvocationContext) =
-        invCtx.AppId 
-        |> Option.map (fun a ->  
-            invCtx.User 
+        invCtx.AppId
+        |> Option.map (fun a ->
+            invCtx.User
             |> Option.map(fun u -> $"{a}:{u}")
             |> Option.defaultValue a)
         |> Option.defaultValue "fsopenai"
@@ -358,24 +358,24 @@ module GenUtils =
             }
             |> Seq.map(fun x -> x)
             |> Seq.toList
-        let addSnip acc accSnip = 
-            match accSnip with 
-            |[] -> acc 
+        let addSnip acc accSnip =
+            match accSnip with
+            |[] -> acc
             | _ -> (List.rev accSnip)::acc
         let isQuote (s:string) = s.StartsWith("```")
-        let rec start acc (xs:string list) = 
-            match xs with 
+        let rec start acc (xs:string list) =
+            match xs with
             | []                   -> List.rev acc
             | x::xs when isQuote x -> accQuoted acc [] xs
             | x::xs                -> start acc xs
-        and accQuoted acc accSnip xs = 
+        and accQuoted acc accSnip xs =
             match xs with
             | []                   -> List.rev (addSnip acc accSnip)
             | x::xs when isQuote x -> start (addSnip acc accSnip) xs
             | x::xs                -> accQuoted acc (x::accSnip) xs
         start [] lines
 
-    let extractCode inp = 
+    let extractCode inp =
         extractTripleQuoted inp
         |> Seq.collect id
         |> fun xs -> String.Join("\n",xs)
@@ -403,9 +403,9 @@ module GenUtils =
             async {
                 let endpoint,key = servceEndpoint parms backend model.Model
                 let user = userAgent invCtx
-                let imageContents = 
-                    frames 
-                    |> Seq.map(fun img -> 
+                let imageContents =
+                    frames
+                    |> Seq.map(fun img ->
                         let imageBytes = img |> System.Convert.ToBase64String
                         let imgUri = $"data:image/png;base64,{imageBytes}"
                         ImageContent(imgUri) :> Content)
@@ -421,13 +421,13 @@ module GenUtils =
         | None -> async { return failwith "No vision model configured" }
 
 
-module TemplateParser =    
+module TemplateParser =
     type Block = VarBlock of string | FuncBlock of string*string option
 
     [<AutoOpen>]
     module internal StateMachine =
         let MAX_LITERAL = 3000
-        let eof = Seq.toArray "<end of input>" 
+        let eof = Seq.toArray "<end of input>"
         let inline error x xs = failwithf "%s got %s" x (String(xs |> Seq.truncate 100 |> Seq.toArray))
 
         let c2s cs = cs |> List.rev |> Seq.toArray |> String
@@ -435,10 +435,10 @@ module TemplateParser =
         let toVar = c2s >> VarBlock
         let toFunc1 cs = FuncBlock (c2s cs,None)
         let toFunc2 cs vs = FuncBlock(c2s cs, Some (c2s vs))
-        
+
         let rec start (acc:Block list) = function
             | [] -> acc
-            | '{'::rest -> brace1 acc rest 
+            | '{'::rest -> brace1 acc rest
             | _::rest -> start acc rest
         and brace1 acc = function
             | [] -> error "expected {" eof
@@ -447,7 +447,7 @@ module TemplateParser =
         and brace2 acc = function
             | [] -> error "expecting $ after {{" eof
             | '$'::rest -> beginVar [] acc rest
-            | c::rest when Char.IsWhiteSpace c -> brace2 acc rest            
+            | c::rest when Char.IsWhiteSpace c -> brace2 acc rest
             | c::rest when c <> '}' && c <> '{' -> beginFunc [] acc (c::rest)
             | xs -> error "Expected '$'" xs
         and beginVar vacc acc = function
@@ -455,9 +455,9 @@ module TemplateParser =
             | '}'::rest -> braceEnd1 ((toVar vacc)::acc) rest
             | c::rest when (Char.IsWhiteSpace c) -> braceEnd1 ((toVar vacc)::acc) rest
             | x::rest -> beginVar (x::vacc) acc rest
-        and braceEnds acc = function 
+        and braceEnds acc = function
             | [] -> error "expecting }}" eof
-            | c::rest when Char.IsWhiteSpace c -> braceEnds acc rest 
+            | c::rest when Char.IsWhiteSpace c -> braceEnds acc rest
             | c::rest when c = '}' -> braceEnd1 acc rest
             | c::rest -> error "expected }}" rest
         and braceEnd1 acc = function
@@ -485,9 +485,9 @@ module TemplateParser =
             | [] -> error """expecting " """ eof
             | c::rest when (List.length pacc > MAX_LITERAL) -> error "max literal size exceeded" rest
             | c::rest when c = '"' -> braceEnds ((toFunc2 facc pacc)::acc) rest
-            | c::rest -> beginParmLit (c::pacc) facc acc rest        
+            | c::rest -> beginParmLit (c::pacc) facc acc rest
 
 
-    let extractVars templateStr = 
-        start [] (templateStr |> Seq.toList)         
+    let extractVars templateStr =
+        start [] (templateStr |> Seq.toList)
         |> List.distinct

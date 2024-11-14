@@ -13,7 +13,7 @@ open FsOpenAI.Shared.Interactions
 type ChatHistoryView() =
     inherit ElmishComponent<Model,Message>()
 
-    let marker = HtmlRef()
+    let marker = Ref<RadzenText>()
 
     member val IsBuffering = false with get, set
     member val markerId = "" with get, set
@@ -35,22 +35,22 @@ type ChatHistoryView() =
     override this.View model dispatch =
         comp<RadzenRow> {
             attr.``class`` "rz-mr-1"
-            comp<RadzenColumn> { 
+            comp<RadzenColumn> {
                 comp<RadzenRow> {
                     comp<RadzenColumn> {
                         "Sytle" => "height: 1rem;"
                         //"Size" => 1
                         match Model.selectedChat model with
                         | Some chat ->
-                            let m = 
+                            let m =
                                 {
                                     ChatId = chat.Id
                                     Model = model
                                     Parms = chat.Parameters
-                                    QaBag = 
-                                        Interaction.qaBag chat 
-                                        |> Option.orElseWith (fun _ -> 
-                                            if Model.isEnabledAny [M_Index; M_Doc_Index]  this.Model then 
+                                    QaBag =
+                                        Interaction.qaBag chat
+                                        |> Option.orElseWith (fun _ ->
+                                            if Model.isEnabledAny [M_Index; M_Doc_Index]  this.Model then
                                                 Some QABag.Default
                                             else
                                                 None)
@@ -64,7 +64,7 @@ type ChatHistoryView() =
                     "Style" => "max-height: calc(100vh - 19rem);overflow-y:auto;overflow-x:hidden;"
                     comp<RadzenColumn> {
                         match Model.selectedChat model with
-                        | Some chat ->                             
+                        | Some chat ->
                             let lastMsgId = List.tryLast chat.Messages |> Option.map (fun x -> x.MsgId) |> Option.defaultValue ""
                             this.markerId <- $"{chat.Id}_marker"
                             this.IsBuffering <- chat.IsBuffering
@@ -74,31 +74,43 @@ type ChatHistoryView() =
                                 else
                                     yield AssistantMessage.view m chat  (m.MsgId=lastMsgId) model dispatch
                             if chat.IsBuffering then
-                                yield 
-                                    comp<RadzenTimeline> {                                
-                                        //attr.``class`` "rz-color-on-color-secondary-lighter rz-background-color-secondary-lighter rz-mt-1 rz-p-2"                                
-                                        attr.``class`` "rz-mt-1 rz-p-2" 
+                                yield
+                                    comp<RadzenTimeline> {
+                                        //attr.``class`` "rz-color-on-color-secondary-lighter rz-background-color-secondary-lighter rz-mt-1 rz-p-2"
+                                        attr.``class`` "rz-mt-1 rz-p-2"
                                         "LinePosition" => LinePosition.Left
                                         attr.fragment "Items" (
                                             concat {
                                                 yield
                                                     comp<RadzenTimelineItem> {
-                                                        div {
-                                                            attr.id this.markerId
-                                                            marker
-                                                            "..."
-                                                        }
+                                                        "PointSize" => PointSize.Small
+                                                        attr.fragment "ChildContent" (
+                                                            comp<RadzenText> {
+                                                                "TextStyle" => TextStyle.Caption
+                                                                attr.id this.markerId
+                                                                "Text" => "..."
+                                                                marker
+                                                            }
+                                                        )
                                                     }
                                                 for t in List.rev chat.Notifications do
-                                                    yield 
-                                                        comp<RadzenTimelineItem>  { text t }
+                                                    yield
+                                                        comp<RadzenTimelineItem> {
+                                                            "PointSize" => PointSize.Small
+                                                            attr.fragment "ChildContent" (
+                                                                comp<RadzenText> {
+                                                                    "TextStyle" => TextStyle.Caption
+                                                                    "Text" => t
+                                                                }
+                                                            )
+                                                        }
                                             })
                                     }
                         | None -> ()
                     }
                 }
                 comp<RadzenRow> {
-                    "Style" => "height: auto; margin-top: 1rem;" 
+                    "Style" => "height: auto; margin-top: 1rem;"
                     attr.``class`` "rz-mt-1"
                     ecomp<QuestionView,_,_> model dispatch {attr.empty()}
                 }

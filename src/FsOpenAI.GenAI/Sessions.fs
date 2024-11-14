@@ -1,6 +1,7 @@
 namespace FsOpenAI.GenAI
 open System
 open System.Text.Json
+open System.Text.Json.Serialization
 open FSharp.Control
 open System.Threading.Channels
 open FsOpenAI.Shared
@@ -230,11 +231,22 @@ module Sessions =
             Interaction = ch
         }
 
+    //cosmos db use newtonsoft by default so use compatible deserializer settings
+    let sessionOptions = lazy(
+        let o = JsonSerializerOptions(JsonSerializerDefaults.General)
+        o.WriteIndented <- true
+        o.ReadCommentHandling <- JsonCommentHandling.Skip
+        let j = JsonFSharpOptions.Default()
+        j
+            .WithUnionEncoding(JsonUnionEncoding.NewtonsoftLike)
+            .WithUnionAllowUnorderedTag(true) //consider for future as provides better roundtrip support
+            .AddToJsonSerializerOptions(o)
+        o)
+
     let tryConvert (str:string,ch:JsonDocument) =
         let ver = ch.RootElement.GetProperty("Version").GetString()
         if ver = Version.version then
-            let sess = System.Text.Json.JsonSerializer.Deserialize<ChatSession>(str,Utils.serOptions())
-            //let sess = Newtonsoft.Json.JsonConvert.DeserializeObject<ChatSession>(str)
+            let sess = System.Text.Json.JsonSerializer.Deserialize<ChatSession>(str,sessionOptions.Value)
             Some sess.Interaction
         else
             //TODO: convert to new verison from old serialized format

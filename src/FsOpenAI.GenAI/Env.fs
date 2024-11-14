@@ -11,16 +11,16 @@ open System.Text.Json
 
 type FsOpenAILog() = class end //type for log categorization
 
-module Env =    
-    type Config = 
+module Env =
+    type Config =
         {
             SettingsFile : string
             SettingsFile_Env : string
             KeyVault : string
-            KeyVaultKey : string 
+            KeyVaultKey : string
             WwwRoot : string
         }
-        with static member Default = 
+        with static member Default =
                                 {
                                     SettingsFile=""
                                     SettingsFile_Env=""
@@ -47,14 +47,14 @@ module Env =
             logger.LogError(exn,str)
 
     let getFromKeyVault() =
-        task {            
+        task {
             let kvUri = $"https://{config.KeyVault}.vault.azure.net";
             let c = new DefaultAzureCredential()
             let client = new SecretClient(new Uri(kvUri), c);
-            try             
-                let! sec = client.GetSecretAsync(config.KeyVaultKey)                
+            try
+                let! sec = client.GetSecretAsync(config.KeyVaultKey)
                 return sec.Value.Value |> Convert.FromBase64String |> System.Text.UTF8Encoding.Default.GetString
-            with ex -> 
+            with ex ->
                 let msg = $"unable to get secret {ex.Message}"
                 logError msg
                 return raise ex
@@ -62,7 +62,7 @@ module Env =
 
     let getLogger() = if logger <> Unchecked.defaultof<_> then None else Some logger
 
-    let readSettingsFile (path:string) = 
+    let readSettingsFile (path:string) =
         task {
             try
                 return System.IO.File.ReadAllText path
@@ -72,7 +72,7 @@ module Env =
                return raise ex
         }
 
-    let defaultSettings() = 
+    let defaultSettings() =
         {
             LOG_CONN_STR = None
             AZURE_OPENAI_ENDPOINTS = []
@@ -83,10 +83,10 @@ module Env =
             //GOOGLE_KEY = None
         }
 
-    let loadSettingsAsync() = 
+    let loadSettingsAsync() =
         task {
-            let! settingsText = 
-                let path = 
+            let! settingsText =
+                let path =
                     if not(String.IsNullOrWhiteSpace config.SettingsFile) then
                         Environment.ExpandEnvironmentVariables(config.SettingsFile)
                     else
@@ -102,7 +102,7 @@ module Env =
                     getFromKeyVault()
             let parms = JsonSerializer.Deserialize<ServiceSettings>(settingsText,Utils.serOptions())
             return parms
-        }        
+        }
 
     let tryLoadSettings() = loadSettingsAsync() |> Async.AwaitTask |> Async.RunSynchronously
 
@@ -115,14 +115,14 @@ module Env =
             let appConfig : AppConfig = JsonSerializer.Deserialize(str,Utils.serOptions())
             Some appConfig
         with ex ->
-            printfn "%A" ex            
+            printfn "%A" ex
             None
 
     let appConfig = lazy(loadConfig())
 
     let init (cfg:IConfiguration, lggr:ILogger<FsOpenAILog>, wrootPath) =
         logger <- lggr
-        config <- 
+        config <-
             {
                 SettingsFile = cfg.[C.SETTINGS_FILE]
                 SettingsFile_Env = cfg.[C.SETTINGS_FILE_ENV]
@@ -135,7 +135,7 @@ module Settings =
     let mutable _cachedSettings = lazy(Env.loadSettings()) //mutable to allow refresh even if app is running
 
     let redactEndpoints (xs:AzureOpenAIEndpoints list) =
-        xs 
+        xs
         |> List.map(fun c -> {c with API_KEY = "Redacted"})
 
     let redactEndpoint (ep:ApiEndpoint) = {ep with API_KEY="Redacted"}
@@ -153,8 +153,8 @@ module Settings =
             EMBEDDING_ENDPOINTS = redactEndpoints sttngs.EMBEDDING_ENDPOINTS
             BING_ENDPOINT = sttngs.BING_ENDPOINT |> Option.map redactEndpoint
         }
-          
-    let refreshSettings dispatch = 
+
+    let refreshSettings dispatch =
         task {
             try
                 let! sttngs = Env.loadSettingsAsync()
@@ -167,10 +167,11 @@ module Settings =
                dispatch (Srv_Parameters _cachedSettings.Value)
                dispatch (Srv_Info msg)
         }
-    
+
     let getSettings() = _cachedSettings
 
-    let updateKey sttngs = 
-        match sttngs.OPENAI_KEY with 
+    let updateKey sttngs =
+        match sttngs.OPENAI_KEY with
         | None -> _cachedSettings.Value
+        | Some x when Utils.isEmpty x -> _cachedSettings.Value
         | _    -> {_cachedSettings.Value with OPENAI_KEY = sttngs.OPENAI_KEY} //use openai, google from client, if provided
