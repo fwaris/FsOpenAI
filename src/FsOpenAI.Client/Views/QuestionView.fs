@@ -51,8 +51,11 @@ type QuestionView() =
                     attr.id "idQuestion"
                     on.keydown (fun e -> 
                         if not e.ShiftKey && e.Key = "Enter" && Submission.isReady selChat then  
-                            dispatch (Ia_SubmitOnKey (selChat.Value.Id,true))
-                            )
+                            task {
+                                let! text = this.GetText()
+                                dispatch (Ia_SetQuestion (selChat.Value.Id,text))                            
+                                dispatch (Ia_SubmitOnKey (selChat.Value.Id,true))
+                            } |> ignore)
                     on.blur (fun e -> 
                         task{
                             let! text = this.GetText()

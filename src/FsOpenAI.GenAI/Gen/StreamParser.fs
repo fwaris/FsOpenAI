@@ -199,7 +199,9 @@ module StreamParser =
             match s.Current with
             | None -> s, Empty p_string_list, None
             | Some '[' -> p_string_list_cont [] s.Step
-            | Some c -> fail s "p_string_list: Expected '[' but got {c}"
+            | Some 'n' -> p_null s
+            | Some c -> fail s $"p_string_list: Expected '[' but got {c}"
+    and p_null (s:State) = map (fun _ -> Some [])  (pstring "null") s 
     and p_string_list_cont acc (s:State) =
         match s.Current with
         | None                              -> s, Empty (p_string_list_cont acc), None
