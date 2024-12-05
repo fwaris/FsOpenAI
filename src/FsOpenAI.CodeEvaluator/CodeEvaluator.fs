@@ -3,6 +3,11 @@ open FsOpenAI.GenAI
 open FsOpenAI.Shared
 open FsOpenAI.Shared.Interactions
 
+(*
+let settings = Settings.updateKey settings
+FsOpenAI.CodeEvaluator.CodeEval.run settings invCtx chat evalParms dispatch |> Async.Start
+*)
+
 module CodeEval =
     open System
     open System.IO
@@ -91,12 +96,27 @@ module CodeEval =
             dispatch (Srv_Ia_Delta(ch.Id,answer))
             dispatch (Srv_Ia_Done (ch.Id, None))
 
+
+        let scrub (code:string) =
+            let ig = System.StringComparison.OrdinalIgnoreCase
+            if code.Contains("http",ig) 
+                || code.Contains("System.Net") 
+                || code.Contains("System.IO") 
+                || code.Contains("System.Diagnostics",ig)
+                || code.Contains("Net.",ig)
+                || code.Contains("IO.",ig)
+                || code.Contains("Diagnostics.",ig)
+                || code.Contains("StartInfo")
+                then
+                failwith "code contains restricted keywords"
+                
         let private _genAndEval parms invCtx ch codeParms sendResults dispatch =
             async {
                 dispatch (Srv_Ia_Notification (ch.Id, $"Calling LLM to generate code..."))
                 let! resp = Completions.completeChat parms invCtx ch dispatch None None
                 let code = GenUtils.extractCode resp.Content
                 printfn "%s" code
+                scrub code
                 dispatch (Srv_Ia_Notification (ch.Id, $"Evaluing code..."))
                 dispatch (Srv_Ia_SetCode (ch.Id, Some code))
                 match evalCode codeParms.Preamble code with
@@ -105,6 +125,7 @@ module CodeEval =
                     dispatch (Srv_Ia_Notification (ch.Id, $"Error evaluating code. Tyring to fix and re-evalute code 1 ..."))
                     let! newCode = regenCode parms invCtx ch codeParms code msg dispatch
                     printfn "%s" newCode
+                    scrub code
                     dispatch (Srv_Ia_SetCode (ch.Id, Some code))
                     match evalCode codeParms.Preamble newCode with
                     | Success answer -> sendResults ch answer dispatch
@@ -112,6 +133,7 @@ module CodeEval =
                         dispatch (Srv_Ia_Notification (ch.Id, $"Error evaluating code. Tyring to fix and re-evalute code 2 ..."))
                         let! newCode = regenCode parms invCtx ch codeParms code msg dispatch
                         printfn "%s" newCode
+                        scrub code
                         dispatch (Srv_Ia_SetCode (ch.Id, Some code))
                         match evalCode codeParms.Preamble newCode with
                         | Success answer -> sendResults ch answer dispatch

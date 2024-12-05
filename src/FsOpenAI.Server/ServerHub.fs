@@ -142,8 +142,7 @@ type ServerHub() =
                     DocQnA.runPlan settings invCtx chat dispatch |> Async.Start
 
                 | Clnt_Run_EvalCode (settings,invCtx,chat,evalParms) ->
-                    let settings = Settings.updateKey settings
-                    FsOpenAI.CodeEvaluator.CodeEval.run settings invCtx chat evalParms dispatch |> Async.Start
+                    dispatch (Srv_Error "Code evaluation is disabled" )
 
                 | Clnt_UploadChunk (fileId,chunk) ->
                     try
