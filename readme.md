@@ -20,13 +20,14 @@ A rich web application (webassembly) for interacting with OpenAI models, either 
             + evaluation is time bound with limited concurrent evaluations
             + generated code size limit
         + note: code evaluator requires dockerized deployment
-    - Other
-        + exception handling improvements to safegaurd against leaking internal details
-        + code refactor: some large modules refactored into smaller, more coherent modules (among others refactorings)
-        + lowercase names for some files (namely *appsettings.json*) to support crossplatform development/deployment (windows, macos & linux)
-        + Git now ignores any *appsettings.json* files in the source tree because these files may contain proprietary data. Instead "appsettings.json.template" files have been introduced that contain example configuration settings. These can used to create local appsettings.json to run the application.
-        + platform-specific path seperator ('/' & '\\') handling
+    - Configuration Changes 
+        + **Important Note:** *appsettings.json* files are excluded from the repo as they may contain proprietary data. Instead **appsettings.json.template** files have been introduced that contain example configuration settings. They may be copied to create local appsettings.json files to make the settings effective.
+        + platform-specific path separator ('/' & '\\') handling added
         + the *service settings json* file path specified in *appsettings.json* is now expected to be relative to *HOME* directory, e.g. %USERPROFILE% for Windows and %HOME% for MacOs.
+    - Other
+        + exception handling improvements to safeguard against leaking internal details
+        + code refactor: some large modules refactored into smaller, more coherent modules (among others refactorings)
+        + lowercase names for some files (namely *appsettings.json*) to support cross platform development/deployment (windows, macos & linux)
 
 ### External Resources
 #### [Write up](https://www.linkedin.com/posts/activity-7096903519516983297-56Yg?utm_source=share&utm_medium=member_desktop)
