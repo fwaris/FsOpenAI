@@ -1,0 +1,98 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Fast Client - Debug Server",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "launchSettingsFilePath": "${workspaceFolder}/src/FsOpenAI.Server/Properties/launchSettings.json",
+            "launchSettingsProfile": "https",
+            "program": "${workspaceFolder}/src/FsOpenAI.Server/bin/Debug/net8.0/FsOpenAI.Server.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/src/FsOpenAI.Server",
+            "stopAtEntry": false,
+            "serverReadyAction": {
+                "action": "openExternally",
+                "pattern": "\\bNow listening on:\\s+(https?://\\S+)",
+            },
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            },
+            "sourceFileMap": {
+                "/Views": "${workspaceFolder}/Views"
+            }
+        },
+        {
+            "name": "UNAUTHENTICATED",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build UNAUTHENTICATED",
+            "launchSettingsFilePath": "${workspaceFolder}/src/FsOpenAI.Server/Properties/launchSettings.json",
+            "launchSettingsProfile": "https",
+            "program": "${workspaceFolder}/src/FsOpenAI.Server/bin/Debug/net8.0/FsOpenAI.Server.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/src/FsOpenAI.Server",
+            "stopAtEntry": false,
+            "serverReadyAction": {
+                "action": "openExternally",
+                "pattern": "\\bNow listening on:\\s+(https?://\\S+)",
+            },
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            },
+            "sourceFileMap": {
+                "/Views": "${workspaceFolder}/Views"
+            }
+        },        
+        {
+            "name": "WASM Debug",
+            "type": "blazorwasm",
+            "hosted": true,
+            "request": "launch",
+            "preLaunchTask": "build",//this does not seem to work; run build task separately
+            "launchSettingsFilePath": "${workspaceFolder}/src/FsOpenAI.Server/Properties/launchSettings.json",
+            "launchSettingsProfile": "https",
+            "program": "${workspaceFolder}/src/FsOpenAI.Server/bin/Debug/net8.0/FsOpenAI.Server.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/src/FsOpenAI.Server",
+            "stopAtEntry": false,
+            "serverReadyAction": {
+                "action": "openExternally",
+                "pattern": "\\bNow listening on:\\s+(https?://\\S+)",
+            },
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            },
+            "sourceFileMap": {
+                "/Views": "${workspaceFolder}/Views"
+            }
+        },
+        {
+            "name": "WASM UNAUTHENTICATED",
+            "type": "blazorwasm",
+            "hosted": true,
+            "request": "launch",
+            "preLaunchTask": "build UNAUTHENTICATED", //this does not seem to work; run build task separately
+            "launchSettingsFilePath": "${workspaceFolder}/src/FsOpenAI.Server/Properties/launchSettings.json",
+            "launchSettingsProfile": "https",
+            "program": "${workspaceFolder}/src/FsOpenAI.Server/bin/Debug/net8.0/FsOpenAI.Server.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/src/FsOpenAI.Server",
+            "stopAtEntry": false,
+            "serverReadyAction": {
+                "action": "openExternally",
+                "pattern": "\\bNow listening on:\\s+(https?://\\S+)",
+            },
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            },
+            "sourceFileMap": {
+                "/Views": "${workspaceFolder}/Views"
+            }
+        }
+    ]
+}

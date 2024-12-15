@@ -1,0 +1,65 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <WasmEnableThreads>false</WasmEnableThreads>
+    <AccelerateBuildsInVisualStudio>false</AccelerateBuildsInVisualStudio>
+    <Configurations>Debug;Release;UNAUTHENTICATED</Configurations>
+    <Platforms>AnyCPU</Platforms>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Model\Graph.fs" />
+    <Compile Include="Model\Model.fs" />
+    <Compile Include="Model\Initialization.fs" />
+    <Compile Include="Model\Auth.fs" />
+    <Compile Include="Model\IO.fs" />
+    <Compile Include="Model\TmpState.fs" />
+    <Compile Include="Model\Submission.fs" />
+    <Compile Include="Model\Update.fs" />
+    <Compile Include="Views\AsyncExts.fs" />
+    <Compile Include="Views\Binding.fs" />
+    <Compile Include="Views\ChatSettingsView.fs" />
+    <Compile Include="Views\MainSettingsView.fs" />
+    <Compile Include="Views\SearchResultsView.fs" />
+    <Compile Include="Views\FeedbackView.fs" />
+    <Compile Include="Views\UserMessageView.fs" />
+    <Compile Include="Views\CodeEvalView.fs" />
+    <Compile Include="Views\AssistantMessageView.fs" />
+    <Compile Include="Views\QuestionView.fs" />
+    <Compile Include="Views\ChatHistoryView.fs" />
+    <Compile Include="Views\DocView.fs" />
+    <Compile Include="Views\SourcesView.fs" />
+    <Compile Include="Views\AuthenticationViews.fs" />
+    <Compile Include="Views\SidebarView.fs" />
+    <Compile Include="Views\HeaderView.fs" />
+    <Compile Include="Views\FooterView.fs" />
+    <Compile Include="Views\MainLayout.fs" />
+    <Compile Include="App\Subscription.fs" />
+    <Compile Include="App\ClientHub.fs" />
+    <Compile Include="App\App.fs" />
+    <Compile Include="Startup.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Blazored.LocalStorage" Version="4.5.0" />
+    <PackageReference Include="Bolero" Version="0.*" />
+    <PackageReference Include="Bolero.Build" Version="0.*" />
+    <PackageReference Include="Bolero.HotReload" Version="0.*" />
+    <!--<PackageReference Include="MudBlazor" Version="7.8.0" />-->
+    <PackageReference Include="Radzen.Blazor" Version="5.6.0" />
+    <PackageReference Include="System.Text.Json" Version="8.0.5" />
+    <PackageReference Include="System.Threading.Channels" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.10" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.10" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Authentication.WebAssembly.Msal" Version="8.0.10" />
+    <PackageReference Include="FSharp.Control.AsyncSeq" Version="3.2.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Update="FSharp.Core" Version="8.0.401" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\FsOpenAI.Shared\FsOpenAI.Shared.fsproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,21 @@
+DOCUMENT: '''
+{{$document}}
+'''
+
+SEARCH RESULTS: '''
+{{$searchResults}}
+'''
+
+Analyze the DOCUMENT  in relation to SEARCH RESULTS for ANSWERING QUESTIONS.
+BE BRIEF AND TO THE POINT, BUT WHEN SUPPLYING OPINION, IF YOU SEE THE NEED, YOU CAN BE LONGER.
+BE CONTEXTUAL.
+If you don't know, ask.
+If you are not sure, ask.
+Based on calculates from TODAY
+TODAY is {{$date}}
+
+QUESTION: '''
+{{$question}}
+'''
+
+ANSWER:

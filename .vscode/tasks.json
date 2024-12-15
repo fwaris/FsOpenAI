@@ -1,0 +1,76 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{			
+			"command": "dotnet",
+			"type": "process",
+			"args": [
+				"build",
+				"FsOpenAI.sln"
+			],
+			"problemMatcher": [
+				"$msCompile"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"label": "build",
+			"detail": "Build the FsOpenAI.sln solution using dotnet build"
+		},
+		{			
+			"command": "dotnet",
+			"type": "process",
+			"args": [
+				"build",				
+				"FsOpenAI.sln",
+				"-p:DefineConstants=UNAUTHENTICATED"
+			],
+			"problemMatcher": [
+				"$msCompile"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": false
+			},
+			"label": "build UNAUTHENTICATED"
+		},
+		{			
+			"command": "dotnet",
+			"type": "process",
+			"args": [
+				"publish",				
+				"src/FsOpenAI.Server/FsOpenAI.Server.fsproj",
+				"-c:Release",
+				"-o:../appunauth",
+				"-p:DefineConstants=UNAUTHENTICATED"
+			],
+			"problemMatcher": [
+				"$msCompile"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": false
+			},
+			"label": "publish UNAUTHENTICATED"
+		},
+		{			
+			"command": "dotnet",
+			"type": "process",
+			"args": [
+				"publish",				
+				"src/FsOpenAI.Server/FsOpenAI.Server.fsproj",
+				"-c:Release",
+				"-o:../app"
+			],
+			"problemMatcher": [
+				"$msCompile"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": false
+			},
+			"label": "publish"
+		}		
+	]	
+}

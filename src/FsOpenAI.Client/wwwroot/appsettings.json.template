@@ -1,0 +1,12 @@
+{
+  "Comment" : {
+    "1":"Copy contents of this file to appsettings.json and place it in the same location as this"
+    "2":"In the 'AzureAd' section set the appropriate values from the MS EntraID app registration for MSAL authentication.",
+    "3":"appsettings.json is 'gitignored' as it may contain proprietary information"
+  },
+  "AzureAd": {
+    "Authority": "https://login.microsoftonline.com/<tenant id>",
+    "ClientId": "<client id>",
+    "ValidateAuthority": true
+  }
+}

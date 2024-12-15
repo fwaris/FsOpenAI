@@ -1,0 +1,53 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<Configurations>Debug;Release;UNAUTHENTICATED</Configurations>
+		<Platforms>AnyCPU</Platforms>
+	</PropertyGroup>
+	<ItemGroup>
+		<Compile Include="AsyncExts.fs" />
+		<Compile Include="Env.fs" />
+		<Compile Include="Connection.fs" />
+		<Compile Include="Sessions.fs" />
+		<Compile Include="Monitoring.fs" />
+		<Compile Include="Gen\SemanticVectorSearch.fs" />
+		<Compile Include="Gen\StreamParser.fs" />
+		<Compile Include="Gen\TemplateParser.fs" />
+		<Compile Include="Gen\Models.fs" />
+		<Compile Include="Gen\Tokens.fs" />
+		<Compile Include="Gen\ChatUtils.fs" />
+		<Compile Include="Gen\Endpoints.fs" />
+		<Compile Include="Gen\SKernel.fs" />
+		<Compile Include="Gen\GenUtils.fs" />
+		<Compile Include="Gen\Indexes.fs" />
+		<Compile Include="Gen\Prompts.fs" />
+		<Compile Include="Gen\Completions.fs" />
+		<Compile Include="Gen\WebCompletion.fs" />
+		<Compile Include="Gen\IndexQnA.fs" />
+		<Compile Include="Gen\DocQnA.fs" />
+	</ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="FSharp.CosmosDb" Version="1.2.1" />
+		<PackageReference Include="FSharp.Data.Html.Core" Version="6.4.0" />
+		<PackageReference Include="MathNet.Numerics.FSharp" Version="5.0.0" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
+		<PackageReference Include="Microsoft.Identity.Web" Version="3.3.1" />
+		<PackageReference Include="Microsoft.DeepDev.TokenizerLib" Version="1.3.3" />
+		<PackageReference Include="Microsoft.SemanticKernel" Version="1.29.0" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+		<PackageReference Include="Azure.Search.Documents" Version="11.6.0" />
+		<PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
+		<PackageReference Include="ExcelDataReader" Version="3.7.0" />
+		<PackageReference Include="ExcelDataReader.DataSet" Version="3.7.0" />
+		<PackageReference Include="System.Text.Encoding.CodePages" Version="8.0.0" />
+		<PackageReference Include="Microsoft.SemanticKernel.Connectors.Google" Version="1.19.0-alpha" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\FsOpenAI.Shared\FsOpenAI.Shared.fsproj" />
+		<ProjectReference Include="..\FsOpenAI.Vision\FsOpenAI.Vision.fsproj" />
+	</ItemGroup>
+	<ItemGroup>
+		<PackageReference Update="FSharp.Core" Version="8.0.401" />
+	</ItemGroup>
+</Project>

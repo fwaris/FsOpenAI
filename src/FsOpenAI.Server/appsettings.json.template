@@ -1,0 +1,31 @@
+{
+  "Comment" : {
+    "1":"Copy contents of this file to appsettings.json and place it in the same location as this"
+    "2":"In the 'AzureAd' section set the appropriate values from the MS EntraID app registration for MSAL authentication.",
+    "3":"appsettings.json is 'gitignored' as it may contain proprietary information"
+  },
+  "Parms": {
+    "Settings": ".fsopenai/ServiceSettings.json"
+  },
+  "AzureAd": {
+    "Instance": "https://login.microsoftonline.com/",
+    "Domain": "<domain associated with entraid app registration>",
+    "TenantId": "<tenant id>",
+    "ClientId": "<client id>",
+    "Audience": "api://..."
+  },
+  "Logging": {
+    "LogLevel": {
+      "Microsoft.AspNetCore.Hosting": "Warning"
+    }
+  },
+  "DebugLogging": {
+    "LogLevel": {
+      "Default": "Debug",
+      "System": "Information",
+      "Microsoft": "Information",
+      "Microsoft.AspNetCore.SignalR": "Debug",
+      "Microsoft.AspNetCore.Http.Connections": "Debug"
+    }
+  }
+}
