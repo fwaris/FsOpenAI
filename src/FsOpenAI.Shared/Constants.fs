@@ -34,6 +34,8 @@ module C =
 
     let DEFAULT_META_INDEX = "fsopenai-meta" //meta index name. allowed: lower case letters; digits; and dashes
 
+    let VALIDATE_TOKEN_EXPIRY = "Parms:ValidateTokenExpiry"  // validate token expiry on each client message
+
     let SETTINGS_FILE = "Parms:Settings"                            //1st: look for a reference to settings json file in appSettings
     let SETTINGS_FILE_ENV = "FSOPENAI_SETTINGS_FILE"                //2nd: look for the whole settings file in this environment variable (base64 encoded json string)
     let FSOPENAI_AZURE_KEYVAULT = "FSOPENAI_AZURE_KEYVAULT"         //3nd: look for a key vault name in this environment variable,

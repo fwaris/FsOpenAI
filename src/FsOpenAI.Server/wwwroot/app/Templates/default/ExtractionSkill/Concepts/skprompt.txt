@@ -4,6 +4,6 @@ DOCUMENT: '''
 
 Analyze the DOCUMENT and extract terms and concepts which can be used to perform lookup. Be sure to include any Finance terms and standards in the query.
 
-DONT GENERATE SQL. JUST LIST THE TERMS AS COMMA-SEPARATED VALUES
+DONT GENEARTE SQL. JUST LIST THE TERMS AS COMMA-SEPARATED VALUES
 
 QUERY:

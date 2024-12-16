@@ -1,17 +1,18 @@
 ﻿namespace FsOpenAI.Server
 open System
 open System.Threading.Tasks
-open FSharp.Control
-open FsOpenAI.Shared
-open FsOpenAI.Shared.Interactions
-open FsOpenAI.Server.Templates
-open FsOpenAI.GenAI
 open Microsoft.AspNetCore.SignalR
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.Primitives
 open Microsoft.AspNetCore.Authentication
 open Microsoft.AspNetCore.Authorization
 open Microsoft.Extensions.DependencyInjection
+open Microsoft.Extensions.Configuration
+open FSharp.Control
+open FsOpenAI.Shared
+open FsOpenAI.Shared.Interactions
+open FsOpenAI.Server.Templates
+open FsOpenAI.GenAI
 
 module Inititalizaiton =
 
@@ -92,19 +93,24 @@ type TokenHandler(next:RequestDelegate) =
 #else    
 [<Authorize>]
 #endif
-type ServerHub() =
+type ServerHub(config:IConfiguration) =
     inherit Hub()
+
+    let shouldCheckExpiry =  
+        match bool.TryParse config.[C.VALIDATE_TOKEN_EXPIRY] with 
+        | true, v -> v 
+        | _ -> false
 
     let getUser (ctx:HubCallerContext) =
         match ctx.User with 
         | null -> C.UNAUTHENTICATED
         | u -> FsOpenAI.Client.Auth.getEmail u
-    
+   
     let updateCtx invCtx ctx = {invCtx with User = Some (getUser ctx)}
     
-    ///Force disconnects any client, if token in the client context is expired or is about to expire
-    ///Note: Middlware (gateways etc.) may disconnect web socket connections long before token expiry
-    ///in which case invoking this function is mute
+    ///Disconnect any client, if token in the client context is expired or is about to expire
+    ///Note: Middlware (gateways like Akamai etc.) may disconnect web socket connections long before token expiry
+    ///in which case invoking this function is not required
     let checkTokenExpiry (client:ISingleClientProxy, ctx:HubCallerContext) = 
         task {
             let hctx = ctx.GetHttpContext()                        
@@ -229,7 +235,8 @@ type ServerHub() =
             with ex ->
                 Env.logException(ex, nameof this.ProcessClientMessage)
             
-            //checkExpiry(client,this.Context)
+            if shouldCheckExpiry then
+                checkTokenExpiry(client,this.Context)
         }
 
     member this.FromClient(msg:ClientInitiatedMessages) : Task =
