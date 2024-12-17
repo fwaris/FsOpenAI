@@ -4,12 +4,12 @@ A rich web application (webassembly) for interacting with OpenAI models, either 
 
 #### Release Notes
 - 2024/12/7
-    - fixed signalr/websocket authorization vulnerability (please upgrade to new code base)
-    - optional capability available to validate client oauth token expiry on each SignlarR message receive
+    - fixed SignalR/websocket authorization vulnerability (please upgrade to new code base)
+    - optional capability available to validate client oauth token expiry on each SignalR message receive
         + previously this was done only upon connection creation
     - background task added to remove any dangling uploaded or intermediate files in temp folder
-    - upload file size limit enfored on server side
-    - to build an unauthenticated version of the app now requires compilation with UNAUTHENTICATED symbol: 
+    - upload file size limit enforced on server side
+    - to build an unauthenticated version of the app now requires compilation with UNAUTHENTICATED symbol:
         + dotnet build --property:DefineConstants=UNAUTHENTICATED
     - Code Evaluator improvements:
         + the experimental code evaluation capability now requires a special build, its not linked in by default
@@ -20,7 +20,7 @@ A rich web application (webassembly) for interacting with OpenAI models, either 
             + evaluation is time bound with limited concurrent evaluations
             + generated code size limit
         + note: code evaluator requires dockerized deployment
-    - Configuration Changes 
+    - Configuration Changes
         + **Important Note:** *appsettings.json* files are excluded from the repo as they may contain proprietary data. Instead **appsettings.json.template** files have been introduced that contain example configuration settings. They may be copied to create local appsettings.json files to make the settings effective.
         + platform-specific path separator ('/' & '\\') handling added
         + the *service settings json* file path specified in *appsettings.json* is now expected to be relative to *HOME* directory, e.g. %USERPROFILE% for Windows and %HOME% for MacOs.
@@ -45,7 +45,7 @@ In fact, the goal of FsOpenAI is to keep configuration and deployment simple for
 
 Currently, FsOpenAI supports four types of interaction (i.e chat) modes. These are selectable from the available 'Sources' on the UI.
 
-1. **Basic chat**: Interactive chat session with pre-trained 
+1. **Basic chat**: Interactive chat session with pre-trained
 GPT models, optionally augmented with Bing search results.
 
 2. **Question and answer over custom documents**: Retrieval Augmented Generation (RAG) for Q&A over custom document collections indexed in Azure AI Search (for now).
@@ -89,19 +89,19 @@ The secrets and backend service connection information (e.g. Azure / OpenAI mode
 A running application will look for this file in three place (in the order listed):
 - Path given by the key *"Parms:Settings"* in *appsettings.json* (server). Path is expected to be relative the *HOME* directory of user. This generally use for local testing and development.
 - Environment variable *FSOPENAI_SETTINGS_FILE*
-- Azure KeyVault (see below) 
+- Azure KeyVault (see below)
 
-For KeyVault or envrionment variable placements, the entire contents of this file are serialized to a base64 string. See [SerializeSettings.fsx](/src/FsOpenAI.Tasks/scripts/SerializeSettings.fsx).
+For KeyVault or environment variable placements, the entire contents of this file are serialized to a base64 string. See [SerializeSettings.fsx](/src/FsOpenAI.Tasks/scripts/SerializeSettings.fsx).
 FsOpenAI will look for the following hardcoded environment variables to pull the settings json from Azure Key Vault.
 
 |Env. Var. Name.|Description|
 |----------------|------------|
-|FSOPENAI_AZURE_KEYVAULT|Key Vault name| 
+|FSOPENAI_AZURE_KEYVAULT|Key Vault name|
 |FSOPENAI_AZURE_KEYVAULT_KEY| Key name|
 
 The Azure documentation for configuring web apps is [here.](https://learn.microsoft.com/en-us/azure/app-service/configure-common?tabs=portal)
 
-Multiple instances of FsOpenAI may be deployed, each with its own configuration (e.g. for segregating access by organizational groups, etc.). If Azure AD is the organizational directory, then [each instance can be easily restricted to specfic AD groups](https://learn.microsoft.com/en-us/azure/active-directory/develop/howto-restrict-your-app-to-a-set-of-users).
+Multiple instances of FsOpenAI may be deployed, each with its own configuration (e.g. for segregating access by organizational groups, etc.). If Azure AD is the organizational directory, then [each instance can be easily restricted to specific AD groups](https://learn.microsoft.com/en-us/azure/active-directory/develop/howto-restrict-your-app-to-a-set-of-users).
 
 #### Load Balance Configuration
 The [service settings json](/ExampleSettings.json) allows for multiple endpoints (and API keys) to be configured under *AZURE_OPENAI_ENDPOINTS* and *AZURE_SEARCH_ENDPOINTS*. If multiple endpoints are configured, FsOpenAI will randomly select one endpoint before making the API call. This is a form of load balancing to obtain higher overall throughput. FsOpenAI expects that all endpoints are mirror images of each other (respective of the service type).
@@ -111,8 +111,8 @@ Note each chat or search API call is independent and stateless (from a server pe
 
 The *AppConfig.json* file is deployed to (server) wwwroot/app/ folder. It contains settings for customizing the appearance of the app and enabling/disabling certain features, e.g. allow plain chat interactions or not. The AppConfig.json should be created using a script like [config_default.fsx](/src/FsOpenAI.Tasks/deployments/default/config_default.fsx). This will ensure type safety. The AppConfig record structure fields are well documented with code comments. Hover mouse cursor over the AppConfig record fields to view the comments and documentation for each setting.
 
-#### The **'app'** Folders: 
-Deployment specific application configuration is largely kept in two folders both named *app* under **(client)/wwwroot** and **(server)/wwwroot**. This should make for easier customzation for different deployments as only the *app* folders need be replaced (in most cases) before deployment.
+#### The **'app'** Folders:
+Deployment specific application configuration is largely kept in two folders both named *app* under **(client)/wwwroot** and **(server)/wwwroot**. This should make for easier customization for different deployments as only the *app* folders need be replaced (in most cases) before deployment.
 
 Logos and 'persona' images can be loaded into (client) *wwwroot/app/imgs* folder.
 
@@ -121,7 +121,7 @@ CosmosDB connection string can be specified in [settings json](/ExampleSettings.
 
 ### 3. Prompt Templates by Domain (deprecated)
 
-The *Template* folder under (server) *wwwroot/app* folder can contain prompt templates in the [Semantic Kernel plugin format](https://learn.microsoft.com/en-us/semantic-kernel/ai-orchestration/plugins/?tabs=Csharp). 
+The *Template* folder under (server) *wwwroot/app* folder can contain prompt templates in the [Semantic Kernel plugin format](https://learn.microsoft.com/en-us/semantic-kernel/ai-orchestration/plugins/?tabs=Csharp).
 
 The following example shows a possible folder structure:
 ```
@@ -139,7 +139,7 @@ wwwroot/app
 ...
 ------Summarize (next plugin)
 ...
----Finance (mext domain)
+---Finance (next domain)
 ...
 ```
 There can be several plugins under each of the (business) domains. The prompt templates that fall under a particular business domain can be tailored for that domain. For example the Finance templates may be very specific the needs of the Finance department.
@@ -169,7 +169,7 @@ The [config_default.fsx](/src/FsOpenAI.Tasks/deployments/default/config_default.
 
 ### 5. Authentication Configuration
 
-The FsOpenAI app supports integration with Azure AD (or MS Entra ID). To require authentication, set the *RequireLogin* flag in the AppConfig (see above). The user roles can also be specified there. See [MS authentication for Blazor apps](https://learn.microsoft.com/en-us/azure/active-directory/develop/tutorial-blazor-webassembly) for more information. 
+The FsOpenAI app supports integration with Azure AD (or MS Entra ID). To require authentication, set the *RequireLogin* flag in the AppConfig (see above). The user roles can also be specified there. See [MS authentication for Blazor apps](https://learn.microsoft.com/en-us/azure/active-directory/develop/tutorial-blazor-webassembly) for more information.
 
 There are two places additional configuration is required to support AD authentication:
 
@@ -181,7 +181,7 @@ Please review the MS documentation for details. This is an involved topic which 
 Note *appsettings.json* files are not checked in to the repo as they may contain proprietary data. Instead make a copy of the appsettings.template.json files to appesttings.json in the corresponding locations and add the required configuration.
 
 ## Search Index Format
-FsOpenAI expects the following fields to be present in each configured Azure AI Search index. If any field is missing, it will not show the index in the Q&A chat *index selection box*. Any additional fields are ignored. 
+FsOpenAI expects the following fields to be present in each configured Azure AI Search index. If any field is missing, it will not show the index in the Q&A chat *index selection box*. Any additional fields are ignored.
 
 |Field|Description|
 |-----|-----------|
@@ -198,7 +198,7 @@ Sample code to 'shred' a collection of PDF documents; create the embeddings; and
 
 The api to create embeddings may be throttled (by Azure / OpenAI). The index loading code allows for rate limiting on the client/caller side to facilitate smoother batch index load operation of a large document collections.
 
-### Meta Index 
+### Meta Index
 In addition to the actual document indexes a special index, called 'Meta' index here, may also be created. The name of the Meta index - that an app deployment should use - is configured in the AppConfig.json (see configuration section above). The Meta index specifies the following additional information about the actual indexes:
 
 - Descriptions of the actual indexes that will display in the app where indexes can be selected.
@@ -221,4 +221,4 @@ For local testing, the settings json file can be specified in (server) *appsetti
 
 Note HOME is %USERPROFILE% on Windows and %HOME% on Linux and Macos.
 
-Also the OpenAI API key can be specified in the FsOpenAI UI via settings. The key is stored locally in the brower local storage.
+Also the OpenAI API key can be specified in the FsOpenAI UI via settings. The key is stored locally in the browser local storage.
