@@ -173,6 +173,7 @@ module Completions =
                 return raise ex
         }
 
+    [<Obsolete>] //with o3-mini separate processing may not be needed
     let private completeLogicChat (parms:ServiceSettings) (invCtx:InvocationContext) (ch:Interaction) dispatch modelSelector =
         async {
             let caller,msgs,opts,de = buildCall parms invCtx ch modelSelector None
@@ -205,7 +206,13 @@ module Completions =
 
     let checkStreamCompleteChat (parms:ServiceSettings) (invCtx:InvocationContext) (ch:Interaction) dispatch modelSelector haveCitations =
         match ch.Parameters.ModelType with
-        | MT_Logic -> completeLogicChat parms invCtx ch dispatch modelSelector
+        | MT_Logic -> 
+            //completeLogicChat parms invCtx ch dispatch modelSelector
+            //switching to o3-mini
+            if haveCitations then
+                streamCompleteChatFormatted parms invCtx ch dispatch modelSelector
+            else
+                streamCompleteChat parms invCtx ch dispatch modelSelector
         | MT_Chat ->
             if haveCitations then
                 streamCompleteChatFormatted parms invCtx ch dispatch modelSelector

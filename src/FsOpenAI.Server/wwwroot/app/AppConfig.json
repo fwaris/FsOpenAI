@@ -44,7 +44,7 @@
       "FsOpenAI Chat"
     ]
   },
-  "RequireLogin": true,
+  "RequireLogin": false,
   "AssistantIcon": null,
   "AssistantIconColor": null,
   "LogoUrl": "https:/github.com/fwaris/FsOpenAI",
@@ -95,14 +95,14 @@
         "Backend": {
           "Case": "AzureOpenAI"
         },
-        "Model": "o1-preview",
+        "Model": "o3-mini",
         "TokenLimit": 127000
       },
       {
         "Backend": {
           "Case": "OpenAI"
         },
-        "Model": "o1-preview",
+        "Model": "o3-mini",
         "TokenLimit": 127000
       }
     ],

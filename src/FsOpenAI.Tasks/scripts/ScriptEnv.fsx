@@ -441,8 +441,8 @@ module ModelDefs =
         ]
     let logic =
         [
-            {Backend=AzureOpenAI; Model="o1-preview"; TokenLimit=127000}
-            {Backend=OpenAI; Model="o1-preview"; TokenLimit=127000}
+            {Backend=AzureOpenAI; Model="o3-mini"; TokenLimit=127000}
+            {Backend=OpenAI; Model="o3-mini"; TokenLimit=127000}
         ]
     let logicMini =
         [
