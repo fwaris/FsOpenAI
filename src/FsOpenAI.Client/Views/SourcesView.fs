@@ -98,6 +98,7 @@ type IndexTreeView() =
             }
         else
             comp<RadzenTree> {
+                attr.style "--rz-tree-node-selected-background-color: transparent; --rz-tree-node-selected-color: var(--rz-text-primary);"
                 "AllowCheckBoxes" => true
                 "AllowCheckChildren" => true
                 "AllowCheckParents" => true

@@ -28,12 +28,6 @@
         "Case": "M_Plain"
       },
       "You are a helpful AI assistant"
-    ],
-    [
-      {
-        "Case": "M_CodeEval"
-      },
-      "ignored"
     ]
   ],
   "DefaultMaxDocs": 10,

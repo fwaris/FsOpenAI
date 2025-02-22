@@ -110,6 +110,13 @@ module Init =
                 let acc = loop acc x.Children
                 loop acc xs
         loop [] trees
+    
+    //can create sample if corresponding mode is enabled
+    let canCreateSample model = function
+        | SM_Plain _     -> Model.isEnabled M_Plain model
+        | SM_IndexQnA _  -> Model.isEnabled M_Index model || Model.isEnabled M_Doc_Index model
+        | SM_QnADoc      -> Model.isEnabled M_Doc model
+        | SM_CodeEval    -> Model.isEnabled M_CodeEval model
 
     let createFromSamples (label,samples:SamplePrompt list) model =
         let backend = defaultBackend model
@@ -139,7 +146,9 @@ module Init =
         if availableModels.IsEmpty then failwith "No chat models configured"
 
         let indexRefs = model.indexTrees |> flatten |> List.map(fun x -> x.Idx) |> List.distinct
-        samples |> List.map (createFromSample model webSearchConfigured backend indexRefs label)
+        samples 
+        |> List.filter (fun s -> canCreateSample model s.SampleChatType )
+        |> List.map (createFromSample model webSearchConfigured backend indexRefs label)
 
     let addSamples label (samples:SamplePrompt list) model =
         try

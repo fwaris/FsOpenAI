@@ -34,7 +34,7 @@ let page = doctypeHtml {
         script {attr.src $"scripts/utils.js?v={uiVersion}"}
         //authentication
         script {attr.src "_content/Microsoft.Authentication.WebAssembly.Msal/AuthenticationService.js" }
-        link { attr.rel "stylesheet"; attr.href "css/theme-override.css" }
+        link { attr.rel "stylesheet"; attr.href "css/theme-override.css?v=2" }
     }
     body {
         input {attr.id C.LOAD_CONFIG_ID; attr.``type`` "hidden"; attr.value cfgStr; }
