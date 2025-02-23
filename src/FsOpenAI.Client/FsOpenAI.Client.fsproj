@@ -43,6 +43,7 @@
     <PackageReference Include="Bolero" Version="0.*" />
     <PackageReference Include="Bolero.Build" Version="0.*" />
     <PackageReference Include="Bolero.HotReload" Version="0.*" />
+    <PackageReference Include="FSharp.Formatting.Markdown" Version="1.0.0" />
     <!--<PackageReference Include="MudBlazor" Version="7.8.0" />-->
     <PackageReference Include="Radzen.Blazor" Version="6.0.19" />
     <PackageReference Include="System.Text.Json" Version="8.0.5" />

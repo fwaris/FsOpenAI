@@ -2,6 +2,7 @@ namespace FsOpenAI.Client.Views
 open Bolero.Html
 open FsOpenAI.Client
 open FsOpenAI.Shared
+open FSharp.Formatting.Markdown
 
 module AssistantMessage =
     open Radzen
@@ -28,7 +29,15 @@ module AssistantMessage =
                     "Size" => 11
                     div {
                         attr.style "white-space: pre-line;"
-                        if Utils.isEmpty msg.Message then "..." else msg.Message
+                        if Utils.isEmpty msg.Message then 
+                            "..." 
+                        else 
+                            let html = Markdown.ToHtml(Markdown.Parse(msg.Message))
+                            let html = html
+                                            .Replace("<p>", "")
+                                            .Replace("</p>", "<br>")
+
+                            Bolero.Html.rawHtml(html)
                     }
                     table {
                         attr.style "width: 100%;"
