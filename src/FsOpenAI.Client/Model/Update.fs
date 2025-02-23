@@ -79,6 +79,7 @@ module Update =
         | Ia_OpenIndex id -> TmpState.toggleIndex id model, Cmd.none
         | Ia_ToggleSysMsg id -> TmpState.toggleSysMsg id model, Cmd.none
         | Ia_ToggleFeedback(id) -> TmpState.toggleFeedback id model, Cmd.none
+        | Ia_ToggleModelType id -> {model with interactions = Interactions.toggleModelType id model.interactions},Cmd.none
         | Ia_Feedback_Submit id -> Submission.submitFeedback uparms.serverDispatch id model; model,Cmd.none
         | Ia_UpdateCodeEvalParms (id,parms) -> {model with interactions = CodeEval.Interactions.setEvalParms id parms model.interactions}, Cmd.none
         //session and state

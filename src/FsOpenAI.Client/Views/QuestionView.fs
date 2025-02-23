@@ -27,6 +27,7 @@ type QuestionView() =
     override this.View model dispatch = 
         let selChat = Model.selectedChat model
         let isNotReady = not (Submission.isReady selChat)
+        let isReasoning = selChat |> Option.map (fun c -> c.Parameters.ModelType.IsMT_Logic) |> Option.defaultValue false
         let question = selChat |> Option.map (fun c -> c.Question) |> Option.defaultValue null
         comp<RadzenCard> {
             attr.``class`` "rz-shadow-5 rz-border-radius-5 rz-p-2"            
@@ -35,16 +36,34 @@ type QuestionView() =
             comp<RadzenStack> { 
                 "Orientation" => Orientation.Horizontal
                 "Gap" => "0.1rem"
-                comp<RadzenMenu> {
-                    "Style" => "background-color: transparent;"
-                    "Responsive" => false                        
-                    comp<RadzenMenuItem> {
-                        "Icon" => "delete_sweep"
-                        attr.title "Clear chat for new topic"
-                        attr.callback "Click" (fun (e:MenuItemEventArgs) -> 
-                            selChat 
-                            |> Option.iter (fun c -> dispatch (Ia_ResetChat (c.Id,""))))
-                    }
+                comp<RadzenStack> {
+                    "Orientation" => Orientation.Vertical
+                    "Gap" => "0.1rem"
+                    comp<RadzenMenu> {
+                        "Style" => "background-color: transparent;"
+                        "Responsive" => false                        
+                        comp<RadzenMenuItem> {
+                            "Icon" => "delete_sweep"
+                            attr.disabled  isNotReady
+                            attr.title "Clear chat for new topic"
+                            attr.callback "Click" (fun (e:MenuItemEventArgs) -> 
+                                selChat 
+                                |> Option.iter (fun c -> dispatch (Ia_ResetChat (c.Id,""))))
+                        }
+                    }                
+                    comp<RadzenMenu> {
+                        "Style" => "background-color: transparent;"
+                        "Responsive" => false                        
+                        comp<RadzenMenuItem> {
+                            "Icon" => "psychology"
+                            "IconColor" => (if isReasoning then Colors.Primary else Colors.Info)
+                            attr.disabled  isNotReady
+                            attr.title (if isReasoning then "Reasoning mode on" else "Reasoning mode off")
+                            attr.callback "Click" (fun (e:MenuItemEventArgs) -> 
+                                selChat 
+                                |> Option.iter (fun c -> dispatch (Ia_ToggleModelType (c.Id))))
+                        }
+                    }                  
                 }
                 comp<RadzenTextArea> {                            
                     "Rows" => 3 

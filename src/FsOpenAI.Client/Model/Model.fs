@@ -84,6 +84,7 @@ type Message =
     | Ia_Local_ClearAll
     | Ia_ClearChats
     | Ia_ResetChat of string * string
+    | Ia_ToggleModelType of string
     | Ia_AddMsg of string * InteractionMessage
     | Ia_SetQuestion of string * string
     | Ia_AddDelta of string * string
