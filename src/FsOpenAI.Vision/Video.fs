@@ -1,5 +1,5 @@
 ﻿namespace FsOpenAI.Vision
-
+(* commented out to reduce application package size - to deploy to free azure tier
 open OpenCvSharp
 open System.Drawing
 open System.IO
@@ -52,3 +52,4 @@ module Video =
                 yield frame
             clipIn.Release()
         }
+*)

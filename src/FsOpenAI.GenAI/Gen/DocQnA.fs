@@ -131,6 +131,9 @@ module DocQnA =
 
     let videoToText parms filePath dispatch = 
         async {
+            dispatch "video processing diabled"
+            return ["no content extracted from video"]
+            (*
             dispatch "Extracting frames..."
             let frames,fps,w,h,format = Video.getInfo filePath
             let msg = $"{frames} frames, %0.0f{fps} fps, {w}x{h}, {format}"
@@ -143,6 +146,7 @@ module DocQnA =
                 match resp with
                 | Some r -> r.choices |> List.map (fun x -> x.message.content)
                 | None -> ["no content extracted from video"]
+            *)
         }
 
     let extract parms (id,fileId,docType) dispatch =
