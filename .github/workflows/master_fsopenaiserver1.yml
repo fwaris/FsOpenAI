@@ -21,13 +21,13 @@ jobs:
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0'
+          dotnet-version: '3.1'
 
       - name: Build with dotnet
-        run: dotnet build --configuration Release -p:DefineConstants=UNAUTHENTICATED
+        run: dotnet build --configuration Release
 
       - name: dotnet publish
-        run: dotnet publish -c Release -o "${{env.DOTNET_ROOT}}/myapp" -p:DefineConstants=UNAUTHENTICATED
+        run: dotnet publish src/FsOpenAI.Server/FsOpenAI.Server.fsproj -c Release -p:DefineConstants=UNAUTHENTICATED -o "${{env.DOTNET_ROOT}}/myapp"
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -54,9 +54,9 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_07DD3A92F9A04DB1A7E3F909444D164F }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_FCEECA5AD3F341078941C4FA7D1633E1 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_86E537FC979B4414BC732843520A67D6 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_D3FDAC99007C4497952D34F3348EA900 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_CE43FB7041B146EBB35D6C310F746245 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_F989018754C14A88848EFADF272A0CA0 }}
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
