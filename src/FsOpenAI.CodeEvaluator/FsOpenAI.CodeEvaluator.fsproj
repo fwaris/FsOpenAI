@@ -14,13 +14,13 @@
     <None Include="scripts\Sandbox.fsx" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="FSharp.Compiler.Service" Version="43.8.401" />
+    <PackageReference Include="FSharp.Compiler.Service" Version="[43.8.100,)" />
     <PackageReference Include="Microsoft.SemanticKernel" Version="1.38.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\FsOpenAI.GenAI\FsOpenAI.GenAI.fsproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Update="FSharp.Core" Version="8.0.401" />
+    <PackageReference Update="FSharp.Core" Version="[8.0.100,)" />
   </ItemGroup>
 </Project>

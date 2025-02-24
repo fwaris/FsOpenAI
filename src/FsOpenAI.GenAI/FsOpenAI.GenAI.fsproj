@@ -48,6 +48,6 @@
 		<ProjectReference Include="..\FsOpenAI.Vision\FsOpenAI.Vision.fsproj" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Update="FSharp.Core" Version="8.0.401" />
+		<PackageReference Update="FSharp.Core" Version="[8.0.100,)" />
 	</ItemGroup>
 </Project>
