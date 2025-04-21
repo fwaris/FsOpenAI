@@ -1,6 +1,6 @@
-<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+﻿<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <WasmEnableThreads>false</WasmEnableThreads>
     <AccelerateBuildsInVisualStudio>false</AccelerateBuildsInVisualStudio>
     <Configurations>Debug;Release;UNAUTHENTICATED</Configurations>
@@ -45,17 +45,17 @@
     <PackageReference Include="Bolero.HotReload" Version="0.*" />
     <PackageReference Include="FSharp.Formatting.Markdown" Version="1.0.0" />
     <!--<PackageReference Include="MudBlazor" Version="7.8.0" />-->
-    <PackageReference Include="Radzen.Blazor" Version="6.0.19" />
-    <PackageReference Include="System.Text.Json" Version="8.0.5" />
-    <PackageReference Include="System.Threading.Channels" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.10" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.10" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.Authentication.WebAssembly.Msal" Version="8.0.10" />
+    <PackageReference Include="Radzen.Blazor" Version="6.6.1" />
+    <PackageReference Include="System.Text.Json" Version="9.0.4" />
+    <PackageReference Include="System.Threading.Channels" Version="9.0.4" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="9.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="9.0.4" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Authentication.WebAssembly.Msal" Version="9.0.4" />
     <PackageReference Include="FSharp.Control.AsyncSeq" Version="3.2.1" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Update="FSharp.Core" Version = "[8.0.100,)" />
+    <PackageReference Update="FSharp.Core" Version="9.0.202" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />

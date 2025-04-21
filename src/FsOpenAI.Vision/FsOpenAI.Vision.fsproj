@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Configurations>Debug;Release;UNAUTHENTICATED</Configurations>
     <Platforms>AnyCPU</Platforms>
@@ -16,17 +16,17 @@
 <ItemGroup>
 	<!--<PackageReference Include="OpenCvSharp4.Extensions" Version="4.10.0.20241108" />
 	<PackageReference Include="OpenCvSharp4.Windows" Version="4.10.0.20241108" />-->
-	<PackageReference Include="System.Drawing.Common" Version="8.0.10" />
+	<PackageReference Include="System.Drawing.Common" Version="9.0.4" />
 	<PackageReference Include="FSharp.Control.AsyncSeq" Version="3.2.1" />
-	<PackageReference Include="PdfPig" Version="0.1.9" />
+	<PackageReference Include="PdfPig" Version="0.1.10" />
 	<PackageReference Include="Docnet.Core" Version="2.6.0" />
 	<PackageReference Include="FSharp.SystemTextJson" Version="1.3.13" />
-	<PackageReference Include="DocumentFormat.OpenXml" Version="3.1.1" />
-	<PackageReference Include="System.Text.Json" Version="8.0.5" />
+	<PackageReference Include="DocumentFormat.OpenXml" Version="3.3.0" />
+	<PackageReference Include="System.Text.Json" Version="9.0.4" />
 </ItemGroup>
 
 <ItemGroup>
-  <PackageReference Update="FSharp.Core" Version="[8.0.100,)" />
+  <PackageReference Update="FSharp.Core" Version="9.0.202" />
 </ItemGroup>
 
 
