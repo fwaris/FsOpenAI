@@ -10,28 +10,35 @@ module AssistantMessage =
 
     let view (msg:InteractionMessage) (chat:Interaction) lastMsg model dispatch =
         let docs = match msg.Role with Assistant r -> r.DocRefs | _ -> []
-        let docsr = 
-            if docs |> List.exists (fun x -> x.SortOrder.IsSome) then 
-                docs |> List.filter (fun x -> x.SortOrder.IsSome) 
-            else 
+        let docsr =
+            if docs |> List.exists (fun x -> x.SortOrder.IsSome) then
+                docs |> List.filter (fun x -> x.SortOrder.IsSome)
+            else
                 docs
         comp<RadzenCard> {
             attr.``class`` $"rz-mt-1 rz-border-radius-3"
             comp<RadzenRow> {
                 comp<RadzenColumn> {
                     "Size" => 1
-                    comp<RadzenIcon> {
-                        "Icon" =>  (model.appConfig.AssistantIcon |> Option.defaultValue C.DFLT_ASST_ICON)                        
-                        "IconColor" => (model.appConfig.AssistantIconColor |> Option.defaultValue  C.DFLT_ASST_ICON_COLOR)
-                    }
+                    match model.appConfig.AssistantIcon with //assume  alt icon is an image (updated to match radzen changes)
+                    | Some path ->
+                        comp<RadzenImage> {
+                            "Path" => path
+                            "Style" => "width: 2rem; height: 2rem;"
+                        }
+                    | None ->
+                        comp<RadzenIcon> {
+                            "Icon" =>   C.DFLT_ASST_ICON
+                            "IconColor" => (model.appConfig.AssistantIconColor |> Option.defaultValue  C.DFLT_ASST_ICON_COLOR)
+                        }
                 }
                 comp<RadzenColumn> {
                     "Size" => 11
                     div {
                         attr.style "white-space: pre-line;"
-                        if Utils.isEmpty msg.Message then 
-                            "..." 
-                        else 
+                        if Utils.isEmpty msg.Message then
+                            "..."
+                        else
                             let html = Markdown.ToHtml(Markdown.Parse(msg.Message))
                             let html = html
                                             .Replace("<p>", "")
@@ -68,14 +75,14 @@ module AssistantMessage =
                                 }
                             }
                         if lastMsg && not chat.IsBuffering then
-                            match Interactions.CodeEval.Interaction.codeBag chat with 
+                            match Interactions.CodeEval.Interaction.codeBag chat with
                             | None -> ()
-                            | Some v -> 
+                            | Some v ->
                                 tr {
-                                    td {                                        
+                                    td {
                                         attr.colspan 2
                                         ecomp<CodeAndPlanView,_,_> model dispatch {attr.empty()}
-                                    }                            
+                                    }
                                 }
                             tr {
 
