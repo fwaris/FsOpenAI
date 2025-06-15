@@ -168,7 +168,9 @@ module DocQnA =
                 | Some x             -> async{return failwith $"unsupported document type {x}"}
             match! Async.Catch texts with
             | Choice1Of2 xs ->  
-                xs |> List.iter (fun t -> (dispatch (Srv_Ia_File_Chunk (id,t,false))))
+                for t in xs do
+                    do! Async.Sleep 100                          //add pause to allow ui to stay responsive
+                    dispatch (Srv_Ia_File_Chunk (id,t,false))
                 dispatch (Srv_Ia_File_Chunk (id,"",true))
             | Choice2Of2 ex -> 
                 dispatch (Srv_Ia_File_Error(id,ex.Message))

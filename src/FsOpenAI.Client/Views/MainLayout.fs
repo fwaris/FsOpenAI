@@ -53,7 +53,7 @@ type MainLayout() =
                             }
                             comp<RadzenSplitterPane> {
                                 "Size" => "25%"
-                                attr.``class`` "rz-p-0 rz-p-lg-12"
+                                attr.``class`` "rz-p-0 rz-p-lg-3"
                                 "Style" => "overflow:auto;"
                                 ecomp<SourcesView,_,_> model dispatch {attr.empty()}
                             }
