@@ -128,12 +128,12 @@ module Config =
         System.IO.File.WriteAllText(file,json)
         printfn $"saved samples {Path.GetFullPath(file)}"
 
-    let installClientFiles sourcePath =        
+    let installClientFiles sourcePath =
         let srcAppSettings = sourcePath @@ "appsettings.json"
         let destAppSettings = CLIENT_ROOT @@ "appsettings.json"
-        if File.Exists srcAppSettings then  
+        if File.Exists srcAppSettings then
             File.Copy(srcAppSettings, destAppSettings,true)
-            printfn $"Copied {destAppSettings}"            
+            printfn $"Copied {destAppSettings}"
         let destImgsPath = CLIENT_ROOT @@ "app" @@ "imgs"
         Directory.GetFiles destImgsPath |> Seq.iter File.Delete
         Directory.GetFiles(sourcePath @@ "app" @@ "imgs")
@@ -147,8 +147,8 @@ module Config =
             File.Copy(srcCss, destCss,true)
             printfn $"Copied {destCss}"
 
-    let installServerAppSettings sourcePath = 
-        let serverProjPath = Path.GetFullPath(SERVER_ROOT @@ "..")       
+    let installServerAppSettings sourcePath =
+        let serverProjPath = Path.GetFullPath(SERVER_ROOT @@ "..")
         let destAppSettings = serverProjPath @@ "appsettings.json"
         File.Copy(sourcePath @@ "appsettings.json", destAppSettings,true)
         printfn $"Copied {destAppSettings}"
@@ -426,33 +426,33 @@ module MetaIndex =
 module ModelDefs =
     let embedding =
         [
-            {Backend=AzureOpenAI; Model="text-embedding-ada-002"; TokenLimit=8192} 
-            {Backend=OpenAI; Model="text-embedding-ada-002"; TokenLimit=8192} 
+            {Backend=AzureOpenAI; Model="text-embedding-ada-002"; TokenLimit=8192}
+            {Backend=OpenAI; Model="text-embedding-ada-002"; TokenLimit=8192}
         ]
     let chat =
         [
-            {Backend=AzureOpenAI; Model="gpt-4o"; TokenLimit=30000}
-            {Backend=OpenAI; Model="gpt-4o"; TokenLimit=127000}
+            {Backend=AzureOpenAI; Model="gpt-4.1"; TokenLimit=30000}
+            {Backend=OpenAI; Model="gpt-4.1"; TokenLimit=127000}
         ]
     let chatMini =
         [
-            {Backend=AzureOpenAI; Model="gpt-4o-mini"; TokenLimit=30000}
-            {Backend=OpenAI; Model="gpt-4o-mini"; TokenLimit=127000}
+            {Backend=AzureOpenAI; Model="gpt-4.1-mini"; TokenLimit=30000}
+            {Backend=OpenAI; Model="gpt-4.1-mini"; TokenLimit=127000}
         ]
     let logic =
         [
-            {Backend=AzureOpenAI; Model="o3-mini"; TokenLimit=127000}
-            {Backend=OpenAI; Model="o3-mini"; TokenLimit=127000}
+            {Backend=AzureOpenAI; Model="o4-mini"; TokenLimit=127000}
+            {Backend=OpenAI; Model="o4-mini"; TokenLimit=127000}
         ]
     let logicMini =
         [
-            {Backend=AzureOpenAI; Model="o1-mini"; TokenLimit=127000}
-            {Backend=OpenAI; Model="o1-mini"; TokenLimit=127000}
-        ]    
+            {Backend=AzureOpenAI; Model="o4-mini"; TokenLimit=127000}
+            {Backend=OpenAI; Model="o4-mini"; TokenLimit=127000}
+        ]
     let lowcost =
         [
-            {Backend=AzureOpenAI; Model="gpt-4o-mini"; TokenLimit=8000}
-            {Backend=OpenAI; Model="gpt-4o-mini"; TokenLimit=8000}
+            {Backend=AzureOpenAI; Model="gpt-4.1-mini"; TokenLimit=8000}
+            {Backend=OpenAI; Model="gpt-4.1-mini"; TokenLimit=8000}
         ]
     let modelsConfig =
         {

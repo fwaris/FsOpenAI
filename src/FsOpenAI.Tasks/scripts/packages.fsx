@@ -3,7 +3,7 @@
 #r "nuget: Microsoft.Extensions.Hosting"
 #r "nuget: Microsoft.AspNetCore.Components.WebAssembly"
 #r "nuget: Microsoft.Extensions.DependencyInjection"
-#r "nuget: Microsoft.DeepDev.TokenizerLib"
+#r "nuget: Microsoft.ML.Tokenizers.Data.O200kBase"
 #r "nuget: Microsoft.Identity.Web, 3.9.3"
 #r "nuget: Microsoft.SemanticKernel"
 #r "nuget: azure.security.keyvault.secrets"

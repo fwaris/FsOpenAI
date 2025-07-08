@@ -24,7 +24,7 @@ module AssistantMessage =
                     | Some path ->
                         comp<RadzenImage> {
                             "Path" => path
-                            "Style" => "width: 2rem; height: 2rem;"
+                            "Style" => "width: 1.5rem; height: 1.5rem;"
                         }
                     | None ->
                         comp<RadzenIcon> {

@@ -26,7 +26,7 @@ let keyVault = "your-keyvault-name"
 //The location of the settings file for this config.
 //It will be copied to (%USERPROFILE%|%HOME%)/.fsopenai/ServiceSettings.json so that it is 'in-effect'
 //for local development.
-let baseSettingsFile = @".fsopenai/poc/ServiceSettings.json" 
+let baseSettingsFile = @".fsopenai/poc/ServiceSettings.json"
 
 
 //The root folder for client files. These will be copied to client wwwroot. Contains:
@@ -85,8 +85,8 @@ let acctAppCfg =
         //EnabledChatModes = [M_Index,defaultSysMessage; M_Doc_Index, defaultSysMessage; M_Doc, defaultSysMessage; M_Plain, defaultSysMessage; M_CodeEval,"ignored"] //list of chat modes that may be enabled in the app
         EnabledChatModes = [M_Index,defaultSysMessage; M_Doc_Index, defaultSysMessage; M_Doc, defaultSysMessage; M_Plain, defaultSysMessage] //; M_CodeEval,"ignored"] //list of chat modes that may be enabled in the app
         DatabaseName = C.DFLT_COSMOSDB_NAME //name of the CosmosDB database
-        DiagTableName = Some "log1" // CosmosDB container name where to store chat submission logs
-        SessionTableName = Some "sessions" // Some "sessions" persist sessions to CosmosDB
+        DiagTableName = None //Some "log1" // CosmosDB container name where to store chat submission logs
+        SessionTableName = None // Some "sessions" // Some "sessions" persist sessions to CosmosDB
         AppBarType = Some (AppB_Base "FsOpenAI Chat") //Header bar style and title text
         Roles = [] //if not empty app will only allow users that have the listed roles (from AD; case sensitive)
         RequireLogin = false //if true, requires AD login (via MSAL); needs valid appSettings.json (see above)
@@ -122,14 +122,14 @@ let samples =
         (*
         *)
         {
-            SampleChatType = SM_CodeEval 
+            SampleChatType = SM_CodeEval
             SampleMode = ExplorationMode.Factual
             MaxDocs     = 5
             SampleSysMsg  = "ignored"
             SampleQuestion = "Write recursive function for the Fibonacci series and return the value of the 15th element"
         }
         {
-            SampleChatType = SM_CodeEval 
+            SampleChatType = SM_CodeEval
             SampleMode = ExplorationMode.Factual
             MaxDocs     = 5
             SampleSysMsg  = "ignored"

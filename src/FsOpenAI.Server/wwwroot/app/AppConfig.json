@@ -73,14 +73,14 @@
         "Backend": {
           "Case": "AzureOpenAI"
         },
-        "Model": "gpt-4o",
+        "Model": "gpt-4.1",
         "TokenLimit": 30000
       },
       {
         "Backend": {
           "Case": "OpenAI"
         },
-        "Model": "gpt-4o",
+        "Model": "gpt-4.1",
         "TokenLimit": 127000
       }
     ],
@@ -89,14 +89,14 @@
         "Backend": {
           "Case": "AzureOpenAI"
         },
-        "Model": "o3-mini",
+        "Model": "o4-mini",
         "TokenLimit": 127000
       },
       {
         "Backend": {
           "Case": "OpenAI"
         },
-        "Model": "o3-mini",
+        "Model": "o4-mini",
         "TokenLimit": 127000
       }
     ],
@@ -105,19 +105,19 @@
         "Backend": {
           "Case": "AzureOpenAI"
         },
-        "Model": "gpt-4o-mini",
+        "Model": "gpt-4.1-mini",
         "TokenLimit": 8000
       },
       {
         "Backend": {
           "Case": "OpenAI"
         },
-        "Model": "gpt-4o-mini",
+        "Model": "gpt-4.1-mini",
         "TokenLimit": 8000
       }
     ]
   },
   "DatabaseName": "fsopenai",
-  "DiagTableName": "log1",
-  "SessionTableName": "sessions"
+  "DiagTableName": null,
+  "SessionTableName": null
 }

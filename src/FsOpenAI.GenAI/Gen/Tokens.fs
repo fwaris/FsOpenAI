@@ -1,14 +1,14 @@
 module FsOpenAI.GenAI.Tokens
 open System
-open Microsoft.DeepDev
+open Microsoft.ML.Tokenizers
 open FsOpenAI.Shared
 open FsOpenAI.GenAI.Models
                 
 [<RequireQualifiedAccess>]  
 module Tokens = 
     let tokenSize (s:string) =
-        let tokenizer = TokenizerBuilder.CreateByModelNameAsync("gpt-4").GetAwaiter().GetResult();
-        let tokens = tokenizer.Encode(s, new System.Collections.Generic.HashSet<string>());
+        let tokenizer = TiktokenTokenizer.CreateForModel("gpt-4o")
+        let tokens,_ = tokenizer.EncodeToTokens(s)
         float tokens.Count
 
     let msgRole (m:InteractionMessage) = if m.IsUser then "User" else "Assistant"
