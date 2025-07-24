@@ -2,7 +2,6 @@
 open System
 open Microsoft.SemanticKernel.Memory
 open System.Runtime.CompilerServices
-open Azure.AI.OpenAI
 open Azure.Search.Documents.Models
 open Azure.Search.Documents
 open FSharp.Control
