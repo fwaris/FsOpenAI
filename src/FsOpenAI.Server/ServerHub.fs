@@ -108,7 +108,7 @@ type ServerHub(config:IConfiguration) =
    
     let updateCtx invCtx ctx = {invCtx with User = Some (getUser ctx)}
     
-    ///Disconnect any client, if token in the client context is expired or is about to expire
+    ///Disconnect any client if token in the client context is expired or is about to expire
     ///Note: Middlware (gateways like Akamai etc.) may disconnect web socket connections long before token expiry
     ///in which case invoking this function is not required
     let checkTokenExpiry (client:ISingleClientProxy, ctx:HubCallerContext) = 
@@ -118,10 +118,13 @@ type ServerHub(config:IConfiguration) =
             match result with 
             | null -> ()
             | result -> 
-                if result.Ticket.Properties.ExpiresUtc.HasValue then 
-                    if result.Ticket.Properties.ExpiresUtc.Value.UtcDateTime < DateTime.UtcNow.AddMinutes(5.0) then                         
-                        do! client.SendCoreAsync("Disconnect",[||])
-                        ctx.Abort()
+                match result.Ticket with 
+                | null -> ()
+                |  _ ->
+                    if result.Ticket.Properties.ExpiresUtc.HasValue then 
+                        if result.Ticket.Properties.ExpiresUtc.Value.UtcDateTime < DateTime.UtcNow.AddMinutes(5.0) then                         
+                            do! client.SendCoreAsync("Disconnect",[||])
+                            ctx.Abort()
         }
         |> ignore
         
