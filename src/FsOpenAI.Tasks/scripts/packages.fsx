@@ -4,7 +4,7 @@
 #r "nuget: Microsoft.AspNetCore.Components.WebAssembly"
 #r "nuget: Microsoft.Extensions.DependencyInjection"
 #r "nuget: Microsoft.ML.Tokenizers.Data.O200kBase"
-#r "nuget: Microsoft.Identity.Web, 3.9.3"
+#r "nuget: Microsoft.Identity.Web"
 #r "nuget: Microsoft.SemanticKernel"
 #r "nuget: azure.security.keyvault.secrets"
 #r "nuget: Azure.Search.Documents"
@@ -26,7 +26,7 @@
 
 
 //transient packages upgraded to remove security warnings
-#r "nuget: System.ClientModel, 1.4.0-beta.1"
+//#r "nuget: System.ClientModel, 1.4.0-beta.1"
 #r "nuget: System.Text.RegularExpressions"
 #r "nuget: NewtonSoft.json"
 #r "nuget: System.Net.Http"
