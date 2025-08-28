@@ -148,3 +148,24 @@ module Conversion =
             addBytes bmp imgBytes
             let outPath = ImageUtils.imagePath path i 0
             saveBmp bmp outPath)
+
+
+    ///Export entire pages as jpeg images to disk
+    ///Image file paths are <input path>_{page#}_0.jpeg
+    let exportImagesToDiskScaledCross (backgroundRGB:(byte*byte*byte) option) (scale:float) (path:string)  =
+        use str = System.IO.File.OpenRead path
+        let pages = PDFtoImage.Conversion.GetPageCount(str,leaveOpen=true)
+        [0 .. pages-1]
+        |> List.iter (fun i -> 
+            let pageSize = PDFtoImage.Conversion.GetPageSize(str,i,leaveOpen=true)
+            let scaleWidth = float pageSize.Width * scale |> int
+            let backColor = 
+                match backgroundRGB with 
+                | Some (r,g,b) -> Nullable(SkiaSharp.SKColor(r,g,b))
+                | None -> Nullable()
+            let renderOpts = new PDFtoImage.RenderOptions(Width=scaleWidth, WithAspectRatio=true, BackgroundColor=backColor)
+            let outPath = ImageUtils.imagePath path i 0
+            use pageStr = System.IO.File.OpenWrite outPath            
+            PDFtoImage.Conversion.SaveJpeg(pageStr,str,page=i,options=renderOpts,leaveOpen=true)
+            pageStr.Flush()
+            pageStr.Close())

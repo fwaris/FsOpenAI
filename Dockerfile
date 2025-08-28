@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:8.0.404-bookworm-slim AS base
+FROM mcr.microsoft.com/dotnet/sdk:9.0.304-bookworm-slim AS base
 EXPOSE 52037
 #EXPOSE 52035
 
@@ -12,27 +12,41 @@ ENV ASPNETCORE_URLS=http://+:52037
 # COPY ./certs .
 # COPY ./docker_extra/localhost-tm1.pfx .
 # RUN update-ca-certificates
+# Tools + system CA store
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      ca-certificates curl gnupg \
+ && update-ca-certificates \
+ && rm -rf /var/lib/apt/lists/*
+
+# copy zscaler certs - use 'docker ---build-context ext=<folder> ...' to build the container
+COPY --from=ext *.crt /usr/local/share/ca-certificates/
+RUN update-ca-certificates
+
+ENV HOME=/home
+COPY --from=ext trainData/ ${HOME}/trainData/
 
 FROM base AS prepped
+
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN cd /tmp \
 	&& apt-get update \
 	&& apt-get install -y wget \
 	&& apt-get install -y gnupg \
 	&& apt-get install -y unzip \
-	&& apt-get update \
-	&& wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB \
-	| gpg --dearmor | tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null \
-	&& echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" \
-	| tee /etc/apt/sources.list.d/oneAPI.list \
-	&& apt-get update \
-	&& apt install -y intel-basekit \
-	&& apt-get install -y libsasl2-modules-gssapi-mit \
-	&& apt-get install -y libsasl2-dev \
-	&& apt-get install -y krb5-user \
-	&& apt-get install -y librdkafka-dev \
-	&& find /opt -name "libiomp5.so" \
-	&& ldconfig /opt/intel/compilers_and_libraries_2020.0.166/linux/compiler/lib/intel64_lin 
+	&& apt-get update 
+	# && wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB \
+	# | gpg --dearmor | tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null \
+	# && echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" \
+	# | tee /etc/apt/sources.list.d/oneAPI.list \
+	# && apt-get update \
+	# && apt install -y intel-basekit \
+	# && apt-get install -y libsasl2-modules-gssapi-mit \
+	# && apt-get install -y libsasl2-dev \
+	# && apt-get install -y krb5-user \
+	# && apt-get install -y librdkafka-dev \
+	# && find /opt -name "libiomp5.so" \
+	# && ldconfig /opt/intel/compilers_and_libraries_2020.0.166/linux/compiler/lib/intel64_lin 
 #	&& wget https://databricks-bi-artifacts.s3.us-east-2.amazonaws.com/simbaspark-drivers/odbc/2.8.0/SimbaSparkODBC-2.8.0.1002-Debian-64bit.zip \
 #	&& unzip SimbaSparkODBC-2.8.0.1002-Debian-64bit.zip \
 #	&& dpkg -i  simbaspark_2.8.0.1002-2_amd64.deb \
@@ -52,7 +66,7 @@ RUN dotnet workload update
 # 	dotnet publish -c Release -o /app --no-restore
 
 
-RUN dotnet restore -r linux-x64
+RUN dotnet restore
 RUN dotnet publish -c:Release -p:DefineConstants=UNAUTHENTICATED -o:/app --no-restore
 
 FROM prepped AS final

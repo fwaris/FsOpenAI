@@ -35,6 +35,34 @@ module DocQnA =
                 do! str.WriteAsync(bytes)
         }
 
+    let extractPdfTextsOcr dispatch id (file:string) = 
+        async {
+            try
+                let dir = System.IO.Path.GetDirectoryName(file)
+                let fileName = System.IO.Path.GetFileName(file)
+                Conversion.exportImagesToDiskScaledCross (Some(255uy,255uy,255uy)) 2.0 file
+                let imgFiles = Directory.GetFiles(dir, $"{fileName}*.jpeg") |> Seq.indexed |> Seq.toList
+                let texts = 
+                    imgFiles 
+                    |> AsyncSeq.ofSeq
+                    |> AsyncSeq.mapAsync(fun (i,file) -> async {
+                        do! Async.Sleep 100
+                        let bytes = File.ReadAllBytes file
+                        let! text,meanConfidence = OCR.processImageBytes bytes FsOpenAI.Vision.Env.trainDataPath.Value
+                        dispatch (Srv_Ia_Notification (id,$"img-to-text page {i}, confidence: {meanConfidence}"))
+                        return text
+                    })
+                    |> AsyncSeq.toBlockingSeq
+                    |> Seq.toList
+                Directory.GetFiles(dir, $"{fileName}*.jpeg") 
+                |> Seq.append (Directory.GetFiles(dir, $"{fileName}*.txt"))
+                |> Seq.iter (fun f -> try File.Delete f with _ -> ())
+                return texts
+            with ex ->
+                printfn $"Error: {ex.Message}"
+                return ["error occurred while processing document"]
+        }
+
     let extractPdfTexts (filePath:string) =         
         use doc = UglyToad.PdfPig.PdfDocument.Open(filePath)                
         doc.GetPages() |> Seq.map(fun p -> p.Text) |> Seq.toList
@@ -155,7 +183,7 @@ module DocQnA =
             printfn $"r: {fn}"
             let texts = 
                 match docType with 
-                | None | Some DT_Pdf -> async{return extractPdfTexts fn}
+                | None | Some DT_Pdf -> extractPdfTextsOcr dispatch id fn
                 | Some DT_Word       -> async{return extractWordTexts fn}
                 | Some DT_Powerpoint -> async{return extractTextPptx fn}
                 | Some DT_Excel      -> async{return extractExcelTexts fn}

@@ -71,6 +71,16 @@
 				"isDefault": false
 			},
 			"label": "publish"
-		}		
+		},
+        {
+            "label": "Docker: Build (with extra context)",
+            "type": "docker-build",
+            "dockerBuild": {
+                "context": "${workspaceFolder}",
+                "dockerfile": "${workspaceFolder}/Dockerfile",
+                "tag": "fsopenai:latest",
+                "customOptions": "--platform linux/amd64 --build-context ext=${workspaceFolder}/../docker_extras"
+            }
+        },
 	]	
 }
