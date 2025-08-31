@@ -59,7 +59,7 @@ module DocQnA =
                 |> Seq.iter (fun f -> try File.Delete f with _ -> ())
                 return texts
             with ex ->
-                printfn $"Error: {ex.Message}"
+                Env.logException(ex,"extractPdfsTextsOcr")
                 return ["error occurred while processing document"]
         }
 

@@ -23,7 +23,9 @@
     <PackageReference Include="DocumentFormat.OpenXml" Version="3.3.0" />
     <PackageReference Include="System.Text.Json" Version="9.0.8" />
     <PackageReference Include="PDFtoImage" Version="5.1.1" />
-    <PackageReference Include="TesseractOCR" Version="5.5.1" />
+    <PackageReference Include="TesseractOCR" Version="5.5.1" /> 
+    <!-- <PackageReference Include="TesseractCSharp" Version="1.0.5" />
+    <PackageReference Include="Tesseract" Version="5.2.0" /> -->
   </ItemGroup>
   <ItemGroup>
     <PackageReference Update="FSharp.Core" Version="9.0.303" />
