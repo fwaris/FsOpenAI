@@ -44,13 +44,12 @@
     <PackageReference Include="Bolero.Build" Version="0.*" />
     <PackageReference Include="Bolero.HotReload" Version="0.*" />
     <PackageReference Include="FSharp.Formatting.Markdown" Version="1.0.0" />
-    <!--<PackageReference Include="MudBlazor" Version="7.8.0" />-->
-    <PackageReference Include="Radzen.Blazor" Version="7.3.2" />
+    <PackageReference Include="Radzen.Blazor" Version="7.3.3" />
+    <PackageReference Include="System.Private.Uri" Version="4.3.2" />
     <PackageReference Include="System.Text.Json" Version="9.0.8" />
     <PackageReference Include="System.Threading.Channels" Version="9.0.8" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.8" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="9.0.8" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="9.0.8" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Authentication.WebAssembly.Msal" Version="9.0.8" />
     <PackageReference Include="FSharp.Control.AsyncSeq" Version="3.2.1" />
   </ItemGroup>
@@ -61,7 +60,6 @@
     <Folder Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\FsOpenAI.CodeEvaluator\FsOpenAI.CodeEvaluator.fsproj" />
     <ProjectReference Include="..\FsOpenAI.Shared\FsOpenAI.Shared.fsproj" />
   </ItemGroup>
 </Project>

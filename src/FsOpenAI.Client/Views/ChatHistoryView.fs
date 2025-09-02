@@ -105,7 +105,8 @@ type ChatHistoryView() =
                                                 None)
                                     SystemMessage = Interaction.systemMessage chat
                                 }
-                            ecomp<ChatSettingsView,_,_> m dispatch {attr.empty()}
+                            if not model.appConfig.HideChatSettings then
+                                ecomp<ChatSettingsView,_,_> m dispatch {attr.empty()}
                         | None ->   ()
                     }
                 }

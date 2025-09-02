@@ -72,7 +72,8 @@ type DocLoadDialog() =
                             "Text" => "Use image-to-text for PDF"
                         }
                         comp<RadzenSwitch> {
-                            attr.title "Use document content with selected indexes for question answering"
+                            attr.title "For PDFs, extract text via OCR processing of page images"
+                            "Value" => model.Model.appConfig.UseORCByDefault
                             check
                         }                    
                     }
@@ -151,20 +152,20 @@ type QuestionView() =
                                 |> Option.iter (fun c -> dispatch (Ia_ResetChat (c.Id,""))))
                         }
                     }
-                    
-                    comp<RadzenMenu> {
-                        "Style" => "background-color: transparent;"
-                        "Responsive" => false
-                        comp<RadzenMenuItem> {
-                            "Icon" => "psychology"
-                            "IconColor" => (if isReasoning then Colors.Primary else Colors.Info)
-                            attr.disabled  isNotReady
-                            attr.title (if isReasoning then "Reasoning mode on" else "Reasoning mode off")
-                            attr.callback "Click" (fun (e:MenuItemEventArgs) ->
-                                selChat
-                                |> Option.iter (fun c -> dispatch (Ia_ToggleModelType (c.Id))))
+                    if not model.appConfig.HideChatSettings then
+                        comp<RadzenMenu> {
+                            "Style" => "background-color: transparent;"
+                            "Responsive" => false
+                            comp<RadzenMenuItem> {
+                                "Icon" => "psychology"
+                                "IconColor" => (if isReasoning then Colors.Primary else Colors.Info)
+                                attr.disabled  isNotReady
+                                attr.title (if isReasoning then "Reasoning mode on" else "Reasoning mode off")
+                                attr.callback "Click" (fun (e:MenuItemEventArgs) ->
+                                    selChat
+                                    |> Option.iter (fun c -> dispatch (Ia_ToggleModelType (c.Id))))
+                            }
                         }
-                    }
                 }
                 comp<RadzenTextArea> {
                     "Rows" => 3

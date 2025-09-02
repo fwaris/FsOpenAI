@@ -1,4 +1,6 @@
 {
+  "HideChatSettings": true,
+  "UseORCByDefault": true,
   "EnabledBackends": [
     {
       "Case": "OpenAI"
