@@ -8,6 +8,13 @@ open Microsoft.AspNetCore.Components
 open Microsoft.AspNetCore.Components.Forms
 open Microsoft.FSharp.Linq.RuntimeHelpers
 
+module attrext =
+    open Microsoft.AspNetCore.Components
+    let inline callback (name: string) ([<InlineIfLambda>] value: unit -> unit) =
+        Attr(fun receiver builder sequence ->
+            builder.AddAttribute(sequence, name, EventCallback.Factory.Create(receiver, Action(value)))
+            sequence + 1)
+
 /// <exclude />
 [<System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)>]
 let inline binder< ^T, ^B, ^O when ^B : (static member FormatValue : ^T * CultureInfo -> ^O)>

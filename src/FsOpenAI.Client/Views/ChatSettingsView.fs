@@ -12,12 +12,6 @@ open FsOpenAI.Shared.Interactions
 open FSharp.Reflection
 open Radzen.Blazor.Rendering
 
-module attrext =
-    open Microsoft.AspNetCore.Components
-    let inline callback (name: string) ([<InlineIfLambda>] value: unit -> unit) =
-        Attr(fun receiver builder sequence ->
-            builder.AddAttribute(sequence, name, EventCallback.Factory.Create(receiver, Action(value)))
-            sequence + 1)
 
 //need local binding for Radzen Popup as dispatch (page rendering) closes the popup
 [<CLIMutable>]
@@ -80,7 +74,7 @@ type ChatSettingsView() =
             comp<Popup> {
                 "Style" => $"display:none;position:absolute;max-height:90vh;max-width:90vw;height:{height};width:{width};padding:5px;background:transparent;"
                 "Lazy" => false
-                attrext.callback "Close" this.Close 
+                Bind.attrext.callback "Close" this.Close 
                 popup
                 comp<RadzenCard> {
                     "Style" => "height:100%;width:100%;overflow:none;background-color:var(--rz-panel-background-color);"
@@ -197,7 +191,9 @@ type ChatSettingsView() =
                                     "ReadOnly" => true
                                     "ShowUpDown" => false
                                     "Style" => "width: 3rem; background-color:var(--rz-panel-background-color);"
-                                    Bind.InputExpression.intRaw <@ Func<_>(fun () -> this.Model.QaBag.Value.MaxDocs) @> (fun v -> ())                                                                   
+                                    Bind.InputExpression.intRaw 
+                                        <@ Func<_>(fun () -> this.Model.QaBag.Value.MaxDocs) @> 
+                                        (fun v -> ())                                                                   
                                 }
                         }
                         comp<RadzenFieldset> {

@@ -5,12 +5,13 @@ open System.IO
 open System.Text.Json
 open System.Text.Json.Serialization
 open FsOpenAI
+open FsOpenAI.Shared
 open FsOpenAI.GenAI
 
-let fn = @"C:\s\gc\Untitled-1.json" |> File.ReadAllText
-let serOpts = Sessions.sessionOptions.Value
+let path = Path.GetTempPath()
+let fn = Directory.GetFiles(path, $"*{C.UPLOAD_EXT}.*") 
+fn |> Seq.iter (printfn "%s")
 
-let fno = JsonSerializer.Deserialize<ChatSession>(fn, serOpts)
 
 
 

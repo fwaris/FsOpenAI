@@ -20,7 +20,8 @@ type BackgroundTasks(logger:ILogger<BackgroundTasks>) =
     let scan() =
         logger.LogInformation("starting scan")
         try
-            Directory.GetFiles(Path.GetTempPath(), $"*.{C.UPLOAD_EXT}")
+            let path = Path.GetTempPath()
+            Directory.GetFiles(path, $"*{C.UPLOAD_EXT}.*")
             |> Seq.append(Directory.GetFiles(Path.GetTempPath(),"*.fsx"))
             |> Seq.iter(fun fn -> 
                 try 

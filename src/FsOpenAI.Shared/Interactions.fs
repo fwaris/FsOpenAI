@@ -5,8 +5,8 @@ open FSharp.Reflection
 open FsOpenAI.Shared.Interactions.Core.Interactions
 
 module Interaction =
-    let newUserMessage cntnt = {MsgId = Utils.newId(); Role=MessageRole.User; Message=cntnt}
-    let newAsstantMessage cntnt =  {MsgId = Utils.newId(); Role=MessageRole.Assistant QueriedDocuments.Empty; Message=cntnt}
+    let newUserMessage cntnt = {MsgId = Utils.newId(); Role = MessageRole.User; Message = cntnt}
+    let newAsstantMessage cntnt =  {MsgId = Utils.newId(); Role = MessageRole.Assistant QueriedDocuments.Empty; Message = cntnt}
 
     let getText c =
         let sb = System.Text.StringBuilder()
@@ -252,6 +252,17 @@ module Interaction =
                     | x -> x)
         }
 
+    let addProcessingInfo msg ch = 
+        {ch with
+            Types =
+                ch.Types
+                |> List.map (function
+                    | QnADoc dc -> 
+                        let ps = dc.ProcessingInfo @ [msg]
+                        QnADoc {dc with ProcessingInfo = ps}
+                    | x -> x)
+        }        
+
     let setParameters parms (ch:Interaction) = {ch with Parameters = parms}
 
     let defaultParameters backend interactionType =
@@ -339,6 +350,11 @@ module Interaction =
         | Some pbag -> setPlainBag {pbag with UseWeb=useWeb} c
         | None      -> setPlainBag {ChatBag.Default with UseWeb=useWeb} c
 
+    let setFile file c =
+        match docContent c with
+        | Some cntnt -> setDocContent {cntnt with DocumentRef = file } c
+        | None       -> setDocContent {DocumentContent.Default with DocumentRef = file} c
+
     let setFeedback feedback c = {c with Feedback = feedback}
 
     let setMode  desiredMode ch =
@@ -425,6 +441,8 @@ module Interactions =
 
     let clearDocContent id cs = updateWith Interaction.clearDocContent id cs
 
+    let addProcessingInfo id msg cs = updateWith (Interaction.addProcessingInfo msg) id cs
+
     let setUserMessage id msg cs = updateWith (Interaction.setUserMessage msg) id cs
 
     let setLastUserMessage id msg cs = updateWith (Interaction.setUserMessage msg) id cs
@@ -456,6 +474,8 @@ module Interactions =
     let setFileContents id (text,isDone) cs = updateWith (Interaction.setFileContents (text,isDone)) id cs
 
     let setDocumentStatus id status cs = updateWith (Interaction.setDocumentStatus status) id cs
+
+    let setFile id file cs = updateWith (Interaction.setFile file) id cs
 
     let setUseWeb id useWeb cs = updateWith (Interaction.setUseWeb useWeb) id cs
 

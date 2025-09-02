@@ -61,6 +61,7 @@
     <Folder Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\FsOpenAI.CodeEvaluator\FsOpenAI.CodeEvaluator.fsproj" />
     <ProjectReference Include="..\FsOpenAI.Shared\FsOpenAI.Shared.fsproj" />
   </ItemGroup>
 </Project>

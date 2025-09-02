@@ -18,6 +18,8 @@
 #r "nuget: FsPickler.Json"
 #r "nuget: Docnet.Core"
 #r "nuget: PdfPig, *-*"
+#r "nuget: PDFtoImage"
+#r "nuget: TesseractOCR"
 #r "nuget: DocumentFormat.OpenXml"
 #r "nuget: OpenCvSharp4.Windows"
 #r "nuget: OpenCvSharp4.Extensions"
@@ -44,6 +46,8 @@
 #I "../../FsOpenAI.Vision"
 #load "Image.fs"
 #load "Video.fs"
+#load "VEnv.fs"
+#load "OCR.fs"
 #load "VisionApi.fs"
 
 #I "../../FsOpenAI.GenAI"

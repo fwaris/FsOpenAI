@@ -5,6 +5,7 @@
     <AccelerateBuildsInVisualStudio>false</AccelerateBuildsInVisualStudio>
     <Configurations>Debug;Release;UNAUTHENTICATED</Configurations>
     <Platforms>AnyCPU</Platforms>
+    <UserSecretsId>469b7638-775d-450f-a5eb-22cf3722a44e</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Samples.fs" />
@@ -42,6 +43,7 @@
     <ProjectReference Include="..\FsOpenAI.Client\FsOpenAI.Client.fsproj" />
     <ProjectReference Include="..\FsOpenAI.CodeEvaluator\FsOpenAI.CodeEvaluator.fsproj" />
     <ProjectReference Include="..\FsOpenAI.GenAI\FsOpenAI.GenAI.fsproj" />
+    <ProjectReference Include="..\FsOpenAI.Shared\FsOpenAI.Shared.fsproj" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="appsettings.json.template" />

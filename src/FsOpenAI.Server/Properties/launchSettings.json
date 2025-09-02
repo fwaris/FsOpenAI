@@ -18,15 +18,6 @@
       },
       "dotnetRunMessages": true,
       "applicationUrl": "https://localhost:52034;http://localhost:52033"
-    },
-    "serverDebug": {
-      "commandName": "Project",
-      "launchBrowser": true,
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      },
-      "dotnetRunMessages": true,
-      "applicationUrl": "https://localhost:52034;http://localhost:52033"
     }
   }
 }

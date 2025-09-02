@@ -3,7 +3,7 @@ open System
 open System.IO
 open System.Reflection
 
-module Env =
+module VEnv =
     let homePath = lazy(
         match Environment.OSVersion.Platform with 
         | PlatformID.Unix 

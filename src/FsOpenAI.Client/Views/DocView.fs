@@ -72,6 +72,31 @@ type DocDetailsDialog() =
                             "Text" => (docCntnt.DocumentText |> Option.defaultValue null) 
                         }
                     }
+                    comp<RadzenTabsItem> {
+                        "Text" => "Processing Info"
+                        comp<RadzenTimeline> {
+                            attr.``class`` "rz-mt-1 rz-p-2"
+                            "LinePosition" => LinePosition.Left
+                            attr.fragment "Items" (
+                                concat {
+                                    for t in docCntnt.ProcessingInfo do
+                                        yield   
+                                            concat{
+                                                comp<RadzenBadge> {
+                                                    "Shade" => Shade.Light
+                                                    "BadgeStyle" => BadgeStyle.Base
+                                                }
+                                                comp<RadzenText> {
+                                                    //"Style" => "max-width: 10rem; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;"
+                                                    "TextStyle" => TextStyle.Caption
+                                                    attr.title t
+                                                    "Text" => t
+                                                }
+                                            }                                             
+                                                
+                                })
+                        }                    
+                    }
                     if Model.isEnabled M_Doc_Index model then
                         comp<RadzenTabsItem> {
                             "Text" => "Search Terms"

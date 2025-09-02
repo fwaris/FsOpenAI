@@ -66,6 +66,12 @@ type AppBarType =
 
 type AppConfig =
     {
+        ///Hide the '...' menu for the chat view so users are not able to change settings like temperature, etc.
+        HideChatSettings : bool
+
+        ///If true, then by default, PDF pages are extracted as images and then converted to text via OCR (can be overridden by user)
+        UseORCByDefault : bool
+
         ///Backends that are enabled for this app. First backend in the list is the default
         EnabledBackends : Backend list
 
@@ -76,7 +82,7 @@ type AppConfig =
         DefaultMaxDocs : int
 
         ///List of app roles. If the user's identity provider provides any of the roles, the authenticated user
-        ///is authorized. If the list is empty then any authenticted user is authorized to use this app
+        ///is authorized. If the list is empty then any authenticated user is authorized to use this app
         Roles : string list
 
         ///AppBar style
@@ -121,6 +127,8 @@ type AppConfig =
     with
         static member Default =
             {
+                HideChatSettings = false
+                UseORCByDefault = false
                 EnabledBackends = [OpenAI]
                 EnabledChatModes = []//M_Plain,"You are a helpful AI assistant"]
                 DefaultMaxDocs = 10

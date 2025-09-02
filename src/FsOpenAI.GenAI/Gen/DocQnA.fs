@@ -47,19 +47,22 @@ module DocQnA =
                     |> AsyncSeq.ofSeq
                     |> AsyncSeq.mapAsync(fun (i,file) -> async {
                         do! Async.Sleep 100
-                        let bytes = File.ReadAllBytes file
-                        let! text,meanConfidence = OCR.processImageBytes bytes FsOpenAI.Vision.Env.trainDataPath.Value
-                        dispatch (Srv_Ia_Notification (id,$"img-to-text page {i}, confidence: {meanConfidence}"))
+                        let! text,meanConfidence = OCR.processImage file FsOpenAI.Vision.VEnv.trainDataPath
+                        dispatch (Srv_Ia_ProcessingInfo (id,$"img-to-text page {i}, confidence: {meanConfidence}"))
                         return text
                     })
                     |> AsyncSeq.toBlockingSeq
                     |> Seq.toList
-                Directory.GetFiles(dir, $"{fileName}*.jpeg") 
-                |> Seq.append (Directory.GetFiles(dir, $"{fileName}*.txt"))
-                |> Seq.iter (fun f -> try File.Delete f with _ -> ())
+                try 
+                    File.Delete file
+                    Directory.GetFiles(dir, $"{fileName}*") 
+                    |> Seq.iter (fun f -> try File.Delete f with _ -> ())
+                with ex -> 
+                    Env.logException(ex,"extractPdfsTextOcr while deleting temp files") //background process should clean up files later
                 return texts
             with ex ->
                 Env.logException(ex,"extractPdfsTextsOcr")
+                dispatch (Srv_Ia_File_Error (id,"error in processing file"))
                 return ["error occurred while processing document"]
         }
 

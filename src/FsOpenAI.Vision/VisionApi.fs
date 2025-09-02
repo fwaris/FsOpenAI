@@ -91,26 +91,3 @@ module VisionApi =
                 printfn $"Error: {resp.StatusCode}, {resp.ReasonPhrase}"
                 return None
         }
-
-    let doOcr (fileName:string) trainDataPath =
-        async {
-            try
-                let dir = System.IO.Path.GetDirectoryName(fileName)
-                Conversion.exportImagesToDiskScaled (Some(255uy,255uy,255uy)) 2.0 fileName
-                let imgFiles = Directory.GetFiles(dir, $"{fileName}*.jpeg") |> Seq.indexed
-                for (i,file) in imgFiles do
-                    do! Async.Sleep 100
-                    do! OCR.processImage i file trainDataPath 
-                let text =                     
-                    Directory.GetFiles(dir, $"{fileName}*.txt")
-                    |> Seq.sort
-                    |> Seq.map File.ReadAllText
-                    |> String.concat "\n"
-                Directory.GetFiles(dir, $"{fileName}*.jpeg") 
-                |> Seq.append (Directory.GetFiles(dir, $"{fileName}*.txt"))
-                |> Seq.iter (fun f -> try File.Delete f with _ -> ())
-                return text
-            with ex ->
-                printfn $"Error: {ex.Message}"
-                return "error occurred while processing document"
-        }

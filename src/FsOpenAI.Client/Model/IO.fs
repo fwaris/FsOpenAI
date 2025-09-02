@@ -178,8 +178,8 @@ module IO =
                 return failwith $"Unable to clear local storage: '{ex.Message}'"
         }
 
-    let loadFile (id:string,model,serverCall:_->Task)  =
-        task {
+    let loadFile (id:string,model,serverCall:_->Task) =
+        async {
             let fileId = Utils.newId().Replace('/','-').Replace('\\','-')
             let ch = model.interactions |> List.find (fun c -> c.Id = id)
             let docCntnt = Interaction.docContent ch
@@ -190,15 +190,15 @@ module IO =
             use str = file.OpenReadStream(maxAllowedSize = C.MAX_UPLOAD_FILE_SIZE)
             let buff = Array.zeroCreate 1024
             let mutable read = 0
-            let! r = str.ReadAsync(buff,0,buff.Length)
+            let! r = str.ReadAsync(buff,0,buff.Length) |> Async.AwaitTask
             read <- r
             while (read > 0) do
                 //printfn $"read {read}"
                 if read = buff.Length then
-                    do! serverCall (Clnt_UploadChunk (fileId,buff))
+                    do! serverCall (Clnt_UploadChunk (fileId,buff)) |> Async.AwaitTask
                 else
-                    do! serverCall (Clnt_UploadChunk(fileId,buff.[0..read-1]))
-                let! r = str.ReadAsync(buff,0,buff.Length)
+                    do! serverCall (Clnt_UploadChunk(fileId,buff.[0..read-1]))  |> Async.AwaitTask
+                let! r = str.ReadAsync(buff,0,buff.Length)  |> Async.AwaitTask
                 read <- r
             return (id,fileId)
         }

@@ -55,7 +55,7 @@ type ModelType = MT_Chat | MT_Logic
             | MT_Logic -> "Logic"
         member this.Tooltip =
             match this with
-            | MT_Chat -> "Responds faster to user queries, suitable general use"
+            | MT_Chat -> "Responds faster to user queries, suitable for general use"
             | MT_Logic -> "Takes longer to respond but can perform more complex reasoning (defaults to Chat type if not configured)"
 
 type InteractionParameters =
@@ -136,7 +136,9 @@ type DocumentContent =
         DocumentRef : obj option
         DocType : DocType option
         DocumentText : string option
+        UsedOcr : bool
         Status : DocumentStatus
+        ProcessingInfo : string list
         SearchTerms : string option
     }
     with
@@ -146,7 +148,9 @@ type DocumentContent =
                             DocumentText = None
                             Status = No_Document
                             DocType = None
+                            UsedOcr = false
                             SearchTerms = None
+                            ProcessingInfo = []
                         }
 
 type ChatBag =
@@ -244,22 +248,23 @@ type ServerInitiatedMessages =
     | Srv_Ia_Citations of string*string list
     | Srv_Ia_Done of string*string option //chat id, optional log id, optional error
     | Srv_Ia_SetSubmissionId of string*string
-    | Srv_Ia_Notification of string*string //chat id (optional error)
+    | Srv_Ia_Notification of string*string //chat id, message
+    | Srv_Ia_ProcessingInfo of string*string //message generated while processing document pages (e.g. ocr)
     | Srv_Ia_Reset of string
     | Srv_Ia_Session_Loaded of Interaction
     | Srv_Ia_Session_DoneLoading
+    | Srv_Ia_File_Chunk of string*string*bool
+    | Srv_Ia_File_Error of string*string
     | Srv_Error of string
     | Srv_Info of string
     | Srv_IndexesRefreshed of IndexTree list
-    | Srv_Ia_File_Chunk of string*string*bool
-    | Srv_Ia_File_Error of string*string
     | Srv_SetTemplates of LabeledTemplates list
     | Srv_LoadSamples of (string*SamplePrompt list)
     | Srv_SetConfig of AppConfig
     | Srv_DoneInit of unit
     //code eval support
-    | Srv_Ia_SetCode of (string*string option)
     | Srv_Ia_SetPlan of (string*string option)
+    | Srv_Ia_SetCode of (string*string option)
 
 type ClientInitiatedMessages =
     | Clnt_Connected of string

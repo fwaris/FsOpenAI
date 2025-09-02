@@ -1,7 +1,6 @@
 namespace FsOpenAI.Client.Views
 open System
 open Microsoft.AspNetCore.Components
-open Microsoft.AspNetCore.Components.Web
 open Microsoft.JSInterop
 open Bolero
 open Bolero.Html
@@ -10,13 +9,114 @@ open FsOpenAI.Shared
 open FsOpenAI.Shared.Interactions
 open Radzen
 open Radzen.Blazor
+open System.Collections.Generic
 open Microsoft.AspNetCore.Components.Forms
+open Microsoft.AspNetCore.Components.Web
+
+////need local binding for Radzen Popup as dispatch (page rendering) closes the popup
+[<CLIMutable>]
+type DocLoadModel = {
+    ChatId : string
+    Model : Model
+    mutable file : IBrowserFile option
+    mutable useOcr : bool
+}
+
+type DocLoadDialog() =
+    inherit ElmishComponent<DocLoadModel,Message>()
+    let check = Ref<RadzenSwitch>()
+    let mutable change = false
+
+    [<Inject>] member val DialogService  = Unchecked.defaultof<DialogService> with get, set
+
+    override this.ShouldRender (): bool = 
+        let ret = change 
+        change <- false
+        ret
+
+    member this.TriggerChange() = 
+        printfn "triggered"
+        change <- true
+        base.StateHasChanged()        
+
+    override this.View model dispatch =
+        let chat = Model.selectedChat model.Model
+        let docCntnt = chat |> Option.bind Interaction.docContent |> Option.defaultValue DocumentContent.Default        
+        let isNotReady = not (Submission.isReady chat)
+        concat {
+            style {"""
+                #uploadWithDragAndDrop {
+                    left: 0;
+                    --rz-upload-button-bar-background-color: transparent;
+                    --rz-upload-button-bar-padding: 0;
+                }
+
+                #uploadWithDragAndDrop .rz-fileupload-buttonbar .rz-fileupload-choose {
+                    width: 100%;
+                    text-align: center;
+                    font-size: 16px;
+                    padding: 50px 10px;
+                }
+            """}
+            comp<RadzenStack> {
+                attr.``class`` "rz-h-100 rz-justify-content-center"
+                "Orientation" => Orientation.Horizontal
+                comp<RadzenStack> {
+                    "Orientation" => Orientation.Vertical
+                    attr.``class`` "rz-h-100 rz-background-color-secondary-lighter rz-p-2 "
+                    comp<RadzenStack> {
+                        "Orientation" => Orientation.Horizontal
+                        attr.``class`` "rz-h-100"
+                        
+                        comp<RadzenLabel> {
+                            "Text" => "Use image-to-text for PDF"
+                        }
+                        comp<RadzenSwitch> {
+                            attr.title "Use document content with selected indexes for question answering"
+                            check
+                        }                    
+                    }
+                    comp<RadzenUpload> {
+                        attr.id "uploadWithDragAndDrop"
+                        "ChooseText" => " Drag and drop a document here or click here to select a document "
+                        attr.callback "Change" (fun (e:Radzen.UploadChangeEventArgs) ->
+                            printfn $"{e.Files |> Seq.tryHead}"
+                            let browserFile = 
+                                e.Files
+                                |> Seq.tryHead 
+                                |> Option.map (fun x -> x.Source)
+                            this.Model.file <- browserFile
+                            this.TriggerChange()
+                        )
+                    }
+                    comp<RadzenButton> {
+                        attr.disabled this.Model.file.IsNone
+                        attr.callback "Click" (fun (e:MouseEventArgs) ->                      
+                            let file = this.Model.file |> Option.map box
+                            let docCntnt = 
+                                {docCntnt with 
+                                    DocumentRef = file; 
+                                    ProcessingInfo=[]; 
+                                    UsedOcr = check.Value.Value.Value
+                                }                                
+                            this.Dispatch (Ia_File_BeingLoad2 (this.Model.ChatId,docCntnt))
+                            async {
+                                do! Async.Sleep 1000
+                                this.DialogService.Close()
+                            }
+                            |> Async.Start)                        
+                        text "Upload"
+                    }
+                }
+            }            
+        }
 
 type QuestionView() =
     inherit ElmishComponent<Model, Message>()
     let qInput = Ref<RadzenTextArea>()
 
     [<Inject>] member val JSRuntime : IJSRuntime = Unchecked.defaultof<_> with get, set
+    [<Inject>] member val DialogService  = Unchecked.defaultof<DialogService> with get, set
 
     member this.GetText() =
         task{
@@ -51,6 +151,7 @@ type QuestionView() =
                                 |> Option.iter (fun c -> dispatch (Ia_ResetChat (c.Id,""))))
                         }
                     }
+                    
                     comp<RadzenMenu> {
                         "Style" => "background-color: transparent;"
                         "Responsive" => false
@@ -114,26 +215,22 @@ type QuestionView() =
                                     )
                             }
                         }
-                        comp<InputFile> {
-                            "Style" => "position: absolute; height: 0px; width: 0px; outline: none; padding: 0; margin: -1px; overflow: hidden; border:0; clip: rect(0,0,0,0)"
-                            attr.id "inputGroupFileAddon01"
-                            attr.disabled  isNotReady
-                            attr.callback "OnChange" (fun (e:InputFileChangeEventArgs) ->
-                                Model.selectedChat model
-                                |> Option.iter (fun ch ->
-                                    let content = {DocumentContent.Default with DocumentRef = Some e.File; DocType = IO.docType e.File.Name}
-                                    dispatch (Ia_File_BeingLoad2 (ch.Id,content)))
-                            )
-                        }
-                        comp<RadzenLabel> {
-                            "Component" => "inputGroupFileAddon01"
-                            "Style" => "cursor: pointer;"
-                            comp<RadzenIcon> {
+                        comp<RadzenMenu> {
+                            "Style" => "background-color: transparent;"
+                            "Responsive" => false
+                            comp<RadzenMenuItem> {
                                 "Icon" => "attach_file"
-                                "Style" => "background-color: transparent;"
                                 attr.disabled  isNotReady
                                 attr.title "Load a document or image"
-                             }
+                                attr.callback "Click" (fun (e:MenuItemEventArgs) ->
+                                    let opts = new DialogOptions (                                    
+                                        Style = "width: fit-content; height: fit-content; min-width: fit-content; min-height: fit-content;"
+                                    )
+                                    let dmodel = {ChatId=selChat |> Option.map _.Id |> Option.defaultValue ""; Model=model; useOcr=false; file=None}
+                                    let parms = ["Model",dmodel :> obj; "Dispatch",dispatch] |> dict |> Dictionary
+                                    //let opts = DialogOptions(Width = "50%", Height="50%")
+                                    this.DialogService.OpenAsync<DocLoadDialog>("Load document", parameters=parms, options=opts) |> ignore)
+                                }
                         }
                     }
                 }
