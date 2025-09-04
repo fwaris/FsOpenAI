@@ -6,11 +6,11 @@ open System.Text.Json
 open System.Text.Json.Serialization
 open FsOpenAI
 open FsOpenAI.Shared
-open FsOpenAI.GenAI
-
-let path = Path.GetTempPath()
-let fn = Directory.GetFiles(path, $"*{C.UPLOAD_EXT}.*") 
-fn |> Seq.iter (printfn "%s")
+open FsOpenAI.Shared.Utils
+let (@@) (a:string) (b:string) = Path.Combine(a,b)
+let path = Utils.homePath.Value @@ ".fsopenai" @@ "ServiceSettings.json"
+let txt = File.ReadAllText path
+let settings = JsonSerializer.Deserialize<ServiceSettings>(txt,Utils.serOptions())
 
 
 

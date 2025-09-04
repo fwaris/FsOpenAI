@@ -29,13 +29,28 @@ module Utils =
 
     exception NoOpenAIKey of string
 
+    let settingSerOpts() =
+        let opts =
+            JsonFSharpOptions.Default()
+                .WithSkippableOptionFields(true)
+//                .WithUnionInternalTag()
+//                .WithUnionTagName("type")
+//                .WithUnionUnwrapRecordCases()
+//                .WithUnionTagCaseInsensitive()
+                .WithAllowNullFields()
+                .WithAllowOverride()
+                .WithUnionUnwrapFieldlessTags()
+                .ToJsonSerializerOptions()
+        opts.WriteIndented <- true
+        opts.ReadCommentHandling <- JsonCommentHandling.Skip
+        opts
+        
     let serOptions() = 
         let o = JsonSerializerOptions(JsonSerializerDefaults.General)
         o.WriteIndented <- true
         o.ReadCommentHandling <- JsonCommentHandling.Skip
         JsonFSharpOptions.Default()
-            //.WithUnionEncoding(JsonUnionEncoding.NewtonsoftLike) //consider for future as provides better roundtrip support
-            .AddToJsonSerializerOptions(o)        
+            .AddToJsonSerializerOptions(o)                
         o
 
     let shorten len (s:string) = if s.Length > len then s.Substring(0,len) + "..." else s

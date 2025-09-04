@@ -88,7 +88,9 @@ let docs =
 //The app reads this file at startup to configure itself
 let acctAppCfg =
     {
-        EnabledBackends = [OpenAI] // [AzureOpenAI; OpenAI] //list of 'backends' that the user may select from (can be expanded in the future)
+        HideChatSettings = false
+        UseORCByDefault = false
+        EnabledBackends = [AzureOpenAI] // [AzureOpenAI; OpenAI] //list of 'backends' that the user may select from (can be expanded in the future)
         EnabledChatModes = [M_Plain,defaultSysMessage; M_Doc, defaultSysMessage; M_Index, defaultSysMessage] //list of chat modes that may be enabled in the app
         DatabaseName = C.DFLT_COSMOSDB_NAME //name of the CosmosDB database
         DiagTableName = Some "log1" // CosmosDB container name where to store chat submission logs
@@ -194,4 +196,5 @@ ScriptEnv.Secrets.getCreds keyVault keyVaultKey
 //check to see if the meta index is installed correctly
 ScriptEnv.Indexes.printMetaIndex [] metaIndexName.Value
 *)
+
 

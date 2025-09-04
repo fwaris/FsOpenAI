@@ -72,7 +72,7 @@ module IndexQnA =
         |> List.map(fun idx -> 
             let idxClient = Indexes.searchServiceClient parms
             let srchClient = idxClient.GetSearchClient(idx.Name)
-            let openAIClient,_ = Endpoints.getEmbeddingsClient parms ch embModel
+            let openAIClient = Endpoints.getEmbeddingsClient parms ch embModel
             SemanticVectorSearch.CognitiveSearch(mode,srchClient,openAIClient,["contentVector"],"content","sourcefile","title"))
 
     type RefinedQuery =         

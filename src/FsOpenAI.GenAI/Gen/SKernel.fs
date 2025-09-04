@@ -40,13 +40,12 @@ module SKernel =
         let chatModel = modelRefs.Head.Model
         let builder = Kernel.CreateBuilder()
         builder.Services.AddLogging(fun c -> c.AddConsole().SetMinimumLevel(LogLevel.Information) |>ignore) |> ignore
+        let ep = Endpoints.endpoint parms ch.Parameters.Backend
         match ch.Parameters.Backend with
         | AzureOpenAI ->
-            let rg,uri,key = Endpoints.getAzureEndpoint parms.AZURE_OPENAI_ENDPOINTS
-            builder.AddAzureOpenAIChatCompletion(deploymentName = chatModel,endpoint = uri, apiKey = key)
+            builder.AddAzureOpenAIChatCompletion(deploymentName = chatModel,endpoint = ep.ENDPOINT, apiKey = ep.API_KEY)
         | OpenAI ->
-            let key = match parms.OPENAI_KEY with Some k -> k | None -> Endpoints.raiseNoOpenAIKey()
-            builder.AddOpenAIChatCompletion(chatModel,key)
+            builder.AddOpenAIChatCompletion(chatModel,ep.API_KEY)
 
     let kernelArgsFrom parms ch (args:(string*string) seq) =
         let sttngs = promptSettings parms ch
@@ -79,3 +78,4 @@ module SKernel =
             let! rslt = pt.RenderAsync(k,args) |> Async.AwaitTask
             return rslt
         }
+

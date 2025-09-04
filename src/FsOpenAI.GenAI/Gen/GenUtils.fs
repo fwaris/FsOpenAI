@@ -86,8 +86,8 @@ module GenUtils =
             invCtx.ModelsConfig.EmbeddingsModels
             |> List.tryFind (fun m -> m.Backend = ch.Parameters.Backend)
             |> Option.defaultValue (invCtx.ModelsConfig.EmbeddingsModels.Head)
-        let embClient,resource = Endpoints.getEmbeddingsClient parms ch embModel.Model
-        let de = diaEntryEmbeddings ch invCtx embModel.Model resource query
+        let embClient = Endpoints.getEmbeddingsClient parms ch embModel.Model
+        let de = diaEntryEmbeddings ch invCtx embModel.Model (string ch.Parameters.Backend) query
         task {
             try
                 let! resp = embClient.GenerateEmbeddingsAsync(ResizeArray[query])
@@ -144,7 +144,7 @@ module GenUtils =
         match Models.visionModel backend invCtx.ModelsConfig with
         | Some model ->
             async {
-                let endpoint,key = Endpoints.serviceEndpoint parms backend model.Model
+                let ep = Endpoints.endpoint parms backend                
                 let user = userAgent invCtx
                 let imageBytes = img |> System.Convert.ToBase64String
                 let imgUri = $"data:image/jpeg;base64,{imageBytes}"
@@ -153,7 +153,7 @@ module GenUtils =
                 let payload = Payload(chat)
                 payload.model <- model.Model
                 payload.max_tokens <- 2000
-                return! VisionApi.processVision (Uri endpoint) key user payload |> Async.AwaitTask
+                return! VisionApi.processVision (Uri ep.ENDPOINT) ep.API_KEY user payload |> Async.AwaitTask
             }
         | None -> async { return failwith "No vision model configured" }
 
@@ -161,7 +161,7 @@ module GenUtils =
         match Models.visionModel backend invCtx.ModelsConfig with
         | Some model ->
             async {
-                let endpoint,key = Endpoints.serviceEndpoint parms backend model.Model
+                let ep = Endpoints.endpoint parms backend
                 let user = userAgent invCtx
                 let imageContents =
                     frames
@@ -176,7 +176,7 @@ module GenUtils =
                 let payload = Payload(chat)
                 payload.model <- model.Model
                 payload.max_tokens <- 2000
-                return! VisionApi.processVision (Uri endpoint) key user payload |> Async.AwaitTask
+                return! VisionApi.processVision (Uri ep.ENDPOINT) ep.API_KEY user payload |> Async.AwaitTask
             }
         | None -> async { return failwith "No vision model configured" }
     

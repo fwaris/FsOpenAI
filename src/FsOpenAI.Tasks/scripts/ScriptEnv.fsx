@@ -30,9 +30,8 @@ let randSelect (ls:_ list) = ls.[rng.Next(ls.Length)]
 
 let defaultSettings() =
     {
-        AZURE_OPENAI_ENDPOINTS = []
+        CHAT_ENDPOINTS = []
         AZURE_SEARCH_ENDPOINTS = []
-        EMBEDDING_ENDPOINTS = []
         BING_ENDPOINT = None
         OPENAI_KEY = None
         //GOOGLE_KEY = None
@@ -58,7 +57,7 @@ do if File.Exists defaultSettingsFile then
     with ex ->
         printfn $"Error loading default settings file {defaultSettingsFile}. \n {ex.StackTrace}"
 
-let openAIEndpoint() = randSelect settings.Value.AZURE_OPENAI_ENDPOINTS
+let openAIEndpoint() = randSelect settings.Value.CHAT_ENDPOINTS
 let searchEndpoint() = settings.Value.AZURE_SEARCH_ENDPOINTS.Head
 
 let indexClient() =
@@ -66,9 +65,8 @@ let indexClient() =
     SearchIndexClient(Uri ep.ENDPOINT,AzureKeyCredential(ep.API_KEY))
 
 let azureOpenAiEmbeddingClient model : ITextEmbeddingGenerationService =
-    let ep = openAIEndpoint()
-    let openAiEndpoint = $"https://{ep.RESOURCE_GROUP}.openai.azure.com"
-    AzureOpenAITextEmbeddingGenerationService(model,openAiEndpoint,ep.API_KEY)
+    let ep = openAIEndpoint()    
+    AzureOpenAITextEmbeddingGenerationService(model,ep.ENDPOINT,ep.API_KEY)
 
 let openAiEmbeddingClient model : ITextEmbeddingGenerationService =
     let key = settings.Value.OPENAI_KEY |> Option.defaultWith (fun _ -> failwith "OpenAI key not found")

@@ -79,9 +79,8 @@ module Env =
     let defaultSettings() =
         {
             LOG_CONN_STR = None
-            AZURE_OPENAI_ENDPOINTS = []
+            CHAT_ENDPOINTS = []
             AZURE_SEARCH_ENDPOINTS = []
-            EMBEDDING_ENDPOINTS = []
             BING_ENDPOINT = None
             OPENAI_KEY = None
             //GOOGLE_KEY = None
@@ -105,7 +104,7 @@ module Env =
                     task{ return System.Text.UTF8Encoding.Default.GetString bytes}
                 else
                     getFromKeyVault()
-            let parms = JsonSerializer.Deserialize<ServiceSettings>(settingsText,Utils.serOptions())
+            let parms = JsonSerializer.Deserialize<ServiceSettings>(settingsText,Utils.settingSerOpts())
             return parms
         }
 
@@ -139,7 +138,7 @@ module Env =
 module Settings =
     let mutable _cachedSettings = lazy(Env.loadSettings()) //mutable to allow refresh even if app is running
 
-    let redactEndpoints (xs:AzureOpenAIEndpoints list) =
+    let redactEndpoints (xs:ApiEndpoint list) =
         xs
         |> List.map(fun c -> {c with API_KEY = "Redacted"})
 
@@ -153,9 +152,8 @@ module Settings =
             LOG_CONN_STR = None
             OPENAI_KEY = None
             //GOOGLE_KEY = None
-            AZURE_OPENAI_ENDPOINTS = redactEndpoints sttngs.AZURE_OPENAI_ENDPOINTS
+            CHAT_ENDPOINTS = redactEndpoints sttngs.CHAT_ENDPOINTS
             AZURE_SEARCH_ENDPOINTS = redactSearchEndpoints sttngs.AZURE_SEARCH_ENDPOINTS
-            EMBEDDING_ENDPOINTS = redactEndpoints sttngs.EMBEDDING_ENDPOINTS
             BING_ENDPOINT = sttngs.BING_ENDPOINT |> Option.map redactEndpoint
         }
 

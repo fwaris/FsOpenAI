@@ -16,7 +16,7 @@ module Completions =
         let modelRefs = modelSelector invCtx ch.Parameters.Backend
         let modelRef = Models.pick modelRefs
         let messages = ChatUtils.toChatHistory ch
-        let caller,resource =  Endpoints.getClient parms ch modelRef.Model
+        let caller =  Endpoints.getClient parms ch modelRef.Model
         let opts = OpenAIPromptExecutionSettings()
         match ch.Parameters.ModelType with
         | MT_Logic -> () //o1 preview api may not accept 'normal' settings
@@ -26,7 +26,7 @@ module Completions =
             opts.Temperature <- float <| ChatUtils.temperature ch.Parameters.Mode
         opts.User <- GenUtils.userAgent invCtx
         responseFormat |> Option.iter(fun rf -> opts.ResponseFormat <- rf)
-        let de = GenUtils.diaEntryChat ch invCtx modelRef.Model resource
+        let de = GenUtils.diaEntryChat ch invCtx modelRef.Model (string ch.Parameters.Backend)
         caller,messages,opts,de
 
     ///Stream complete chat. Returns async seq of chat completion responses

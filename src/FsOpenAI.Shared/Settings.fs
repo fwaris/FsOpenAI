@@ -1,17 +1,14 @@
 ﻿namespace FsOpenAI.Shared
+open System.Text.Json.Serialization
 open System
 open System.Security.Claims
 
-type AzureOpenAIEndpoints = 
-    {
-        API_KEY : string
-        RESOURCE_GROUP : string
-    }
-
+[<JsonFSharpConverter(SkippableOptionFields=SkippableOptionFields.Always)>]
 type ApiEndpoint =
     {
         API_KEY : string
         ENDPOINT : string
+        BACKEND  : Backend option
     }
 
 type ModelDeployments = 
@@ -21,11 +18,11 @@ type ModelDeployments =
         EMBEDDING : string list
     }
 
+[<JsonFSharpConverter(SkippableOptionFields=SkippableOptionFields.Always)>]
 type ServiceSettings = 
     {
         AZURE_SEARCH_ENDPOINTS: ApiEndpoint list
-        AZURE_OPENAI_ENDPOINTS: AzureOpenAIEndpoints list
-        EMBEDDING_ENDPOINTS : AzureOpenAIEndpoints list
+        CHAT_ENDPOINTS: ApiEndpoint list
         BING_ENDPOINT : ApiEndpoint option
         //GOOGLE_KEY : string option
         OPENAI_KEY : string option

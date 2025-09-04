@@ -1,5 +1,7 @@
 ﻿namespace FsOpenAI.Shared
+open System.Text.Json.Serialization
 
+[<JsonFSharpConverter(UnionUnwrapFieldlessTags=true)>]
 type Backend = OpenAI | AzureOpenAI
 
 type ModelRef =

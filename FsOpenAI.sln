@@ -12,19 +12,19 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		readme.md = readme.md
 	EndProjectSection
 EndProject
-Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "FsOpenAI.Server", "src\FsOpenAI.Server\FsOpenAI.Server.fsproj", "{4E2AA925-4694-4593-ADBC-F349D269587A}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "FsOpenAI.Shared", "src\FsOpenAI.Shared\FsOpenAI.Shared.fsproj", "{F2DC4FE2-4679-4C73-8159-57A056777A6F}"
 EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "FsOpenAI.Client", "src\FsOpenAI.Client\FsOpenAI.Client.fsproj", "{1481BBD6-A6DA-4912-A03A-134880D14701}"
 EndProject
-Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "FsOpenAI.Tasks", "src\FsOpenAI.Tasks\FsOpenAI.Tasks.fsproj", "{6B60AC2F-8561-41D8-ACE5-2FF3A181F1BA}"
-EndProject
-Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "FsOpenAI.Shared", "src\FsOpenAI.Shared\FsOpenAI.Shared.fsproj", "{F2DC4FE2-4679-4C73-8159-57A056777A6F}"
-EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "FsOpenAI.GenAI", "src\FsOpenAI.GenAI\FsOpenAI.GenAI.fsproj", "{BA8B6DCA-613B-4086-B977-90EB1AC82870}"
+EndProject
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "FsOpenAI.Server", "src\FsOpenAI.Server\FsOpenAI.Server.fsproj", "{4E2AA925-4694-4593-ADBC-F349D269587A}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FsOpenAI.Vision", "src\FsOpenAI.Vision\FsOpenAI.Vision.fsproj", "{4E7F9E1E-A354-4C72-928A-F6E780FDB805}"
 EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "FsOpenAI.CodeEvaluator", "src\FsOpenAI.CodeEvaluator\FsOpenAI.CodeEvaluator.fsproj", "{C94E3B28-A86E-4DD4-92C0-0526CEBCD033}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FsOpenAI.Vision", "src\FsOpenAI.Vision\FsOpenAI.Vision.fsproj", "{4E7F9E1E-A354-4C72-928A-F6E780FDB805}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "FsOpenAI.Tasks", "src\FsOpenAI.Tasks\FsOpenAI.Tasks.fsproj", "{6B60AC2F-8561-41D8-ACE5-2FF3A181F1BA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

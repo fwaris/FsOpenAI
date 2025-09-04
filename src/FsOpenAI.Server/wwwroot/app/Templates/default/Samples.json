@@ -3,33 +3,11 @@
     "SampleChatType": {
       "Case": "SM_IndexQnA",
       "Fields": [
-        "ml-docs"
+        "ai-docs"
       ]
     },
-    "SampleSysMsg": "You are a helpful AI assistant",
-    "SampleQuestion": "How to prevent overfitting?",
-    "SampleMode": {
-      "Case": "Factual"
-    },
-    "MaxDocs": 5
-  },
-  {
-    "SampleChatType": {
-      "Case": "SM_CodeEval"
-    },
-    "SampleSysMsg": "ignored",
-    "SampleQuestion": "Write recursive function for the Fibonacci series and return the value of the 15th element",
-    "SampleMode": {
-      "Case": "Factual"
-    },
-    "MaxDocs": 5
-  },
-  {
-    "SampleChatType": {
-      "Case": "SM_CodeEval"
-    },
-    "SampleSysMsg": "ignored",
-    "SampleQuestion": "Write a function to download a page from the internet and download \u0027https://www.google.com\u0027 display results",
+    "SampleSysMsg": "You are a helpful AI assistant\u0022\n",
+    "SampleQuestion": "What is RAG?",
     "SampleMode": {
       "Case": "Factual"
     },
@@ -42,7 +20,7 @@
         false
       ]
     },
-    "SampleSysMsg": "You are a helpful AI assistant",
+    "SampleSysMsg": "You are a helpful AI assistant\u0022\n",
     "SampleQuestion": "What are the major languages and dialects spoken in France? Only list the language names",
     "SampleMode": {
       "Case": "Factual"
