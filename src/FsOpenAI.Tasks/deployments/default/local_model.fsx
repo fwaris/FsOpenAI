@@ -13,20 +13,20 @@ open ScriptEnv
 
 //Optional name of the meta index. Meta index points to real indexes that contain doc collections
 //If defined, the app will read the meta index first and list the indexes in the QnA chat mode
-let metaIndexName = Some $"{C.DEFAULT_META_INDEX}"
+let metaIndexName = None
 
 //The keyvault key where the settings file will be stored
 //The settings file is base64 encoded and stored in the keyvault under this key
 //For Azure deployments, its preferrable to store the settings file in a keyvault
-let keyVaultKey = "fsopenai"
+let keyVaultKey = ""
 
 //The Azure keyvault where the settings file will be stored with the key above
-let keyVault = "your-keyvault-name"
+let keyVault = ""
 
 //The location of the settings file for this config.
 //It will be copied to (%USERPROFILE%|%HOME%)/.fsopenai/ServiceSettings.json so that it is 'in-effect'
 //for local development.
-let baseSettingsFile = @".fsopenai/poc/ServiceSettings.json"
+let baseSettingsFile = @".fsopenai/local/ServiceSettings.json"
 
 //The root folder for client files. These will be copied to client wwwroot. Contains:
 //- appSettings.json - this may contain Azure Entra ID config for authentication
@@ -63,13 +63,7 @@ let defaultSysMessage = """You are a helpful AI assistant"
 //in the UI and saved chats, we use the tag to refer to the index (not the versioned name)
 //so that saved chats still work if the index is updated
 //We update the meta-index to let the deployed app use the new versions of the indexes, as needed
-let docDesc =
-    [
-        //index name, tag, description, isVirtual, parents
-        "root", "root", "Root Index",true,[]                   //virtual index = true means its not a real index; only use for grouping other indexes
-        "real-index-1-v1","real-index-1",  "Child Index 1",false,["root"]
-        "real-index-2-v2","real-index-2-v2", "Child Index 2",false,["root"]
-    ]
+let docDesc = []
 
 let docs =
     docDesc
@@ -88,14 +82,14 @@ let docs =
 //The app reads this file at startup to configure itself
 let acctAppCfg =
     {
-        HideChatSettings = false
-        UseORCByDefault = false
+        HideChatSettings = true
+        UseORCByDefault = true
         EnabledBackends = [OpenAI] // [AzureOpenAI; OpenAI] //list of 'backends' that the user may select from (can be expanded in the future)
-        EnabledChatModes = [M_Plain,defaultSysMessage; M_Doc, defaultSysMessage; M_Index, defaultSysMessage] //list of chat modes that may be enabled in the app
+        EnabledChatModes = [M_Plain,defaultSysMessage; M_Doc, defaultSysMessage] //list of chat modes that may be enabled in the app
         DatabaseName = C.DFLT_COSMOSDB_NAME //name of the CosmosDB database
-        DiagTableName = Some "log1" // CosmosDB container name where to store chat submission logs
-        SessionTableName = Some "sessions" // Some "sessions" persist sessions to CosmosDB
-        AppBarType = Some (AppB_Base "FsOpenAI Chat") //Header bar style and title text
+        DiagTableName = None
+        SessionTableName = None
+        AppBarType = Some (AppB_Base "Local Chat") //Header bar style and title text
         Roles = [] //if not empty app will only allow users that have the listed roles (from AD)
         RequireLogin = false //if true, requires AD login (via MSAL); needs valid appSettings.json (see above)
         AssistantIcon = None
@@ -196,5 +190,3 @@ ScriptEnv.Secrets.getCreds keyVault keyVaultKey
 //check to see if the meta index is installed correctly
 ScriptEnv.Indexes.printMetaIndex [] metaIndexName.Value
 *)
-
-

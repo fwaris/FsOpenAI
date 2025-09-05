@@ -13,48 +13,6 @@ open FsOpenAI.Shared.Interactions
 open System.Collections.Generic
 open FsOpenAI.Shared
 
-type [<CLIMutable>] LTemplate = {Label:string; TemplateType:TemplateType; Template:Template}
-
-type PromptTemplateDialog() =
-    inherit ElmishComponent<Model,Message>()
-    override this.View model dispatch =
-        let chat = Model.selectedChat model
-        let templates : IEnumerable<LTemplate> = 
-            model.templates 
-            |> Seq.collect(fun tl -> 
-                tl.Templates
-                |> Map.toSeq
-                |> Seq.filter (fun (tt,ts) -> tt = TemplateType.DocQuery)
-                |> Seq.collect(fun (tt,ts) -> ts |> Seq.map(fun t -> {Label=tl.Label; TemplateType = tt; Template=t})))         
-
-        comp<RadzenDataGrid<LTemplate>> {
-            "Data" => templates
-            attr.fragment "Columns" (
-                concat {
-                    comp<RadzenDataGridColumn<LTemplate>> {
-                        "Property" => "Label"
-                        "Title" => "Type"
-                        "Resizable" => true
-                    }
-                    comp<RadzenDataGridColumn<LTemplate>> {
-                        "Property" => "Template.Description"
-                        "Title" => "Description"
-                        "Resizable" => true
-
-                    }
-                    comp<RadzenDataGridColumn<LTemplate>> {
-                        attr.fragmentWith "Template" (fun (t:LTemplate) -> 
-                            comp<RadzenButton> {
-                                "Text" => "Apply"
-                                attr.callback "Click" (fun (e:MouseEventArgs) -> 
-                                    chat |> Option.iter (fun chat -> dispatch (Ia_ApplyTemplate (chat.Id,t.TemplateType,t.Template)))
-                                )
-                            }
-                        )
-                    }
-                }
-            )
-        }                
 
 type DocDetailsDialog() =
     inherit ElmishComponent<Model,Message>()

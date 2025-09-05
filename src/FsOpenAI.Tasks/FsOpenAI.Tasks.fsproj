@@ -14,6 +14,7 @@
 	<None Include="deployments\default\config_default.fsx" />
 	<None Include="deployments\default\indexed_config.fsx" />
 	<None Include="deployments\default\indexed_create.fsx" />
+	<None Include="deployments\default\local_model.fsx" />
 	<None Include="scripts\Sandbox.fsx" />
 	<None Include="scripts\packages.fsx" />
     <None Include="scripts\ScriptEnv.fsx" />
@@ -22,6 +23,7 @@
     <None Include="scripts\LoadIndex.fsx" />
     <None Include="scripts\TestOpenAIClient.fsx" />
     <None Include="scripts\TemplateParsingSandbox.fsx" />
+    <None Include="scripts\HarmonyParser.fsx" />
     <None Include="scripts\CosmoDB.fsx" />
 
     <Compile Include="Library.fs" />

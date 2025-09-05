@@ -9,27 +9,15 @@
   "EnabledChatModes": [
     [
       {
-        "Case": "M_Index"
+        "Case": "M_Plain"
       },
-      "You are a helpful AI assistant"
-    ],
-    [
-      {
-        "Case": "M_Doc_Index"
-      },
-      "You are a helpful AI assistant"
+      "You are a helpful AI assistant\u0022\n"
     ],
     [
       {
         "Case": "M_Doc"
       },
-      "You are a helpful AI assistant"
-    ],
-    [
-      {
-        "Case": "M_Plain"
-      },
-      "You are a helpful AI assistant"
+      "You are a helpful AI assistant\u0022\n"
     ]
   ],
   "DefaultMaxDocs": 10,
@@ -37,7 +25,7 @@
   "AppBarType": {
     "Case": "AppB_Base",
     "Fields": [
-      "FsOpenAI Chat"
+      "Local Chat"
     ]
   },
   "RequireLogin": false,
@@ -46,10 +34,10 @@
   "LogoUrl": "https:/github.com/fwaris/FsOpenAI",
   "AppName": "FsOpenAI Chat",
   "AppId": "default",
-  "PersonaText": "FsOpenAI Chat",
-  "PersonaSubText": "Loading ...",
+  "PersonaText": null,
+  "PersonaSubText": null,
   "Disclaimer": null,
-  "MetaIndex": "fsopenai-meta",
+  "MetaIndex": null,
   "IndexGroups": [
     "default"
   ],
@@ -86,22 +74,7 @@
         "TokenLimit": 127000
       }
     ],
-    "LogicModels": [
-      {
-        "Backend": {
-          "Case": "AzureOpenAI"
-        },
-        "Model": "o4-mini",
-        "TokenLimit": 127000
-      },
-      {
-        "Backend": {
-          "Case": "OpenAI"
-        },
-        "Model": "o4-mini",
-        "TokenLimit": 127000
-      }
-    ],
+    "LogicModels": [],
     "LowCostModels": [
       {
         "Backend": {

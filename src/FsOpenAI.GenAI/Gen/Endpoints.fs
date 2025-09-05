@@ -27,8 +27,8 @@ module Endpoints =
         match backend with
         | AzureOpenAI ->
             Connectors.AzureOpenAI.AzureOpenAIChatCompletionService(model,ep.ENDPOINT,ep.API_KEY)
-        | OpenAI  ->
-            OpenAIChatCompletionService(model,ep.API_KEY)
+        | OpenAI  ->            
+            OpenAIChatCompletionService(model,Uri ep.ENDPOINT,ep.API_KEY)
 
     let private getEmbeddingsClientFor (parms:ServiceSettings) backend model : ITextEmbeddingGenerationService =
         let ep = endpoint parms backend

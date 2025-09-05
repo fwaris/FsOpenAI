@@ -6,6 +6,8 @@ open FsOpenAI.GenAI
 open Microsoft.SemanticKernel
 
 module Templates = 
+    ()
+(*
     let private (@@) a b = Path.Combine(a,b)
 
     let toTemplates p (plugin:KernelPlugin) = 
@@ -50,3 +52,4 @@ module Templates =
                 |> Seq.toList
             return templates
         }
+*)

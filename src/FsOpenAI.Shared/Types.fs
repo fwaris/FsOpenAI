@@ -25,7 +25,13 @@ type DocRef =
 type QueriedDocuments = {SearchQuery:string option; DocRefs: DocRef list }
     with static member Empty = {SearchQuery=None; DocRefs=[]}
 
-type MessageRole = User | Assistant of QueriedDocuments
+type AsstBag = {
+    QueriedDocuments : QueriedDocuments
+    ThoughtProcess : string option
+}
+    with static member Empty = {QueriedDocuments=QueriedDocuments.Empty; ThoughtProcess=None}
+
+type MessageRole = User | Assistant of AsstBag
 
 type InteractionMessage = {MsgId:string; Role:MessageRole; Message: string}
     with
@@ -203,23 +209,6 @@ type Interaction = {
     IsBuffering : bool
     Notifications : string list
 }
-
-type Template =
-    {
-        Name : string
-        Description : string
-        Template : string
-        Question : string option
-    }
-
-type TemplateType = DocQuery | Extraction
-
-type LabeledTemplates =
-    {
-        Label : string
-        Templates : Map<TemplateType,Template list>
-    }
-
 type SamplePrompt =
     {
         SampleChatType                  : SampleChatType
@@ -258,7 +247,6 @@ type ServerInitiatedMessages =
     | Srv_Error of string
     | Srv_Info of string
     | Srv_IndexesRefreshed of IndexTree list
-    | Srv_SetTemplates of LabeledTemplates list
     | Srv_LoadSamples of (string*SamplePrompt list)
     | Srv_SetConfig of AppConfig
     | Srv_DoneInit of unit

@@ -29,10 +29,6 @@ type TempChatState =
         SettingsOpen: bool
         DocsOpen:string option
         DocDetailsOpen:bool
-        PromptsOpen:bool
-        IndexOpen:bool
-        SysMsgOpen:bool
-        FeedbackOpen:bool
     }
     with
         static member Default =
@@ -40,10 +36,6 @@ type TempChatState =
                 SettingsOpen=false
                 DocsOpen=None
                 DocDetailsOpen=false
-                PromptsOpen=false
-                IndexOpen=false
-                SysMsgOpen=false
-                FeedbackOpen=false
             }
 
 type Model =
@@ -55,7 +47,6 @@ type Model =
         appConfig               : AppConfig
         loadConfig              : LoadConfig
         samples                 : (string*SamplePrompt list) list
-        templates               : LabeledTemplates list
         indexTrees              : IndexTree list
         error                   : string option
         busy                    : bool
@@ -71,8 +62,6 @@ type Model =
 type Message =
     | StartInit
     | Ia_SystemMessage of string * string
-    | Ia_ApplyTemplate of string*TemplateType*Template
-    | Ia_SetPrompt of string*TemplateType*string
     | Ia_Save of string
     | Ia_Session_Save of string
     | Ia_Session_Delete of string
@@ -111,12 +100,8 @@ type Message =
     | Ia_Submit of string*string
     | Ia_SubmitOnKey of string*bool
     | Ia_ToggleSettings of string
-    | Ia_ToggleSysMsg of string
     | Ia_ToggleDocs of string*string option
     | Ia_ToggleDocDetails of string
-    | Ia_TogglePrompts of string
-    | Ia_ToggleFeedback of string
-    | Ia_OpenIndex of string
     | Ia_SetIndex of string*IndexRef list
     | Ia_Feedback_Set of string*Feedback
     | Ia_Feedback_Submit of string
@@ -157,7 +142,6 @@ module Model =
         {
             flashBanner = true
             interactions = []
-            templates = []
             appConfig = AppConfig.Default
             loadConfig = LoadConfig.Default
             samples = []

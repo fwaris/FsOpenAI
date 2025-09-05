@@ -35,12 +35,10 @@ module Update =
         | Ia_Submit (id,lastMsg) -> Model.checkBusy model <| Auth.checkAuthFlip (Submission.submitChat uparms.serverDispatch lastMsg id)
         | Ia_SubmitOnKey (id,delay) -> Submission.submitOnKey model id delay
         | Ia_SystemMessage (id,msg) -> {model with interactions = Interactions.setSystemMessage id msg model.interactions},Cmd.none
-        | Ia_ApplyTemplate (id,tpType,tmplt) -> Submission.tryApplyTemplate (id,tpType,tmplt) model
-        | Ia_SetPrompt (id,tpType,prompt) ->  printfn "TODO set prompt"; model,Cmd.none //{model with interactions = Interactions.setPrompt id (tpType,prompt) model.interactions}, Cmd.none
         | Ia_Save id -> model, if Model.isChatPeristenceConfigured model then Cmd.ofMsg (Ia_Session_Save id) else Cmd.ofMsg Ia_Local_Save
         | Ia_Local_Save -> model, Cmd.OfTask.either IO.saveChats (model,uparms.localStore) ShowInfo Error
         | Ia_Local_Load -> model, Cmd.OfTask.either IO.loadChats uparms.localStore Ia_Local_Loaded Error
-        | Ia_Local_Loaded cs -> Submission.tryLoadSamples model
+        | Ia_Local_Loaded cs -> if cs.IsEmpty then  Submission.tryLoadSamples model else {model with interactions=cs}, Cmd.none
         | Ia_Local_ClearAll -> model,Cmd.OfTask.either IO.deleteSavedChats uparms.localStore ShowInfo Error
         | Ia_Session_Load -> uparms.serverDispatch (Clnt_Ia_Session_LoadAll (IO.invocationContext model)); model,Cmd.none
         | Ia_Session_Save id -> Submission.saveSession uparms.serverDispatch id model
@@ -75,10 +73,6 @@ module Update =
         | Ia_ToggleSettings id -> TmpState.toggleChatSettings id model,Cmd.none
         | Ia_ToggleDocs (id,msgId) -> TmpState.toggleChatDocs (id,msgId) model, Cmd.none
         | Ia_ToggleDocDetails id -> TmpState.toggleDocDetails id model, Cmd.none
-        | Ia_TogglePrompts id -> TmpState.togglePrompts id model, Cmd.none
-        | Ia_OpenIndex id -> TmpState.toggleIndex id model, Cmd.none
-        | Ia_ToggleSysMsg id -> TmpState.toggleSysMsg id model, Cmd.none
-        | Ia_ToggleFeedback(id) -> TmpState.toggleFeedback id model, Cmd.none
         | Ia_ToggleModelType id -> {model with interactions = Interactions.toggleModelType id model.interactions},Cmd.none
         | Ia_Feedback_Submit id -> Submission.submitFeedback uparms.serverDispatch id model; model,Cmd.none
         | Ia_UpdateCodeEvalParms (id,parms) -> {model with interactions = CodeEval.Interactions.setEvalParms id parms model.interactions}, Cmd.none
@@ -118,7 +112,6 @@ module Update =
         | FromServer (Srv_SetConfig appConfig) -> {model with appConfig=appConfig},Cmd.ofMsg FlashBanner
         | FromServer (Srv_IndexesRefreshed idxTrs) -> {model with busy=false; indexTrees=idxTrs},Cmd.none
         | FromServer (Srv_Parameters p) -> {model with serviceParameters=Some p;}, Cmd.none
-        | FromServer (Srv_SetTemplates templates) -> {model with templates = templates},Cmd.none
         | FromServer (Srv_LoadSamples (lbl,samples)) -> {model with samples = (lbl,samples)::model.samples}, Cmd.none
         | FromServer (Srv_Ia_Reset id) -> {model with interactions = Interactions.resetChat id model.interactions},Cmd.none
         | FromServer (Srv_Ia_Citations (id,cits)) -> {model with interactions = Interactions.setCitations id cits model.interactions},Cmd.none

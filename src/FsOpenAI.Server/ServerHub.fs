@@ -32,16 +32,6 @@ module Inititalizaiton =
                 dispatch (Srv_Error "Unable to fetch index data")
         }
 
-    let initTemplates dispatch =
-        task {
-            try
-                let! templates = Templates.loadTemplates()
-                dispatch (Srv_SetTemplates templates)
-            with ex ->
-                Env.logException(ex,"initTemplates")
-                dispatch (Srv_Error "Unable to load templates")
-        }
-
     let initSamples dispatch =
         task {
             try
@@ -65,7 +55,6 @@ module Inititalizaiton =
                     match cfg.MetaIndex with
                     | Some metaIndex -> do! initIndexes sttngs cfg.IndexGroups metaIndex dispatch
                     | None -> ()
-                    do! initTemplates dispatch
                     do! initSamples dispatch
                 | None ->
                     dispatch (Srv_Info cfgMissingMsg)

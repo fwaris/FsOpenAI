@@ -21,11 +21,19 @@ module StreamParser =
             Index : int
         }
         with
+            static member Empty = {SourceChunk = ""; Index = 0 }
             member this.Step = { this with Index = this.Index + 1 }
             member this.Current = if this.Index >= this.SourceChunk.Length then None else Some this.SourceChunk.[this.Index]
             member this.NextChunk s = { this with SourceChunk = s; Index = 0 }
-            static member Empty = {SourceChunk = ""; Index = 0 }
-
+            member this.ConsumedFrom i =                  
+                if i > this.Index then failwith "invalid index" 
+                this.SourceChunk.Substring(i,this.Index-i)
+            member this.Drain() = 
+                if this.Index < this.SourceChunk.Length then 
+                    this.SourceChunk.Substring(this.Index + 1), {this with Index=this.SourceChunk.Length-1}
+                else 
+                    "", this
+            
     type Parser<'a> =
         State ->
             State *             //new state
@@ -38,7 +46,7 @@ module StreamParser =
 
     let inline append acc o = match o with Some s -> s::acc | _ -> acc
 
-    let ret a = fun (s:State)-> s, Done (Some a), None
+    let ret a = fun (s:State) -> s, Done (Some a), None
 
     let rec map f (p:Parser<'a>) (s:State) =
         match p s with
@@ -214,6 +222,19 @@ module StreamParser =
             | s, Empty p, o    -> s, Empty (p .>>  (fun v o -> p_string_list_cont (append acc v))), o
             | s, Fail msg, o   -> s, Fail msg, o
         | _                                 -> fail s $"p_string_list: Expected '\"' or ']' or ',' got {s.Current}"
+
+    let rec _accumTill acc accT o (p:Parser<string>) (state:State) =
+        match p state with 
+        | s, Done v, o -> s, Done (Some (List.rev acc  |> String.concat "")), o
+        | s, Empty p, o -> s, Empty (_accumTill acc (state.SourceChunk::accT) None p), o
+        | s, Fail _, o' -> let s = s.Step in _accumTill (s.ConsumedFrom state.Index::(accT @ acc )) [] (o ++ o') p s
+
+    let accumTill (p:Parser<string>) (state:State) =
+        _accumTill [] [] None p state
+
+    let rec p_strm_any_string (s:State) = 
+        let c,s = s.Drain()
+        s, Empty p_strm_any_string, Some c
 
     //above is mostly generic, below is specific to response json
 

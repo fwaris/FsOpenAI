@@ -9,7 +9,7 @@ module AssistantMessage =
     open Radzen.Blazor
 
     let view (msg:InteractionMessage) (chat:Interaction) lastMsg model dispatch =
-        let docs = match msg.Role with Assistant r -> r.DocRefs | _ -> []
+        let docs = match msg.Role with Assistant r -> r.QueriedDocuments.DocRefs | _ -> []
         let docsr =
             if docs |> List.exists (fun x -> x.SortOrder.IsSome) then
                 docs |> List.filter (fun x -> x.SortOrder.IsSome)
@@ -98,4 +98,3 @@ module AssistantMessage =
                     }
             }
         }
-

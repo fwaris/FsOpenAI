@@ -34,21 +34,22 @@ type ModelQueryView() =
                     "Text" => "AI Model"
                 }
             }
-            comp<RadzenStack> {
-                "Orientation" => Orientation.Horizontal
-                "AlignItems" => AlignItems.Center
-                attr.``class`` "rz-ml-2"
-                comp<RadzenCheckBox<bool>> {
-                    attr.title "Include web search results to enrich answer"
-                    "Value" => ((mode = M_Plain) && useWeb)
-                    attr.callback "Change" (fun (v:bool) ->
-                        Model.selectedChat mdl |> Option.iter (fun chat ->
-                            dispatch (Ia_UseWeb (chat.Id, v))))
+            if mdl.serviceParameters |> Option.bind _.BING_ENDPOINT |> Option.isSome then
+                comp<RadzenStack> {
+                    "Orientation" => Orientation.Horizontal
+                    "AlignItems" => AlignItems.Center
+                    attr.``class`` "rz-ml-2"
+                    comp<RadzenCheckBox<bool>> {
+                        attr.title "Include web search results to enrich answer"
+                        "Value" => ((mode = M_Plain) && useWeb)
+                        attr.callback "Change" (fun (v:bool) ->
+                            Model.selectedChat mdl |> Option.iter (fun chat ->
+                                dispatch (Ia_UseWeb (chat.Id, v))))
+                    }
+                    comp<RadzenLabel> {
+                        "Text" => "With web search"
+                    }
                 }
-                comp<RadzenLabel> {
-                    "Text" => "With web search"
-                }
-            }
         }
 
 type IndexTreeView() =

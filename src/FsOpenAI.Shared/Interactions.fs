@@ -6,7 +6,7 @@ open FsOpenAI.Shared.Interactions.Core.Interactions
 
 module Interaction =
     let newUserMessage cntnt = {MsgId = Utils.newId(); Role = MessageRole.User; Message = cntnt}
-    let newAsstantMessage cntnt =  {MsgId = Utils.newId(); Role = MessageRole.Assistant QueriedDocuments.Empty; Message = cntnt}
+    let newAsstantMessage cntnt =  {MsgId = Utils.newId(); Role = MessageRole.Assistant AsstBag.Empty; Message = cntnt}
 
     let getText c =
         let sb = System.Text.StringBuilder()
@@ -87,7 +87,7 @@ module Interaction =
     let lastSearchQuery (ch:Interaction) =
         List.rev ch.Messages
         |> List.map (_.Role)
-        |> List.tryPick (function Assistant x -> x.SearchQuery | _ -> None)
+        |> List.tryPick (function Assistant x -> x.QueriedDocuments.SearchQuery | _ -> None)
 
     let lastNonEmptyUserMessageText (ch:Interaction) =
         let msg = ch.Messages |> List.rev |> List.tryFind(fun x->x.IsUser && Utils.notEmpty x.Message)
@@ -144,7 +144,7 @@ module Interaction =
                 c.Messages
                 |> List.map(fun m ->
                     match m.Role with
-                    | Assistant r -> {m with Role = Assistant QueriedDocuments.Empty}
+                    | Assistant r -> {m with Role = Assistant AsstBag.Empty}
                     | _           -> m)
         }
 
@@ -152,7 +152,7 @@ module Interaction =
         let h,tail = match List.rev c.Messages with h::t -> h,t | _ -> failwith "no messages in chat"
         let h =
             match h.Role with
-            | Assistant d -> {h with Role = Assistant {d with DocRefs=docs}}
+            | Assistant asstBag -> {h with Role = Assistant {asstBag with QueriedDocuments = {asstBag.QueriedDocuments with DocRefs=docs}}}
             | _ -> failwith "Expected an Assistant message"
         let msgs = h::tail
         let _,msgs =
@@ -160,7 +160,7 @@ module Interaction =
             ||> List.fold (fun (count,acc) m ->
                 let count',m' =
                     match m.Role with
-                    | Assistant _ when count > C.MAX_DOCLISTS_PER_CHAT -> count+1,{m with Role = Assistant QueriedDocuments.Empty}
+                    | Assistant _ when count > C.MAX_DOCLISTS_PER_CHAT -> count+1,{m with Role = Assistant AsstBag.Empty}
                     | Assistant _ -> count+1,m
                     | _ -> count,m
                 count',m'::acc)
@@ -295,9 +295,11 @@ module Interaction =
                     match m.Role with
                     | Assistant q ->
                         {m with
-                            Role = Assistant {
-                                                SearchQuery = None
-                                                DocRefs = q.DocRefs |> List.map(fun d -> {d with Embedding=[||]; Text="[...]"})
+                            Role = Assistant {q with 
+                                                  QueriedDocuments = {
+                                                    SearchQuery = None
+                                                    QueriedDocuments.DocRefs = q.QueriedDocuments.DocRefs |> List.map(fun d -> {d with Embedding=[||]; Text="[...]"})
+                                                  }
                                               }
                         }
                     | _ -> m
@@ -407,13 +409,14 @@ module Interaction =
             |> List.tryHead
             |> Option.bind (fun m ->
                 match m.Role with
-                | Assistant drefs ->
+                | Assistant asstbag ->
+                    let drefs = asstbag.QueriedDocuments
                     let xs = set xs
                     let dx =
                         drefs.DocRefs
                         |> List.map (fun d -> if xs.Contains d.Id then {d with SortOrder = Some d.Relevance} else d)
                         |> List.sortBy (fun d -> float d.Id)
-                    Some {m with Role =Assistant {drefs with DocRefs=dx}}
+                    Some {m with Role =Assistant {asstbag with QueriedDocuments = {asstbag.QueriedDocuments with DocRefs=dx}}}
                 | _               -> None)
             |> Option.map (fun m -> m::(List.tail msgsR))
             |> Option.defaultValue msgsR

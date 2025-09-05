@@ -54,26 +54,6 @@ module TmpState =
             (fun s -> {s with DocDetailsOpen = not s.DocDetailsOpen}) 
             {TempChatState.Default with DocDetailsOpen=true}
 
-    let togglePrompts id model =
-        updateChatTempState id model 
-            (fun s -> {s with PromptsOpen = not s.PromptsOpen}) 
-            {TempChatState.Default with PromptsOpen=true}
-
-    let toggleIndex id model =
-        updateChatTempState id model 
-            (fun s -> {s with IndexOpen = not s.IndexOpen}) 
-            {TempChatState.Default with IndexOpen=true}
-    
-    let toggleSysMsg id model =
-        updateChatTempState id model 
-            (fun s -> {s with SysMsgOpen = not s.SysMsgOpen}) 
-            {TempChatState.Default with SysMsgOpen=true}
-
-    let toggleFeedback id model =
-        updateChatTempState id model 
-            (fun s -> {s with FeedbackOpen = not s.FeedbackOpen}) 
-            {TempChatState.Default with FeedbackOpen=true}
-
     let isDocsOpen model = 
         let selChat = Model.selectedChat model
         let docs = 
@@ -86,7 +66,7 @@ module TmpState =
                     chat.Messages
                     |> List.filter(fun m -> m.MsgId=msgId)
                     |> List.tryHead 
-                    |> Option.map(fun m -> match m.Role with Assistant s -> s.DocRefs | _ -> failwith "unexpected"))
+                    |> Option.map(fun m -> match m.Role with Assistant x -> x.QueriedDocuments.DocRefs | _ -> failwith "unexpected"))
             )
             |> Option.defaultValue []
         selChat |> Option.map (fun c -> c.Id),docs
@@ -101,28 +81,4 @@ module TmpState =
         model.tempChatSettings
         |> Map.tryFind id
         |> Option.map(fun x -> x.DocDetailsOpen)
-        |> Option.defaultValue false
-
-    let isPromptsOpen id model =
-        model.tempChatSettings
-        |> Map.tryFind id
-        |> Option.map(fun x -> x.PromptsOpen)
-        |> Option.defaultValue false
-
-    let isIndexOpen id model =
-        model.tempChatSettings
-        |> Map.tryFind id
-        |> Option.map(fun x -> x.IndexOpen)
-        |> Option.defaultValue false
-
-    let isSysMsgOpen id model =
-        model.tempChatSettings
-        |> Map.tryFind id
-        |> Option.map(fun x -> x.SysMsgOpen)
-        |> Option.defaultValue false
-
-    let isFeedbackOpen id model =
-        model.tempChatSettings
-        |> Map.tryFind id
-        |> Option.map(fun x -> x.FeedbackOpen)
         |> Option.defaultValue false
