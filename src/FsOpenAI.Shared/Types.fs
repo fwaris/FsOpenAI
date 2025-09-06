@@ -141,6 +141,7 @@ type DocumentContent =
         //IBrowserFile option (keeping untyped to reduce dependency into asp.net core)
         DocumentRef : obj option
         DocType : DocType option
+        DocTitle : string option
         DocumentText : string option
         UsedOcr : bool
         Status : DocumentStatus
@@ -154,6 +155,7 @@ type DocumentContent =
                             DocumentText = None
                             Status = No_Document
                             DocType = None
+                            DocTitle = None
                             UsedOcr = false
                             SearchTerms = None
                             ProcessingInfo = []

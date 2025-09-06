@@ -66,7 +66,7 @@ module Update =
         | Ia_Mode_Document id -> {model with interactions = Interactions.setMode id M_Doc model.interactions},Cmd.none
         | Ia_Mode_CodeEval id -> {model with interactions = Interactions.setMode id M_CodeEval model.interactions},Cmd.none
         | Ia_Mode_Doc_Index (id,useIndex) -> Submission.setModeDocIndex useIndex id model,Cmd.none
-        | Ia_File_BeingLoad2 (id,dc) -> Submission.setModeDoc dc id model, Cmd.ofMsg (Ia_File_Load id)
+        | Ia_File_BeingLoad (id,dc) -> Submission.setModeDoc dc id model, Cmd.ofMsg (Ia_File_Load id)
         | Ia_File_Load id -> {model with interactions = Interactions.setDocumentStatus id Uploading model.interactions},Cmd.OfAsync.either IO.loadFile (id,model,uparms.serverCall) Ia_File_Loaded Error
         | Ia_File_Loaded (id,fileId) -> Submission.extractContents  uparms.serverDispatch id fileId model
         | Ia_File_SetContents (id,txt,isDone) -> {model with interactions = Interactions.setFileContents id (txt,isDone) model.interactions},Cmd.none

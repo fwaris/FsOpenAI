@@ -29,24 +29,44 @@ let page = doctypeHtml {
         title { tabTitle }
         ``base`` { attr.href "/" }
         link {attr.rel "short icon"; attr.``type`` "image/png"; attr.href "app/imgs/favicon.png"}
-        link { attr.rel "stylesheet"; attr.href "css/index.css" }
+        link { attr.rel "stylesheet"; attr.href $"css/index.css?v={uiVersion}" }
+        link { attr.rel "stylesheet"; attr.href $"css/hover.css?v={uiVersion}" }
         //utils
-        script {attr.src $"scripts/utils.js?v={uiVersion}"}
+        script {attr.src $"scripts/utils.js?v={uiVersion}"}        
         //authentication
         script {attr.src "_content/Microsoft.Authentication.WebAssembly.Msal/AuthenticationService.js" }
         link { attr.rel "stylesheet"; attr.href "css/theme-override.css?v=2" }
     }
     body {
         input {attr.id C.LOAD_CONFIG_ID; attr.``type`` "hidden"; attr.value cfgStr; }
-        div {                                 
-                attr.id "main"                
-                comp<Client.App.MyApp> 
+
+        div{ 
+            attr.id "main"
+            div {            
+                attr.style "position:absolute; top:1vh; width:100%; text-align:center"
+                div {
+                    attr.``class`` "spinner-overlay"
+                    div {
+                        attr.style "display:flex; flex-direction: column; align-items: center;"
+                        h3{
+                            attr.style "display: inline-block;"; 
+                            text $"""{appTitle |> Option.defaultValue "Application"} ..."""
+                        }
+                        div {
+                            attr.``class`` "spinner" 
+                            attr.style "display: inline-block;";
+                            attr.aria "label" "Loading..."
+                            "role" => "status"
+                        }
+                    }
+                }
             }
+            comp<Client.App.MyApp> 
+        }
         boleroScript
     }
 
     //radzen - note this needs to be after the body otherwise javascript does not find DOM elements
     //update version to force reload over older scripts that may be cached
     script {attr.src $"_content/Radzen.Blazor/Radzen.Blazor.js?v={uiVersion}"} //version change forces js refresh on client
-
 }

@@ -51,3 +51,40 @@ body {
   margin-bottom: 5px;
 }
 
+.spinner {
+    --size: 32px;
+    --thickness: 3px;
+    --color: #3b82f6; /* change to your brand color */
+
+    width: var(--size);
+    height: var(--size);
+    border: var(--thickness) solid rgba(0,0,0,0.1);
+    border-top-color: var(--color);
+    border-radius: 50%;
+    animation: spin 0.3s linear infinite;
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .spinner {
+        animation: none;
+        border-color: rgba(0,0,0,0.1);
+        border-top-color: rgba(0,0,0,0.4);
+    }
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.spinner-overlay {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: rgba(255,255,255,0.6);
+    backdrop-filter: blur(2px);
+    z-index: 101;
+}

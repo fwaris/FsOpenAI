@@ -87,7 +87,7 @@ type Message =
     | Ia_UpdateQaBag of string * QABag
     | Ia_UpdateCodeEvalParms of string * CodeEvalParms
     | Ia_Notification of string * string
-    | Ia_File_BeingLoad2 of string * DocumentContent
+    | Ia_File_BeingLoad of string * DocumentContent
     | Ia_File_Load of string
     | Ia_File_Loaded of string*string
     | Ia_File_SetContents of string*string*bool

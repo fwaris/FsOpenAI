@@ -150,7 +150,8 @@ type SourcesView() =
                         if showPlain > 0 then
                             makeWrapped wrap "Model" (ecomp<ModelQueryView,_,_> model dispatch {attr.empty()})
                         if showDoc > 0 then
-                            makeWrapped wrap "Document" (ecomp<DocView,_,_> model dispatch {attr.empty()})
+                            ()
+                            //makeWrapped wrap "Document" (ecomp<DocView,_,_> model dispatch {attr.empty()})
                         if showIndex > 0 then
                             makeWrapped wrap "Indexes" (ecomp<IndexTreeView,_,_> model dispatch {attr.empty()})
                         if showCode > 0 then

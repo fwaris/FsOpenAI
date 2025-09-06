@@ -1,0 +1,16 @@
+﻿.hover-container {
+    position: relative;
+}
+
+.hover-button {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.hover-container:hover .hover-button {
+    display: inline-block;
+}
+

@@ -12,6 +12,107 @@ open FsOpenAI.Shared
 open FsOpenAI.Shared.Interactions
 open System.Collections.Generic
 open FsOpenAI.Shared
+open Microsoft.AspNetCore.Components.Forms
+
+////need local binding for Radzen Popup as dispatch (page rendering) closes the popup
+[<CLIMutable>]
+type DocLoadModel = {
+    ChatId : string
+    Model : Model
+    mutable file : IBrowserFile option
+    mutable useOcr : bool
+}
+
+type DocLoadDialog() =
+    inherit ElmishComponent<DocLoadModel,Message>()
+    let check = Ref<RadzenSwitch>()
+    let mutable change = false
+
+    [<Inject>] member val DialogService  = Unchecked.defaultof<DialogService> with get, set
+
+    override this.ShouldRender (): bool = 
+        let ret = change 
+        change <- false
+        ret
+
+    member this.TriggerChange() = 
+        printfn "triggered"
+        change <- true
+        base.StateHasChanged()        
+
+    override this.View model dispatch =
+        let chat = Model.selectedChat model.Model
+        let docCntnt = chat |> Option.bind Interaction.docContent |> Option.defaultValue DocumentContent.Default        
+        let isNotReady = not (Submission.isReady chat)
+        concat {
+            style {"""
+                #uploadWithDragAndDrop {
+                    left: 0;
+                    --rz-upload-button-bar-background-color: transparent;
+                    --rz-upload-button-bar-padding: 0;
+                }
+
+                #uploadWithDragAndDrop .rz-fileupload-buttonbar .rz-fileupload-choose {
+                    width: 100%;
+                    text-align: center;
+                    font-size: 16px;
+                    padding: 50px 10px;
+                }
+            """}
+            comp<RadzenStack> {
+                attr.``class`` "rz-h-100 rz-justify-content-center"
+                "Orientation" => Orientation.Horizontal
+                comp<RadzenStack> {
+                    "Orientation" => Orientation.Vertical
+                    attr.``class`` "rz-h-100 rz-background-color-secondary-lighter rz-p-2 "
+                    comp<RadzenStack> {
+                        "Orientation" => Orientation.Horizontal
+                        attr.``class`` "rz-h-100"
+                        
+                        comp<RadzenLabel> {
+                            "Text" => "Use image-to-text for PDF"
+                        }
+                        comp<RadzenSwitch> {
+                            attr.title "For PDFs, extract text via OCR processing of page images"
+                            "Value" => model.Model.appConfig.UseORCByDefault
+                            check
+                        }                    
+                    }
+                    comp<RadzenUpload> {
+                        attr.id "uploadWithDragAndDrop"
+                        "ChooseText" => " Drag and drop a document here or click here to select a document "
+                        attr.callback "Change" (fun (e:Radzen.UploadChangeEventArgs) ->
+                            printfn $"{e.Files |> Seq.tryHead}"
+                            let browserFile = 
+                                e.Files
+                                |> Seq.tryHead 
+                                |> Option.map (fun x -> x.Source)
+                            this.Model.file <- browserFile
+                            this.TriggerChange()
+                        )
+                    }
+                    comp<RadzenButton> {
+                        attr.disabled this.Model.file.IsNone
+                        attr.callback "Click" (fun (e:MouseEventArgs) ->                      
+                            let file = this.Model.file |> Option.map box
+                            let docCntnt = 
+                                {docCntnt with 
+                                    DocumentRef = file; 
+                                    DocTitle = this.Model.file |> Option.map _.Name
+                                    ProcessingInfo=[]; 
+                                    UsedOcr = check.Value.Value.Value
+                                }                                
+                            this.Dispatch (Ia_File_BeingLoad (this.Model.ChatId,docCntnt))
+                            async {
+                                do! Async.Sleep 1000
+                                this.DialogService.Close()
+                            }
+                            |> Async.Start)                        
+                        text "Upload"
+                    }
+                }
+            }            
+        }
 
 
 type DocDetailsDialog() =
@@ -50,8 +151,7 @@ type DocDetailsDialog() =
                                                     attr.title t
                                                     "Text" => t
                                                 }
-                                            }                                             
-                                                
+                                            }                                                
                                 })
                         }                    
                     }
@@ -68,7 +168,7 @@ type DocDetailsDialog() =
             )
         }
 
-type DocView() =
+type DocViewCompact() = 
     inherit ElmishComponent<Model,Message>()
 
     [<Inject>]
@@ -77,9 +177,8 @@ type DocView() =
     override this.View model dispatch =
         let chat = Model.selectedChat model
         let bag = chat |> Option.bind Interaction.docContent |> Option.defaultValue DocumentContent.Default
-        let fileName = IO.browserFile bag.DocumentRef |> Option.map (fun x -> x.Name) |> Option.defaultValue "No document selected"
+        let fileName = bag.DocTitle |> Option.defaultValue ""
         let isChecked = chat |> Option.map (fun ch -> ch.Mode = M_Doc || ch.Mode = M_Doc_Index) |> Option.defaultValue false
-        printfn "isChecked: %b %A" isChecked (chat |> Option.map (fun ch -> ch.Mode))
         let title =
             match bag.Status with
             | No_Document -> "No document selected"
@@ -87,7 +186,6 @@ type DocView() =
             | Receiving -> "Receiving document content ..."
             | ExtractingTerms -> "Extracting search terms..."
             | Ready -> "Document ready"
-
         let icon =
             match bag.Status with
             | No_Document -> "upload_file" //Icons.Material.Outlined.UploadFile
@@ -95,56 +193,48 @@ type DocView() =
             | Receiving -> "download" //Icons.Material.Outlined.Download
             | ExtractingTerms -> "content_paste_search" //Icons.Material.Outlined.ContentPasteSearch
             | Ready -> "check" // Icons.Material.Outlined.Check
-
         let color =
             match bag.Status with
             | Ready       -> Colors.Success
             | No_Document -> Colors.Info
             | _           -> Colors.Warning
         comp<RadzenStack> {
+            "Gap" => "0.0rem"
+            "Orientation" => Orientation.Horizontal
+            "AlignItems" => AlignItems.Center
             comp<RadzenStack> {
-                "Gap" => "0.5rem"
                 "Orientation" => Orientation.Horizontal
                 "AlignItems" => AlignItems.Center
-                comp<RadzenStack> {
-                    "Orientation" => Orientation.Horizontal
-                    "AlignItems" => AlignItems.Center
-                    comp<RadzenCheckBox<bool>> {
-                        "Value" => isChecked
-                        attr.callback "ValueChanged" (fun (v:bool) -> chat|> Option.iter (fun ch -> dispatch (Ia_Mode_Document ch.Id)))
-                    }
-                    comp<RadzenLabel> {
-                        "Text" => fileName 
-                    }
-                }
-                comp<RadzenIcon> {
-                    "Icon" => icon
-                    attr.title title
-                    "IconColor" => color
-                }
-                comp<RadzenStack> {
-                    "Orientation" => Orientation.Vertical
-                    comp<RadzenButton> {
-                        "Style" => "background:transparent;"
-                        "Icon" => "delete"
-                        "ButtonStyle" => ButtonStyle.Base
-                        "Size" => ButtonSize.ExtraSmall
-                        attr.callback "Click" (fun (e:MouseEventArgs) -> chat|> Option.iter (fun ch -> dispatch (Ia_Remove_Document ch.Id)))
-                    }                    
-                    comp<RadzenButton> {
-                        "Style" => "background:transparent;height:2rem;"
-                        "Icon" => "more_horiz"
-                        attr.title "Document details"
-                        "ButtonStyle" => ButtonStyle.Base
-                        attr.callback "Click" (fun (e:MouseEventArgs) ->
-                            let parms = ["Model",model :> obj; "Dispatch",dispatch] |> dict |> Dictionary
-                            let opts = DialogOptions(Width = "50%", Height="50%")
-                            this.DialogService.OpenAsync<DocDetailsDialog>(fileName, parameters=parms, options=opts) |> ignore
-                        )
-                    }                
-
+                comp<RadzenLabel> {
+                    "Style" => "max-width: 140px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; color: var(--rz-danger-light);"
+                    "Text" => fileName 
                 }
             }
+            comp<RadzenIcon> {
+                "Icon" => icon
+                attr.title title
+                "IconColor" => color
+            }
+            comp<RadzenButton> {
+                "Style" => "background:transparent; display:none; position:absolute;bottom:10px;right:10px"
+                "Icon" => "delete"
+                "ButtonStyle" => ButtonStyle.Base
+                "Size" => ButtonSize.ExtraSmall
+                attr.callback "Click" (fun (e:MouseEventArgs) -> chat|> Option.iter (fun ch -> dispatch (Ia_Remove_Document ch.Id)))
+            }                    
+            comp<RadzenButton> {
+                "Style" => "background:transparent;height:2rem;"
+                "Icon" => "more_horiz"
+                attr.title "Document details"
+                "ButtonStyle" => ButtonStyle.Base
+                attr.callback "Click" (fun (e:MouseEventArgs) ->
+                    let parms = ["Model",model :> obj; "Dispatch",dispatch] |> dict |> Dictionary
+                    let opts = DialogOptions(Width = "50%", Height="50%", Resizable=true, Draggable=true)
+                    this.DialogService.OpenAsync<DocDetailsDialog>(fileName, parameters=parms, options=opts) |> ignore
+                )
+            }                
+        }
+(*
             if Model.isEnabled M_Doc_Index model && isChecked then
                 comp<RadzenStack> {
                     "Orientation" => Orientation.Horizontal
@@ -163,4 +253,4 @@ type DocView() =
                         }
                     }
                 }
-        }
+*)
