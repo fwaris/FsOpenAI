@@ -19,20 +19,7 @@ module Models =
         if modelRefs.IsEmpty then raise (ConfigurationError $"No chat model(s) configured for backend '{backend}'")
         modelRefs
 
-    let private logicModels (invCtx:InvocationContext) backend =
-        let modelsConfig = invCtx.ModelsConfig
-        let modelRefs =
-            modelsConfig.LogicModels
-            |> List.tryFind (fun m -> m.Backend = backend)
-            |> Option.map(fun x -> [x])
-            |> Option.defaultValue (chatModels invCtx backend)
-        if modelRefs.IsEmpty then raise (ConfigurationError $"No logic or chat model(s) configured for backend '{backend}'")
-        modelRefs
-
-    let getModels (ch:InteractionParameters) invCtx backend =
-        match ch.ModelType with
-        | MT_Chat -> chatModels invCtx backend
-        | MT_Logic -> logicModels invCtx backend
+    let getModels (ch:InteractionParameters) invCtx backend = chatModels invCtx backend
 
     let lowcostModels (invCtx:InvocationContext) backend =
         let modelsConfig = invCtx.ModelsConfig

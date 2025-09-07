@@ -8,7 +8,7 @@ type ApiEndpoint =
     {
         API_KEY : string
         ENDPOINT : string
-        BACKEND  : Backend option
+        BACKEND  : string
     }
 
 type ModelDeployments = 

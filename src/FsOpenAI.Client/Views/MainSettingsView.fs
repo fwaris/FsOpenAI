@@ -54,7 +54,7 @@ type MainSettingsView() =
                     [
                         ContextMenuItem(Icon="delete_sweep", Text="Clear chats", Value=M_ClearChats, IconColor=Colors.Warning)
                         ContextMenuItem(Icon="folder_delete", Text="Purge local browser storage", Value=M_PurgeLocalData)
-                        if model.appConfig.EnabledBackends |> List.contains OpenAI then
+                        if model.appConfig.EnabledBackends |> List.contains Backend.Default then
                             ContextMenuItem(Icon="key", Text="Set OpenAI Key", Value=M_SetOpenAIKey)
                     ],
                     fun (e:MenuItemEventArgs) -> 

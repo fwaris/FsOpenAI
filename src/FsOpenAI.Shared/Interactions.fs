@@ -422,9 +422,6 @@ module Interaction =
             |> Option.defaultValue msgsR
         {ch with Messages=List.rev msgs}
 
-    let toggleModelType ch = 
-        let mt = match ch.Parameters.ModelType with MT_Chat -> MT_Logic | MT_Logic -> MT_Chat
-        {ch with Parameters.ModelType = mt}
 
 module Interactions =
 
@@ -506,4 +503,3 @@ module Interactions =
 
     let setCitations id xs cs = updateWith (Interaction.setCitations xs) id cs
 
-    let toggleModelType id cs = updateWith (Interaction.toggleModelType) id cs

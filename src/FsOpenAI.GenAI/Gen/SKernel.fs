@@ -27,25 +27,23 @@ module SKernel =
         }
 
     let promptSettings (parms:ServiceSettings) (ch:Interaction) =
-        match ch.Parameters.ModelType with
-        | MT_Chat ->
-            new OpenAIPromptExecutionSettings(
-                MaxTokens = ch.Parameters.MaxTokens,
-                Temperature = (ChatUtils.temperature ch.Parameters.Mode |> float),
-                TopP = 1)
-        | MT_Logic ->
-            new OpenAIPromptExecutionSettings(MaxTokens = ch.Parameters.MaxTokens, Temperature=1.0)
+        new OpenAIPromptExecutionSettings(
+            MaxTokens = ch.Parameters.MaxTokens,
+            Temperature = (ChatUtils.temperature ch.Parameters.Mode |> float),
+            TopP = 1)
 
     let baseKernel (parms:ServiceSettings) (modelRefs:ModelRef list) (ch:Interaction) =
         let chatModel = modelRefs.Head.Model
         let builder = Kernel.CreateBuilder()
         builder.Services.AddLogging(fun c -> c.AddConsole().SetMinimumLevel(LogLevel.Information) |>ignore) |> ignore
         let ep = Endpoints.endpoint parms ch.Parameters.Backend
-        match ch.Parameters.Backend with
-        | AzureOpenAI ->
+        match ch.Parameters.Backend.Name with
+        | KnownBackends.AzureOpenAI ->
             builder.AddAzureOpenAIChatCompletion(deploymentName = chatModel,endpoint = ep.ENDPOINT, apiKey = ep.API_KEY)
-        | OpenAI ->
-            builder.AddOpenAIChatCompletion(chatModel,ep.API_KEY)
+        | KnownBackends.OpenAI ->
+            builder.AddOpenAIChatCompletion(chatModel,endpoint=System.Uri ep.ENDPOINT,apiKey = ep.API_KEY)
+        | x -> 
+            builder.AddOpenAIChatCompletion(chatModel,endpoint=System.Uri ep.ENDPOINT,apiKey = ep.API_KEY)
 
     let kernelArgsFrom parms ch (args:(string*string) seq) =
         let sttngs = promptSettings parms ch

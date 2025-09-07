@@ -3,7 +3,10 @@
   "UseORCByDefault": true,
   "EnabledBackends": [
     {
-      "Case": "OpenAI"
+      "Name": "local",
+      "BackendType": {
+        "Case": "ChatCompletionsHarmony"
+      }
     }
   ],
   "EnabledChatModes": [
@@ -42,53 +45,18 @@
     "default"
   ],
   "ModelsConfig": {
-    "EmbeddingsModels": [
-      {
-        "Backend": {
-          "Case": "AzureOpenAI"
-        },
-        "Model": "text-embedding-ada-002",
-        "TokenLimit": 8192
-      },
-      {
-        "Backend": {
-          "Case": "OpenAI"
-        },
-        "Model": "text-embedding-ada-002",
-        "TokenLimit": 8192
-      }
-    ],
+    "EmbeddingsModels": [],
     "ChatModels": [
       {
         "Backend": {
-          "Case": "AzureOpenAI"
+          "Name": "local",
+          "BackendType": {
+            "Case": "ChatCompletionsHarmony"
+          }
         },
-        "Model": "gpt-4.1",
-        "TokenLimit": 30000
-      },
-      {
-        "Backend": {
-          "Case": "OpenAI"
-        },
-        "Model": "gpt-4.1",
+        "Model": "gpt-oss",
+        "Label": "gpt-oss",
         "TokenLimit": 127000
-      }
-    ],
-    "LogicModels": [],
-    "LowCostModels": [
-      {
-        "Backend": {
-          "Case": "AzureOpenAI"
-        },
-        "Model": "gpt-4.1-mini",
-        "TokenLimit": 8000
-      },
-      {
-        "Backend": {
-          "Case": "OpenAI"
-        },
-        "Model": "gpt-4.1-mini",
-        "TokenLimit": 8000
       }
     ]
   },

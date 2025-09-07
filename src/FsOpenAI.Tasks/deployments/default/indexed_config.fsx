@@ -81,9 +81,9 @@ let docs =
 //The app reads this file at startup to configure itself
 let acctAppCfg =
     {
-        HideChatSettings = true
-        UseORCByDefault = true
-        EnabledBackends = [OpenAI] // [AzureOpenAI; OpenAI] //list of 'backends' that the user may select from (can be expanded in the future)
+        HideChatSettings = false
+        UseORCByDefault = false
+        EnabledBackends = [Backend.OpenAI] // [AzureOpenAI; OpenAI] //list of 'backends' that the user may select from (can be expanded in the future)
         //EnabledChatModes = [M_Index,defaultSysMessage; M_Doc_Index, defaultSysMessage; M_Doc, defaultSysMessage; M_Plain, defaultSysMessage; M_CodeEval,"ignored"] //list of chat modes that may be enabled in the app
         EnabledChatModes = [M_Index,defaultSysMessage; M_Doc_Index, defaultSysMessage; M_Doc, defaultSysMessage; M_Plain, defaultSysMessage] //; M_CodeEval,"ignored"] //list of chat modes that may be enabled in the app
         DatabaseName = C.DFLT_COSMOSDB_NAME //name of the CosmosDB database
@@ -104,7 +104,7 @@ let acctAppCfg =
         DefaultMaxDocs = 10
         MetaIndex = metaIndexName
         //ModelsConfig = ScriptEnv.ModelDefs.modelsConfig //model and token limits for different backends
-        ModelsConfig = ScriptEnv.ModelDefs.modelsConfigLogic //model and token limits for different backends
+        ModelsConfig = ScriptEnv.ModelDefs.modelsConfig //model and token limits for different backends
     }
 
 //samples

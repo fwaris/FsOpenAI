@@ -24,11 +24,9 @@ module ChatUtils =
 
     let toChatHistory (ch:Interaction) =
         let h = ChatHistory()
-        if ch.Parameters.ModelType <> MT_Logic  && Utils.notEmpty ch.SystemMessage then //o1 does not support system messages
+        if Utils.notEmpty ch.SystemMessage then //o1 does not support system messages
             h.AddSystemMessage(ch.SystemMessage)
         for m in ch.Messages do
             let role = if m.IsUser then AuthorRole.User else AuthorRole.Assistant
             h.AddMessage(role,m.Message)
         h
-
-

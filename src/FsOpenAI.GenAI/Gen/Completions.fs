@@ -18,12 +18,8 @@ module Completions =
         let messages = ChatUtils.toChatHistory ch
         let caller =  Endpoints.getClient parms ch modelRef.Model
         let opts = OpenAIPromptExecutionSettings()
-        match ch.Parameters.ModelType with
-        | MT_Logic -> () //o1 preview api may not accept 'normal' settings
-            //opts.MaxTokens <- ch.Parameters.MaxTokens + int tokenEstimate
-        | MT_Chat ->
-            opts.MaxTokens <- ch.Parameters.MaxTokens
-            opts.Temperature <- float <| ChatUtils.temperature ch.Parameters.Mode
+        opts.MaxTokens <- ch.Parameters.MaxTokens
+        opts.Temperature <- float <| ChatUtils.temperature ch.Parameters.Mode
         opts.User <- GenUtils.userAgent invCtx
         responseFormat |> Option.iter(fun rf -> opts.ResponseFormat <- rf)
         let de = GenUtils.diaEntryChat ch invCtx modelRef.Model (string ch.Parameters.Backend)
@@ -174,16 +170,7 @@ module Completions =
         }
 
     let checkStreamCompleteChat (parms:ServiceSettings) (invCtx:InvocationContext) (ch:Interaction) dispatch modelSelector haveCitations =
-        match ch.Parameters.ModelType with
-        | MT_Logic -> 
-            //completeLogicChat parms invCtx ch dispatch modelSelector
-            //switching to o3-mini
-            if haveCitations then
-                streamCompleteChatFormatted parms invCtx ch dispatch modelSelector
-            else
-                streamCompleteChat parms invCtx ch dispatch modelSelector
-        | MT_Chat ->
-            if haveCitations then
-                streamCompleteChatFormatted parms invCtx ch dispatch modelSelector
-            else
-                streamCompleteChat parms invCtx ch dispatch modelSelector
+        if haveCitations then
+            streamCompleteChatFormatted parms invCtx ch dispatch modelSelector
+        else
+            streamCompleteChat parms invCtx ch dispatch modelSelector

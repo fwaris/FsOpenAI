@@ -77,6 +77,22 @@ let docs =
             parents=parents}
         )
 
+let localBackend = {Name="local"; BackendType=ChatCompletionsHarmony}
+
+let gptossModel = 
+    {
+        Model = "gpt-oss"
+        Label = "gpt-oss"
+        Backend = localBackend
+        TokenLimit = 127000
+    }
+
+let modelConfig = 
+    {
+        EmbeddingsModels = []
+        ChatModels = [gptossModel]
+    }
+
 //The main application configuration settings
 //The content of this record will serialized to json and stored under server wwwroot/app/AppConfig.json
 //The app reads this file at startup to configure itself
@@ -84,7 +100,7 @@ let acctAppCfg =
     {
         HideChatSettings = true
         UseORCByDefault = true
-        EnabledBackends = [OpenAI] // [AzureOpenAI; OpenAI] //list of 'backends' that the user may select from (can be expanded in the future)
+        EnabledBackends = [localBackend] // [AzureOpenAI; OpenAI] //list of 'backends' that the user may select from (can be expanded in the future)
         EnabledChatModes = [M_Plain,defaultSysMessage; M_Doc, defaultSysMessage] //list of chat modes that may be enabled in the app
         DatabaseName = C.DFLT_COSMOSDB_NAME //name of the CosmosDB database
         DiagTableName = None
@@ -103,7 +119,7 @@ let acctAppCfg =
         IndexGroups = ["default"] //list of index groups that the app will show in the index dropdown
         DefaultMaxDocs = 10
         MetaIndex = metaIndexName
-        ModelsConfig = ScriptEnv.ModelDefs.modelsConfig //model and token limits for different backends
+        ModelsConfig =  modelConfig
     }
 
 //samples
@@ -114,7 +130,7 @@ let SamplesPath = templatesPath @@ "default" @@ "Samples.json"
 let samples =
     [
         {
-            SampleChatType = SM_IndexQnA "ai-docs"
+            SampleChatType = SM_Plain false
             SampleMode = ExplorationMode.Factual
             MaxDocs     = 5
             SampleSysMsg  = defaultSysMessage

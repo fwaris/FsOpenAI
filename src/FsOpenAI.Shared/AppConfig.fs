@@ -1,20 +1,34 @@
 ﻿namespace FsOpenAI.Shared
 open System.Text.Json.Serialization
 
-[<JsonFSharpConverter(UnionUnwrapFieldlessTags=true)>]
-type Backend = OpenAI | AzureOpenAI
+//[<JsonFSharpConverter(UnionUnwrapFieldlessTags=true)>]
+//type Backend = OpenAI | AzureOpenAI
+
+type BackendType = ChatCompletions | ChatCompletionsHarmony
+
+module KnownBackends =
+    let [<Literal>] OpenAI = "OpenAI"
+    let [<Literal>] AzureOpenAI = "AzureOpenAI"
+
+type Backend = {Name:string; BackendType:BackendType}
+    with
+        static member Default = {Name=KnownBackends.OpenAI; BackendType=ChatCompletions}
+        static member OpenAI = {Name=KnownBackends.OpenAI; BackendType=ChatCompletions}
+        static member AzureOpenAI = {Name=KnownBackends.AzureOpenAI; BackendType=ChatCompletions}
 
 type ModelRef =
     {
         Backend         : Backend
         Model           : string
+        Label           : string
         TokenLimit      : int
     }
     with
         static member Default =
             {
-                Backend = OpenAI
-                Model = "gpt-4o"
+                Backend = Backend.Default
+                Model = "gpt-51"
+                Label = "gpt-5"
                 TokenLimit = 2000
             }
 
@@ -26,19 +40,12 @@ type ModelsConfig =
         ///List of models that may be used when input is longer than the context length of short models
         ChatModels : ModelRef list
 
-        ///List of models that may be used for complex logic processing
-        LogicModels : ModelRef list
-
-        ///List of models that may be used for ancillary tasks (e.g. summarization to reduce token count)   
-        LowCostModels : ModelRef list
     }
     with
             static member Default =
                 {
                     EmbeddingsModels = []
                     ChatModels   = [ModelRef.Default]
-                    LogicModels     = []
-                    LowCostModels    = []
                 }
 
 type InvocationContext =
@@ -131,7 +138,7 @@ type AppConfig =
             {
                 HideChatSettings = false
                 UseORCByDefault = false
-                EnabledBackends = [OpenAI]
+                EnabledBackends = [Backend.Default]
                 EnabledChatModes = []//M_Plain,"You are a helpful AI assistant"]
                 DefaultMaxDocs = 10
                 Roles = []

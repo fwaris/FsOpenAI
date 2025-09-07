@@ -422,64 +422,22 @@ module MetaIndex =
         |> Async.Start
 
 module ModelDefs =
+    let azureOpenAI = {Name="AzureOpenAI"; BackendType=ChatCompletions}
+    let openAI = Backend.Default
+    
     let embedding =
         [
-            {Backend=AzureOpenAI; Model="text-embedding-ada-002"; TokenLimit=8192}
-            {Backend=OpenAI; Model="text-embedding-ada-002"; TokenLimit=8192}
+            {Backend=azureOpenAI; Label="ada-002"; Model="text-embedding-ada-002"; TokenLimit=8192}
+            {Backend=openAI; Label="ada-002"; Model="text-embedding-ada-002"; TokenLimit=8192}
         ]
     let chat =
         [
-            {Backend=AzureOpenAI; Model="gpt-4.1"; TokenLimit=30000}
-            {Backend=OpenAI; Model="gpt-4.1"; TokenLimit=127000}
-        ]
-    let chatMini =
-        [
-            {Backend=AzureOpenAI; Model="gpt-4.1-mini"; TokenLimit=30000}
-            {Backend=OpenAI; Model="gpt-4.1-mini"; TokenLimit=127000}
-        ]
-    let logic =
-        [
-            {Backend=AzureOpenAI; Model="o4-mini"; TokenLimit=127000}
-            {Backend=OpenAI; Model="o4-mini"; TokenLimit=127000}
-        ]
-    let logicMini =
-        [
-            {Backend=AzureOpenAI; Model="o4-mini"; TokenLimit=127000}
-            {Backend=OpenAI; Model="o4-mini"; TokenLimit=127000}
-        ]
-    let lowcost =
-        [
-            {Backend=AzureOpenAI; Model="gpt-4.1-mini"; TokenLimit=8000}
-            {Backend=OpenAI; Model="gpt-4.1-mini"; TokenLimit=8000}
+            {Backend=azureOpenAI; Label="gpt-5"; Model="gpt-5"; TokenLimit=127000}
+            {Backend=openAI; Label="gpt-5"; Model="gpt-5"; TokenLimit=127000}
         ]
     let modelsConfig =
         {
             EmbeddingsModels = embedding
             ChatModels = chat
-            LowCostModels = lowcost
-            LogicModels = []
-        }
-
-    let modelsConfigMini =
-        {
-            EmbeddingsModels = embedding
-            ChatModels = chatMini
-            LowCostModels = lowcost
-            LogicModels = []
-        }
-    let modelsConfigLogic =
-        {
-            EmbeddingsModels = embedding
-            ChatModels = chat
-            LowCostModels = lowcost
-            LogicModels = logic
-        }
-
-    let modelsConfigMiniLlogic =
-        {
-            EmbeddingsModels = embedding
-            ChatModels = chatMini
-            LowCostModels = lowcost
-            LogicModels = logicMini
         }
 

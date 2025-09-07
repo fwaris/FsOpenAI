@@ -90,7 +90,7 @@ let acctAppCfg =
     {
         HideChatSettings = false
         UseORCByDefault = false
-        EnabledBackends = [OpenAI] // [AzureOpenAI; OpenAI] //list of 'backends' that the user may select from (can be expanded in the future)
+        EnabledBackends = [Backend.OpenAI] // [AzureOpenAI; OpenAI] //list of 'backends' that the user may select from (can be expanded in the future)
         EnabledChatModes = [M_Plain,defaultSysMessage; M_Doc, defaultSysMessage; M_Index, defaultSysMessage] //list of chat modes that may be enabled in the app
         DatabaseName = C.DFLT_COSMOSDB_NAME //name of the CosmosDB database
         DiagTableName = Some "log1" // CosmosDB container name where to store chat submission logs

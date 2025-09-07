@@ -67,15 +67,13 @@ type ModelType = MT_Chat | MT_Logic
 type InteractionParameters =
     {
         Backend             : Backend
-        ModelType           : ModelType
         Mode                : ExplorationMode
         MaxTokens           : int
     }
 
     static member Default =
         {
-            Backend = AzureOpenAI
-            ModelType = MT_Chat
+            Backend = Backend.Default
             Mode = Factual
             MaxTokens = 1000
         }

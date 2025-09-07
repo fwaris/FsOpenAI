@@ -117,19 +117,6 @@ type ChatSettingsView() =
                                     attr.callback "ValueChanged"  (fun b -> this.Model.Parms <- {this.Model.Parms with Backend = b})
                                 }
                             }
-                            comp<RadzenStack> {
-                                "Orientation" => Orientation.Horizontal
-                                "AlignItems" => AlignItems.Center
-                                comp<RadzenLabel> {"Text" => "Model Type"}
-                                comp<RadzenDropDown<ModelType>> {
-                                    "Data" => (Interaction.getModelTypeCases())
-                                    "Style" => "width: 5rem;"
-                                    "Value" => this.Model.Parms.ModelType      
-                                    "TextProperty" => "Text"
-                                    "ItemRender" => Action<_>(this.RenderItem)
-                                    attr.callback "ValueChanged"  (fun b -> this.Model.Parms <- {this.Model.Parms with ModelType = b})
-                                }
-                            }                            
                         }
                         comp<RadzenStack> {
                             "Orientation" => Orientation.Horizontal

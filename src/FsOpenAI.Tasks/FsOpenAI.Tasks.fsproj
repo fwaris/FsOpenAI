@@ -10,7 +10,6 @@
   <ItemGroup>
     <Content Include="deployments\default\client\appsettings.json.template" />
     <Content Include="deployments\default\server\appsettings.json.template" />
-	<None Include="deployments\default\templates" />
 	<None Include="deployments\default\config_default.fsx" />
 	<None Include="deployments\default\indexed_config.fsx" />
 	<None Include="deployments\default\indexed_create.fsx" />

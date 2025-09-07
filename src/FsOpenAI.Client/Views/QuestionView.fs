@@ -30,7 +30,6 @@ type QuestionView() =
     override this.View model dispatch =
         let selChat = Model.selectedChat model
         let isNotReady = not (Submission.isReady selChat)
-        let isReasoning = selChat |> Option.map (fun c -> match c.Parameters.ModelType with MT_Logic -> true | _ -> false) |> Option.defaultValue false
         let doc = selChat |> Option.bind Interaction.docContent
         let question = selChat |> Option.map (fun c -> c.Question) |> Option.defaultValue null
         comp<RadzenCard> {
@@ -109,20 +108,6 @@ type QuestionView() =
                                 |> Option.iter (fun c -> dispatch (Ia_ResetChat (c.Id,""))))
                         }
                     }
-                    if not model.appConfig.HideChatSettings then
-                        comp<RadzenMenu> {
-                            "Style" => "background-color: transparent;"
-                            "Responsive" => false
-                            comp<RadzenMenuItem> {
-                                "Icon" => "psychology"
-                                "IconColor" => (if isReasoning then Colors.Primary else Colors.Info)
-                                attr.disabled  isNotReady
-                                attr.title (if isReasoning then "Reasoning mode on" else "Reasoning mode off")
-                                attr.callback "Click" (fun (e:MenuItemEventArgs) ->
-                                    selChat
-                                    |> Option.iter (fun c -> dispatch (Ia_ToggleModelType (c.Id))))
-                            }
-                        }
                     ecomp<DocAttachView,_,_> model dispatch {attr.empty()}
                 }
             }

@@ -114,7 +114,7 @@ module IndexQnA =
 
     let refineQuery parms modelsConfig (ch:Interaction) = 
         task {
-            let modelRefs = (Models.getModels {ch.Parameters with ModelType=MT_Chat}) modelsConfig ch.Parameters.Backend  //use chat model type to refine query
+            let modelRefs = Models.getModels ch.Parameters modelsConfig ch.Parameters.Backend  //use chat model type to refine query
             let nonEmptyMsgs = ch.Messages |> List.rev |> List.skipWhile (fun x-> not x.IsUser)
             let userMessage,historyMessages = List.head nonEmptyMsgs, List.tail nonEmptyMsgs
             let tknBudget =  float modelRefs.Head.TokenLimit - (Tokens.tokenSize userMessage.Message)

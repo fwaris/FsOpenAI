@@ -33,7 +33,7 @@ module Init =
 
     let private (===) (a:string) (b:string) = a.Equals(b,StringComparison.InvariantCultureIgnoreCase)
 
-    let defaultBackend model = model.appConfig.EnabledBackends |> List.tryHead |> Option.defaultValue OpenAI
+    let defaultBackend model = model.appConfig.EnabledBackends |> List.tryHead |> Option.defaultValue Backend.Default
 
     let pingServer (serverConnect,serverDispatch) =
         task{

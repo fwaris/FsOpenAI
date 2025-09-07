@@ -29,7 +29,7 @@ let jstrA = JsonSerializer.Deserialize<ServiceSettings>(strA,Utils.settingSerOpt
 let settings =
         {
             LOG_CONN_STR = None // Some "cosmosdb connection string"
-            CHAT_ENDPOINTS = [{API_KEY ="api key"; ENDPOINT="http://api.openai.com"; BACKEND = Some AzureOpenAI}]
+            CHAT_ENDPOINTS = [{API_KEY ="api key"; ENDPOINT="http://api.openai.com"; BACKEND = "AzureOpenAI"}]
             AZURE_SEARCH_ENDPOINTS = []
             BING_ENDPOINT = None // Some {API_KEY = "bing key"; ENDPOINT="https://bing.com"}
             OPENAI_KEY = None
