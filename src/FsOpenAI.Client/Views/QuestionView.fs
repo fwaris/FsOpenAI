@@ -123,29 +123,7 @@ type QuestionView() =
                                     |> Option.iter (fun c -> dispatch (Ia_ToggleModelType (c.Id))))
                             }
                         }
-
-                    match doc with 
-                    | Some doc ->
-                        ecomp<DocViewCompact,_,_> model dispatch {attr.empty()}
-                    | None ->                     
-                        comp<RadzenMenu> {
-                            "Style" => "background-color: transparent;"
-                            "Responsive" => false
-                        
-                            comp<RadzenMenuItem> {
-                                "Icon" => "attach_file"
-                                attr.disabled  isNotReady
-                                attr.title "Load a document or image"
-                                attr.callback "Click" (fun (e:MenuItemEventArgs) ->
-                                    let opts = new DialogOptions (                                    
-                                        Style = "width: fit-content; height: fit-content; min-width: fit-content; min-height: fit-content;"
-                                    )
-                                    let dmodel = {ChatId=selChat |> Option.map _.Id |> Option.defaultValue ""; Model=model; useOcr=false; file=None}
-                                    let parms = ["Model",dmodel :> obj; "Dispatch",dispatch] |> dict |> Dictionary
-                                    //let opts = DialogOptions(Width = "50%", Height="50%")
-                                    this.DialogService.OpenAsync<DocLoadDialog>("Load document", parameters=parms, options=opts) |> ignore)
-                            }
-                        }
+                    ecomp<DocAttachView,_,_> model dispatch {attr.empty()}
                 }
             }
         }

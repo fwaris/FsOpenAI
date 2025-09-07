@@ -23,7 +23,7 @@ type DocLoadModel = {
     mutable useOcr : bool
 }
 
-type DocLoadDialog() =
+type DocAttachDialog() =
     inherit ElmishComponent<DocLoadModel,Message>()
     let check = Ref<RadzenSwitch>()
     let mutable change = false
@@ -43,7 +43,6 @@ type DocLoadDialog() =
     override this.View model dispatch =
         let chat = Model.selectedChat model.Model
         let docCntnt = chat |> Option.bind Interaction.docContent |> Option.defaultValue DocumentContent.Default        
-        let isNotReady = not (Submission.isReady chat)
         concat {
             style {"""
                 #uploadWithDragAndDrop {
@@ -74,7 +73,7 @@ type DocLoadDialog() =
                         }
                         comp<RadzenSwitch> {
                             attr.title "For PDFs, extract text via OCR processing of page images"
-                            "Value" => model.Model.appConfig.UseORCByDefault
+                            "Value" => model.useOcr
                             check
                         }                    
                     }
@@ -82,7 +81,6 @@ type DocLoadDialog() =
                         attr.id "uploadWithDragAndDrop"
                         "ChooseText" => " Drag and drop a document here or click here to select a document "
                         attr.callback "Change" (fun (e:Radzen.UploadChangeEventArgs) ->
-                            printfn $"{e.Files |> Seq.tryHead}"
                             let browserFile = 
                                 e.Files
                                 |> Seq.tryHead 
@@ -104,11 +102,11 @@ type DocLoadDialog() =
                                 }                                
                             this.Dispatch (Ia_File_BeingLoad (this.Model.ChatId,docCntnt))
                             async {
-                                do! Async.Sleep 1000
+                                do! Async.Sleep 200
                                 this.DialogService.Close()
                             }
                             |> Async.Start)                        
-                        text "Upload"
+                        text "Attach"
                     }
                 }
             }            
@@ -179,7 +177,7 @@ type DocViewCompact() =
         let bag = chat |> Option.bind Interaction.docContent |> Option.defaultValue DocumentContent.Default
         let fileName = bag.DocTitle |> Option.defaultValue ""
         let isChecked = chat |> Option.map (fun ch -> ch.Mode = M_Doc || ch.Mode = M_Doc_Index) |> Option.defaultValue false
-        let title =
+        let upld_status =
             match bag.Status with
             | No_Document -> "No document selected"
             | Uploading -> "Uploading document..."
@@ -202,6 +200,7 @@ type DocViewCompact() =
             "Gap" => "0.0rem"
             "Orientation" => Orientation.Horizontal
             "AlignItems" => AlignItems.Center
+            attr.``class`` "hover-container"
             comp<RadzenStack> {
                 "Orientation" => Orientation.Horizontal
                 "AlignItems" => AlignItems.Center
@@ -212,16 +211,9 @@ type DocViewCompact() =
             }
             comp<RadzenIcon> {
                 "Icon" => icon
-                attr.title title
+                attr.title upld_status
                 "IconColor" => color
             }
-            comp<RadzenButton> {
-                "Style" => "background:transparent; display:none; position:absolute;bottom:10px;right:10px"
-                "Icon" => "delete"
-                "ButtonStyle" => ButtonStyle.Base
-                "Size" => ButtonSize.ExtraSmall
-                attr.callback "Click" (fun (e:MouseEventArgs) -> chat|> Option.iter (fun ch -> dispatch (Ia_Remove_Document ch.Id)))
-            }                    
             comp<RadzenButton> {
                 "Style" => "background:transparent;height:2rem;"
                 "Icon" => "more_horiz"
@@ -232,7 +224,18 @@ type DocViewCompact() =
                     let opts = DialogOptions(Width = "50%", Height="50%", Resizable=true, Draggable=true)
                     this.DialogService.OpenAsync<DocDetailsDialog>(fileName, parameters=parms, options=opts) |> ignore
                 )
-            }                
+            }    
+            div {
+                attr.``class`` "hover-button"
+                comp<RadzenButton> {
+                    attr.title "Remove document"
+                    "Style" => "background:transparent;"
+                    "Icon" => "delete"
+                    "ButtonStyle" => ButtonStyle.Base
+                    "Size" => ButtonSize.ExtraSmall
+                    attr.callback "Click" (fun (e:MouseEventArgs) -> chat|> Option.iter (fun ch -> dispatch (Ia_Remove_Document ch.Id)))
+                }                    
+            }            
         }
 (*
             if Model.isEnabled M_Doc_Index model && isChecked then
@@ -254,3 +257,36 @@ type DocViewCompact() =
                     }
                 }
 *)
+
+
+type DocAttachView() =
+    inherit ElmishComponent<Model,Message>() 
+
+    [<Inject>] member val DialogService  = Unchecked.defaultof<DialogService> with get, set
+
+    override this.View (model: Model) (dispatch: Elmish.Dispatch<Message>): Node = 
+        let selChat = Model.selectedChat model
+        let isNotReady = not (Submission.isReady selChat)
+        let doc = selChat |> Option.bind Interaction.docContent
+        match doc with 
+        | Some doc ->
+            ecomp<DocViewCompact,_,_> model dispatch {attr.empty()}
+        | None ->                     
+            comp<RadzenMenu> {
+                "Style" => "background-color: transparent;"
+                "Responsive" => false                        
+                comp<RadzenMenuItem> {
+                    "Icon" => "attach_file"
+                    attr.disabled  isNotReady
+                    attr.title "Attach a document or image"
+                    attr.callback "Click" (fun (e:MenuItemEventArgs) ->
+                        let opts = new DialogOptions (                                    
+                            Style = "width: fit-content; height: fit-content; min-width: fit-content; min-height: fit-content;"
+                        )
+                        let dmodel = {ChatId=selChat |> Option.map _.Id |> Option.defaultValue ""; Model=model; useOcr=model.appConfig.UseORCByDefault; file=None}
+                        let parms = ["Model",dmodel :> obj; "Dispatch",dispatch] |> dict |> Dictionary
+                        //let opts = DialogOptions(Width = "50%", Height="50%")
+                        this.DialogService.OpenAsync<DocAttachDialog>("Document", parameters=parms, options=opts) |> ignore)
+                }
+            }
+        
