@@ -52,10 +52,6 @@ module Interaction =
     let getSearchModeCases() = FSharpType.GetUnionCases typeof<SearchMode>
     let getSearchModeCase (mode:SearchMode) = FSharpValue.GetUnionFields(mode,typeof<SearchMode>)
 
-    let getModelTypeCases() =
-        FSharpType.GetUnionCases typeof<ModelType>
-        |> Array.map(fun x  -> FSharpValue.MakeUnion (x,[||]) :?> ModelType)
-
     let maxDocs defaultVal (ch:Interaction) =
         ch.Types
         |> List.tryPick (function IndexQnA bag -> Some bag.MaxDocs | _ -> None)
@@ -422,6 +418,20 @@ module Interaction =
             |> Option.defaultValue msgsR
         {ch with Messages=List.rev msgs}
 
+    let setThought tht ch =
+        let msgsR = List.rev ch.Messages
+        let msgs =
+            msgsR
+            |> List.tryHead
+            |> Option.bind (fun m ->
+                match m.Role with
+                | Assistant asstbag ->
+                    let asstbag = {asstbag with ThoughtProcess = Some tht}
+                    Some {m with Role =Assistant asstbag}
+                | _               -> None)
+            |> Option.map (fun m -> m::(List.tail msgsR))
+            |> Option.defaultValue msgsR
+        {ch with Messages=List.rev msgs}
 
 module Interactions =
 
@@ -502,4 +512,6 @@ module Interactions =
     let resetChat id = updateWith Interaction.resetChat id
 
     let setCitations id xs cs = updateWith (Interaction.setCitations xs) id cs
+
+    let setThought id tht cs = updateWith (Interaction.setThought tht) id cs
 

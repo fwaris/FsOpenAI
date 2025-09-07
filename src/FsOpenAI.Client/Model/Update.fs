@@ -114,6 +114,7 @@ module Update =
         | FromServer (Srv_LoadSamples (lbl,samples)) -> {model with samples = (lbl,samples)::model.samples}, Cmd.none
         | FromServer (Srv_Ia_Reset id) -> {model with interactions = Interactions.resetChat id model.interactions},Cmd.none
         | FromServer (Srv_Ia_Citations (id,cits)) -> {model with interactions = Interactions.setCitations id cits model.interactions},Cmd.none
+        | FromServer (Srv_Ia_Thought (id,tht)) -> {model with interactions = Interactions.setThought id tht model.interactions},Cmd.none
         | FromServer (Srv_Ia_Delta(id,d)) -> model,Cmd.ofMsg(Ia_AddDelta(id,d))
         | FromServer (Srv_Ia_Done(id,err)) -> model, Cmd.ofMsg(Ia_Completed(id,err))
         | FromServer (Srv_Error err) -> model,Cmd.ofMsg (ShowError err)

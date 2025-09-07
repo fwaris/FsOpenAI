@@ -58,7 +58,7 @@ module IndexQnA =
                             ]
             let! prompt = SKernel.renderPrompt Prompts.QnA.questionAnswerPrompt qargs
             let ch = Interaction.setUserMessage prompt ch
-            do! Completions.checkStreamCompleteChat parms invCtx ch dispatch None true
+            do! Completions.checkStreamCompleteChat parms invCtx ch dispatch None 
         }
 
     ///semantic memory supporting chatpdf format

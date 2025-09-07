@@ -30,7 +30,7 @@ module StreamParser =
                 this.SourceChunk.Substring(i,this.Index-i)
             member this.Drain() = 
                 if this.Index < this.SourceChunk.Length then 
-                    this.SourceChunk.Substring(this.Index + 1), {this with Index=this.SourceChunk.Length-1}
+                    this.SourceChunk.Substring(this.Index), {this with Index=this.SourceChunk.Length-1}
                 else 
                     "", this
             
@@ -223,28 +223,46 @@ module StreamParser =
             | s, Fail msg, o   -> s, Fail msg, o
         | _                                 -> fail s $"p_string_list: Expected '\"' or ']' or ',' got {s.Current}"
 
-    let rec _accumTill acc accT o (p:Parser<string>) (state:State) =
+    let  rec private _accumTill acc accT o (p:Parser<string>) (state:State) =
         match p state with 
         | s, Done v, o -> s, Done (Some (List.rev acc  |> String.concat "")), o
-        | s, Empty p, o -> s, Empty (_accumTill acc (state.SourceChunk::accT) None p), o
+        | s, Empty p, o -> s, Empty (_accumTill acc (s.ConsumedFrom state.Index::accT) None p), o
         | s, Fail _, o' -> let s = s.Step in _accumTill (s.ConsumedFrom state.Index::(accT @ acc )) [] (o ++ o') p s
 
+    ///Accumulate characters till the parser p succeeds. Consumes input till end of p.
     let accumTill (p:Parser<string>) (state:State) =
         _accumTill [] [] None p state
 
+    ///Stream out contents as they are received
     let rec p_strm_any_string (s:State) = 
         let c,s = s.Drain()
         s, Empty p_strm_any_string, Some c
 
-    //above is mostly generic, below is specific to response json
+    let inline p_done s              = s, Done None, None
 
+    //api
+
+    let rec step (p,(s,acc)) =
+        match  p s with
+        | s, Done _, o          -> p_done, (s,append acc o)
+        | s, Fail msg, _        -> fail s msg
+        | s, Empty p, o         -> p, (s, append acc o)
+
+    let updateState (p,(s:State,acc)) str = step (p,(s.NextChunk str,[]))
+
+
+(*
+--------- Above is generic parsing code ----------
+*)
+
+    //Parse Citations
+    
     let p_brace1 : Parser<string>    = pchar '{'
     let p_brace2 : Parser<string>    = pchar '}'
     let p_colon : Parser<string>     = pchar ':'
     let p_comma : Parser<string>     = pchar ','
     let p_citations : Parser<string> = pstring "\"CitationIds\""
     let p_answer : Parser<string>    = pstring "\"Answer\""
-    let inline p_done s              = s, Done None, None
 
     ///capture the citations list to an external reference
     let setCitsValue (cits:string list ref) xs : string option =
@@ -256,7 +274,7 @@ module StreamParser =
     let p_citations_list (cits:Ref<string list>) : Parser<string> = (map (setCitsValue cits) p_string_list)
 
     //expression to parse response json to extract citations and stream out the answer
-    let exp cits =
+    let citationsExp cits =
         p_ws .> p_brace1 .> p_ws
         .> p_citations .> p_ws .> p_colon .> p_ws
         .> (p_citations_list cits) .> p_ws
@@ -264,19 +282,28 @@ module StreamParser =
         .> p_answer .> p_ws .> p_colon .> p_ws
         .> p_strm_quoted_string .> p_ws .> p_brace2
 
-    let inline d s r = printfn "%A" (s,r)
 
-    let rec step (p,(s,acc)) =
-        match  p s with
-        | s, Done _, o          -> p_done, (s,append acc o)
-        | s, Fail msg, _        -> fail s msg
-        | s, Empty p, o         -> p, (s, append acc o)
+    //Parse Harmony format think tokens
 
-    let updateState (p,(s:State,acc)) str = step (p,(s.NextChunk str,[]))
+    let p_channel : Parser<string> = pstring "<|channel|>"
+    let p_message : Parser<string> = pstring "<|message|>"
+    let p_analysis : Parser<string> = pstring "analysis"
+    let p_end : Parser<string> = pstring "<|end|>"
 
-    let test source =
+    let p_thought (thought:Ref<string>) : Parser<string> = 
+        map (function Some v -> thought.Value <- v; Some v | _ -> None) (accumTill p_end)
+
+    ///expression to stream parse harmonay 'think tokens' <|channel|>analysis<|message|>...<|end|>
+    let harmonyExp thought =    
+        p_ws .> p_channel .> p_ws .> p_analysis .> p_ws .> p_message
+        .> (p_thought thought) .> p_strm_any_string
+
+
+// testing helpers
+
+    let testCitations source =
         let cits = ref []
-        ((exp cits,(State.Empty,[])),source)
+        ((citationsExp cits,(State.Empty,[])),source)
         ||> Seq.scan updateState
         |> Seq.collect (fun (_,(_,os)) -> List.rev os)
         |> Seq.iter (printfn "%s")

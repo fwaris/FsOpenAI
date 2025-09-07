@@ -94,7 +94,7 @@ module WebCompletion =
                     let args = SKernel.kernelArgsFrom parms ch ["input",question; "externalInformation",information]
                     let! prompt = SKernel.renderPrompt Prompts.WebSearch.answerQuestion args |> Async.AwaitTask
                     let ch = Interaction.setUserMessage prompt ch                   
-                    do! Completions.checkStreamCompleteChat parms invCtx ch dispatch None true
+                    do! Completions.checkStreamCompleteChat parms invCtx ch dispatch None
                 else
                     dispatch (Srv_Ia_Notification(ch.Id,"Model was able to answer query by itself"))
                     dispatch (Srv_Ia_Delta(ch.Id,answer))

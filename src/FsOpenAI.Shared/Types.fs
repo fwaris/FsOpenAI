@@ -53,17 +53,6 @@ type SearchMode = Semantic | Hybrid | Keyword | Auto
 
 type DocType = DT_Pdf | DT_Word | DT_Powerpoint | DT_Excel | DT_Text | DT_RTF | DT_Image | DT_Video | DT_Html
 
-type ModelType = MT_Chat | MT_Logic
-    with 
-        member this.Text =
-            match this with
-            | MT_Chat -> "Chat"
-            | MT_Logic -> "Logic"
-        member this.Tooltip =
-            match this with
-            | MT_Chat -> "Responds faster to user queries, suitable for general use"
-            | MT_Logic -> "Takes longer to respond but can perform more complex reasoning (defaults to Chat type if not configured)"
-
 type InteractionParameters =
     {
         Backend             : Backend
@@ -235,6 +224,7 @@ type ServerInitiatedMessages =
     | Srv_Ia_SetSearch of string*string
     | Srv_Ia_SetDocs of string*DocRef list
     | Srv_Ia_Citations of string*string list
+    | Srv_Ia_Thought of string*string
     | Srv_Ia_Done of string*string option //chat id, optional log id, optional error
     | Srv_Ia_SetSubmissionId of string*string
     | Srv_Ia_Notification of string*string //chat id, message

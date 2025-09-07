@@ -284,15 +284,15 @@ module DocQnA =
 
     let continueAnswerQuestion parms modelsConfig ch document memories dispatch combinedSearch =
         task {
-            let prompt,haveCitations = 
+            let prompt = 
                 match ch.Mode with 
-                | M_Index                                -> Prompts.DocQnA.plainDocQuery,false
-                | M_Doc                                  -> Prompts.DocQnA.plainDocQuery,false
-                | M_Doc_Index                            -> Prompts.DocQnA.docQueryWithSearchResults,true
+                | M_Index                                -> Prompts.DocQnA.plainDocQuery
+                | M_Doc                                  -> Prompts.DocQnA.plainDocQuery
+                | M_Doc_Index                            -> Prompts.DocQnA.docQueryWithSearchResults
                 | _ -> failwith "unexpected chat type for document query"
 
             let question = Interaction.lastNonEmptyUserMessageText ch
-            if Utils.isEmpty question then failwith "no qupoestion found"
+            if Utils.isEmpty question then failwith "no question asked"
 
             let args = 
                 [
@@ -303,7 +303,7 @@ module DocQnA =
                 ]
             let! renderedPrompt = SKernel.kernelArgsDefault args |>  SKernel.renderPrompt prompt
             let ch = Interaction.setUserMessage renderedPrompt ch
-            do! Completions.checkStreamCompleteChat parms modelsConfig ch dispatch None haveCitations
+            do! Completions.checkStreamCompleteChat parms modelsConfig ch dispatch None
         }
 
     let rec answerQuestion i parms invCtx (ch:Interaction) document (memories:DocRef seq) dispatch = 

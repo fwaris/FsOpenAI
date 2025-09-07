@@ -54,9 +54,6 @@ type ChatSettingsView() =
         this.Model.Parms.MaxTokens <> initMaxTokens
         || base.ShouldRender()
 
-    member this.RenderItem (args:DropDownItemRenderEventArgs<ModelType>) =
-        args.Attributes.Add("title", (args.Item :?> ModelType).Tooltip)
-
     override this.View mdl (dispatch:Message -> unit) =
         let backends = this.Model.Model.appConfig.EnabledBackends
         let height = if this.Model.QaBag.IsSome then "36rem" else "28rem"

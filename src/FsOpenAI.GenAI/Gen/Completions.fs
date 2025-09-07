@@ -119,7 +119,7 @@ module Completions =
                         |> AsyncSeq.filter(fun xs -> xs.Length > 0)
                         |> AsyncSeq.map(String.concat "")
                         //----- use stream parser -----
-                        |> AsyncSeq.scan StreamParser.updateState (StreamParser.exp cits,(StreamParser.State.Empty,[]))
+                        |> AsyncSeq.scan StreamParser.updateState (StreamParser.citationsExp cits,(StreamParser.State.Empty,[]))
                         |> AsyncSeq.collect (fun (_,(_,os)) -> os |> List.rev |> AsyncSeq.ofSeq)
                         //-----------------------------
                         |> AsyncSeq.iter (fun x -> rs<-x::rs; dispatch(Srv_Ia_Delta(ch.Id,x)))
@@ -136,6 +136,73 @@ module Completions =
                         match cits.Value with
                         | [] -> ()
                         | xs -> dispatch (Srv_Ia_Citations(ch.Id,xs))
+                        dispatch (Srv_Ia_Done(ch.Id,None))
+                    | Choice2Of2 ex ->
+                        //fallback
+                        dispatch (Srv_Ia_Notification(ch.Id,"Unable to complete chat [no structured output]. Retrying..."))
+                        dispatch (Srv_Ia_Reset(ch.Id))
+                        do! streamCompleteChat parms invCtx ch dispatch modelSelector
+                }
+            match! Async.Catch comp with
+            | Choice1Of2 _ -> ()
+            | Choice2Of2 ex ->
+                GenUtils.handleChatException dispatch ch.Id "Completions.streamCompleteChatFormatted" ex
+        }
+    
+    
+    let private streamCompleteChatStructured (parms:ServiceSettings) (invCtx:InvocationContext) (ch:Interaction) dispatch modelSelector =
+        async {
+            let comp =
+               async {
+                    let haveCitations = ch.Mode.IsM_Doc_Index || ch.Mode.IsM_Index
+                    let hasThought = ch.Parameters.Backend.BackendType.IsChatCompletionsHarmony
+                    let citResponseFromat = if  haveCitations then Some typeof<AnswerWithCitations> else None
+                    let! de,resps = streamChat parms invCtx ch modelSelector citResponseFromat
+                    Srv_Ia_Notification(ch.Id,$"using model: {de.Model}") |> dispatch
+                    let mutable rs : string list = []
+                    let cits = ref []
+                    let thought = ref ""
+                    let comp =
+                        resps
+                        |> AsyncSeq.bufferByCountAndTime 1 C.CHAT_RESPONSE_TIMEOUT
+                        |> AsyncSeq.collect(fun xs -> if xs.Length > 0 then AsyncSeq.ofSeq xs else failwith C.TIMEOUT_MSG)
+                        |> AsyncSeq.bufferByCountAndTime 10 1000
+                        |> AsyncSeq.filter(fun xs -> xs.Length > 0)
+                        |> AsyncSeq.map(String.concat "")
+                        |> fun xs -> 
+                            if hasThought then  
+                                //----- stream parse think tokens  -----
+                                xs
+                                |> AsyncSeq.scan StreamParser.updateState (StreamParser.harmonyExp thought,(StreamParser.State.Empty,[]))
+                                |> AsyncSeq.collect (fun (_,(_,os)) -> os |> List.rev |> AsyncSeq.ofSeq)
+                                //-----------------------------
+                            else
+                                xs 
+                        |> fun xs -> 
+                            if haveCitations then  
+                                //----- stream parse citations -----
+                                xs
+                                |> AsyncSeq.scan StreamParser.updateState (StreamParser.citationsExp cits,(StreamParser.State.Empty,[]))
+                                |> AsyncSeq.collect (fun (_,(_,os)) -> os |> List.rev |> AsyncSeq.ofSeq)
+                                //-----------------------------
+                            else
+                                xs 
+                        |> AsyncSeq.iter (fun x -> rs<-x::rs; dispatch(Srv_Ia_Delta(ch.Id,x)))
+                    match! Async.Catch comp with
+                    | Choice1Of2 _ ->
+                        let resp = String.Join("",rs |> List.rev)
+                        let de =
+                            {de with
+                                Response = resp
+                                OutputTokens = Tokens.tokenSize resp |> int
+                            }
+                        Monitoring.write (Diag de)
+                        Srv_Ia_SetSubmissionId(ch.Id,de.id) |> dispatch
+                        match cits.Value with
+                        | [] -> ()
+                        | xs -> dispatch (Srv_Ia_Citations(ch.Id,xs))
+                        if Utils.notEmpty thought.Value then 
+                            dispatch (Srv_Ia_Thought(ch.Id,thought.Value))
                         dispatch (Srv_Ia_Done(ch.Id,None))
                     | Choice2Of2 ex ->
                         //fallback
@@ -169,8 +236,10 @@ module Completions =
                 return raise ex
         }
 
-    let checkStreamCompleteChat (parms:ServiceSettings) (invCtx:InvocationContext) (ch:Interaction) dispatch modelSelector haveCitations =
-        if haveCitations then
-            streamCompleteChatFormatted parms invCtx ch dispatch modelSelector
-        else
+    let checkStreamCompleteChat (parms:ServiceSettings) (invCtx:InvocationContext) (ch:Interaction) dispatch modelSelector =
+        let haveCitations = ch.Mode.IsM_Doc_Index || ch.Mode.IsM_Index
+        let thoughtOutput = ch.Parameters.Backend.BackendType.IsChatCompletionsHarmony
+        if haveCitations || thoughtOutput then 
+            streamCompleteChatStructured parms invCtx ch dispatch modelSelector
+        else 
             streamCompleteChat parms invCtx ch dispatch modelSelector

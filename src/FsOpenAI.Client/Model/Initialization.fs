@@ -138,9 +138,10 @@ module Init =
             model.appConfig.ModelsConfig.ChatModels
 
         let availableModels =
-            match backend with
-            | AzureOpenAI ->  chatModels |> List.filter (fun m -> m.Backend = AzureOpenAI)
-            | OpenAI -> chatModels |> List.filter (fun m -> m.Backend = OpenAI)            
+            match backend.Name with
+            | KnownBackends.AzureOpenAI ->  chatModels |> List.filter (fun m -> m.Backend.Name = KnownBackends.AzureOpenAI)
+            | KnownBackends.OpenAI -> chatModels |> List.filter (fun m -> m.Backend.Name = KnownBackends.OpenAI)            
+            | other -> chatModels |> List.filter (fun m -> m.Backend.Name = other)
             |> List.map(fun x->x.Model)
 
         if availableModels.IsEmpty then failwith "No chat models configured"

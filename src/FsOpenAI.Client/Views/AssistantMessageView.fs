@@ -10,6 +10,7 @@ module AssistantMessage =
 
     let view (msg:InteractionMessage) (chat:Interaction) lastMsg model dispatch =
         let docs = match msg.Role with Assistant r -> r.QueriedDocuments.DocRefs | _ -> []
+        let tht = match msg.Role with Assistant r -> r.ThoughtProcess | _ -> None
         let docsr =
             if docs |> List.exists (fun x -> x.SortOrder.IsSome) then
                 docs |> List.filter (fun x -> x.SortOrder.IsSome)
@@ -31,6 +32,13 @@ module AssistantMessage =
                             "Icon" =>   C.DFLT_ASST_ICON
                             "IconColor" => (model.appConfig.AssistantIconColor |> Option.defaultValue  C.DFLT_ASST_ICON_COLOR)
                         }
+                    match tht with 
+                    | Some tht -> 
+                        comp<RadzenIcon> {
+                            attr.title tht
+                            "Icon" =>   "psychology"
+                        }
+                    | None -> ()
                 }
                 comp<RadzenColumn> {
                     "Size" => 11
