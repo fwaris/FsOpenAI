@@ -137,28 +137,10 @@ type SourcesView() =
         let showCode = if Model.isEnabled M_CodeEval model then 1 else 0
         let wrap = (showPlain + showIndex + showDoc + showCode) > 1
 
-        comp<RadzenColumn> {
-            attr.``class`` "rz-p-1 rz-ml-2"
-            comp<RadzenRow> {
-                comp<RadzenText> {
-                    "Text" => "Sources"
-                    "TextStyle" => TextStyle.H6
-                }
+        if showIndex > 0 then 
+          makeWrapped wrap "Indexes" (ecomp<IndexTreeView,_,_> model dispatch {attr.empty()})
+        else
+            comp<RadzenLabel> {
+                "Text" => "No indexes available"
             }
-            comp<RadzenRow> {
-                comp<RadzenStack> {
-                    concat {
-                        if showPlain > 0 then
-                            makeWrapped wrap "Model" (ecomp<ModelQueryView,_,_> model dispatch {attr.empty()})
-                        if showDoc > 0 then
-                            ()
-                            //makeWrapped wrap "Document" (ecomp<DocView,_,_> model dispatch {attr.empty()})
-                        if showIndex > 0 then
-                            makeWrapped wrap "Indexes" (ecomp<IndexTreeView,_,_> model dispatch {attr.empty()})
-                        if showCode > 0 then
-                            makeWrapped wrap "Code" (ecomp<CodeEvalView,_,_> model dispatch {attr.empty()})
-                    }
-                }
-            }
-        }
 

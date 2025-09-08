@@ -334,7 +334,7 @@ module DocQnA =
                 Interaction.docContent ch 
                 |> Option.bind (fun d -> d.DocumentText ) 
                 |> Option.defaultWith (fun _ -> failwith "no document found")
-            dispatch (Srv_Ia_Notification (ch.Id,$"Document-only mode (no index search) ..."))
+            dispatch (Srv_Ia_Notification (ch.Id,$"Document Q&A mode ..."))
             do! Async.Sleep 100
             do! answerQuestion 1 parms modelsConfig ch document [] dispatch |> Async.AwaitTask
         }

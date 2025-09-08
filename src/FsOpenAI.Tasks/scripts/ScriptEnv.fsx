@@ -432,8 +432,8 @@ module ModelDefs =
         ]
     let chat =
         [
-            {Backend=azureOpenAI; Label="gpt-5"; Model="gpt-5"; TokenLimit=127000}
-            {Backend=openAI; Label="gpt-5"; Model="gpt-5"; TokenLimit=127000}
+            {Backend=azureOpenAI; Label="gpt-4.1"; Model="gpt-4.1"; TokenLimit=127000}
+            {Backend=openAI; Label="gpt-4.1"; Model="gpt-4.1"; TokenLimit=127000}
         ]
     let modelsConfig =
         {

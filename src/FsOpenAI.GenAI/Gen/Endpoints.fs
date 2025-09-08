@@ -28,7 +28,7 @@ module Endpoints =
         | KnownBackends.AzureOpenAI,_ ->
             Connectors.AzureOpenAI.AzureOpenAIChatCompletionService(model,ep.ENDPOINT,ep.API_KEY)
         | KnownBackends.OpenAI,_  ->            
-            OpenAIChatCompletionService(model,Uri ep.ENDPOINT,ep.API_KEY)
+            OpenAIChatCompletionService(model,ep.API_KEY)
         | _,BackendType.ChatCompletions 
         | _,BackendType.ChatCompletionsHarmony -> 
             OpenAIChatCompletionService(model,Uri ep.ENDPOINT,ep.API_KEY)

@@ -34,6 +34,7 @@ type MainLayout() =
             ecomp<LoginRedirectView,_,_> (action,model) dispatch {attr.empty()}
 
         | Page.Home ->
+            let s1,s2 = if model.appConfig.MetaIndex.IsSome then "75%","25%" else "100%","0%"
             concat {
                 comp<RadzenComponents>{attr.empty()}
                 comp<PageTitle> { text (model.appConfig.AppName |> Option.defaultValue "") }
@@ -48,15 +49,16 @@ type MainLayout() =
                             "Style" => "height: 100%;"
                             "Orientation" => Orientation.Horizontal
                             comp<RadzenSplitterPane> {
-                                "Size" => "75%"
+                                "Size" => s1
                                 ecomp<ChatHistoryView,_,_> model dispatch {attr.empty()}
                             }
-                            comp<RadzenSplitterPane> {
-                                "Size" => "25%"
-                                attr.``class`` "rz-p-0 rz-p-lg-3"
-                                "Style" => "overflow:auto;"
-                                ecomp<SourcesView,_,_> model dispatch {attr.empty()}
-                            }
+                            if model.appConfig.MetaIndex.IsSome then
+                                comp<RadzenSplitterPane> {
+                                    "Size" => s2
+                                    attr.``class`` "rz-p-0 rz-p-lg-3"
+                                    "Style" => "overflow:auto;"
+                                    ecomp<SourcesView,_,_> model dispatch {attr.empty()}
+                                }
                         }
                     }
                     Footer.view this.JSRuntime model dispatch

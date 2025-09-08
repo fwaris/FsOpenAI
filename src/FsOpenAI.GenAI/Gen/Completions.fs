@@ -9,6 +9,7 @@ open FsOpenAI.GenAI.Endpoints
 open FsOpenAI.GenAI.ChatUtils
 
 module Completions =
+    let noTempModels = set ["gpt-5"]
     open Microsoft.SemanticKernel
     ///Construct a call to LLM service (but not invoke it yet, as the results may be streamed later)
     let buildCall parms (invCtx:InvocationContext) ch modelSelector (responseFormat:Type option) =
@@ -19,7 +20,8 @@ module Completions =
         let caller =  Endpoints.getClient parms ch modelRef.Model
         let opts = OpenAIPromptExecutionSettings()
         opts.MaxTokens <- ch.Parameters.MaxTokens
-        opts.Temperature <- float <| ChatUtils.temperature ch.Parameters.Mode
+        if not(noTempModels.Contains modelRef.Model) then
+            opts.Temperature <- float <| ChatUtils.temperature ch.Parameters.Mode
         opts.User <- GenUtils.userAgent invCtx
         responseFormat |> Option.iter(fun rf -> opts.ResponseFormat <- rf)
         let de = GenUtils.diaEntryChat ch invCtx modelRef.Model (string ch.Parameters.Backend)

@@ -2,6 +2,7 @@ namespace FsOpenAI.Client.Views
 open Bolero.Html
 open FsOpenAI.Client
 open FsOpenAI.Shared
+open FSharp.Formatting.Markdown
 
 module AssistantMessage =
     open Radzen
@@ -67,7 +68,7 @@ h1, h2, h3, h4, h5, h6 {
                         if Utils.isEmpty msg.Message then
                             "..."
                         else
-                            let html = Markdig.Markdown.ToHtml(msg.Message)
+                            let html = Markdown.ToHtml(Markdown.Parse(msg.Message))
                             Bolero.Html.rawHtml(html)
                     }
                     table {

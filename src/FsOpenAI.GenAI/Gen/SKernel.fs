@@ -41,7 +41,7 @@ module SKernel =
         | KnownBackends.AzureOpenAI ->
             builder.AddAzureOpenAIChatCompletion(deploymentName = chatModel,endpoint = ep.ENDPOINT, apiKey = ep.API_KEY)
         | KnownBackends.OpenAI ->
-            builder.AddOpenAIChatCompletion(chatModel,endpoint=System.Uri ep.ENDPOINT,apiKey = ep.API_KEY)
+            builder.AddOpenAIChatCompletion(chatModel,apiKey = ep.API_KEY)
         | x -> 
             builder.AddOpenAIChatCompletion(chatModel,endpoint=System.Uri ep.ENDPOINT,apiKey = ep.API_KEY)
 
@@ -53,7 +53,7 @@ module SKernel =
         kargs
 
     let kernelArgsDefault (args:(string*string) seq) =
-        let sttngs = new OpenAIPromptExecutionSettings(MaxTokens = 150, Temperature = 0, TopP = 1)
+        let sttngs = new OpenAIPromptExecutionSettings(MaxTokens = 150, TopP = 1)
         let kargs = KernelArguments(sttngs)
         for (k,v) in args do
             kargs.Add(k,v)
