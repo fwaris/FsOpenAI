@@ -100,7 +100,7 @@ module Init =
         | SM_Plain _     -> Interaction.setUseWeb useWeb ch 
         | SM_IndexQnA _  -> Interaction.setQABag {QABag.Default with Indexes = idxRefs; MaxDocs=model.appConfig.DefaultMaxDocs} ch
         | SM_QnADoc      -> ch
-        | SM_CodeEval    -> Interaction.setMode M_CodeEval ch
+        | SM_CodeEval    -> Interactions.CodeEval.Interaction.initCodeBag CodeEvalBag.Default ch
 
     let flatten (trees:IndexTree list)  =
         let rec loop acc = function

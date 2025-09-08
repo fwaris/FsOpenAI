@@ -61,7 +61,7 @@ body {
     border: var(--thickness) solid rgba(0,0,0,0.1);
     border-top-color: var(--color);
     border-radius: 50%;
-    animation: spin 0.3s linear infinite;
+    animation: spin 2.0s linear infinite;
 }
 
 /* Respect reduced motion */

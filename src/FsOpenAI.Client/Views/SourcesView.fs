@@ -14,8 +14,9 @@ type ModelQueryView() =
     inherit ElmishComponent<Model,Message>()
 
     override this.View mdl dispatch =
-        let mode = Model.selectedChat mdl |> Option.map (fun x -> x.Mode) |> Option.defaultValue M_Plain
-        let useWeb = Model.selectedChat mdl |> Option.map (fun x -> Interaction.useWeb x) |> Option.defaultValue false
+        let selChat = Model.selectedChat mdl
+        let mode = selChat |> Option.map (fun ch -> Interaction.mode ch mdl.appConfig.AllowedModes.Value) |> Option.defaultValue M_Plain
+        let useWeb = selChat |> Option.map (fun x -> Interaction.useWeb x) |> Option.defaultValue false
 
         comp<RadzenStack> {
             "Orientation" => Orientation.Vertical
@@ -82,7 +83,7 @@ type IndexTreeView() =
         let idxs =
 
             Model.selectedChat this.Model
-            |> Option.bind (fun chat -> Interaction.qaBag chat |> Option.map (fun bag -> chat.Mode,bag.Indexes))
+            |> Option.bind (fun chat -> Interaction.qaBag chat |> Option.map (fun bag -> Interaction.mode chat this.Model.appConfig.AllowedModes.Value,bag.Indexes))
             |> Option.map (fun (mode,idxs) ->
                 match mode with
                 | M_Index

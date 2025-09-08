@@ -153,8 +153,9 @@ module Completions =
     let private streamCompleteChatStructured (parms:ServiceSettings) (invCtx:InvocationContext) (ch:Interaction) dispatch modelSelector =
         async {
             let comp =
-               async {
-                    let haveCitations = ch.Mode.IsM_Doc_Index || ch.Mode.IsM_Index
+               async {                   
+                    let mode = Interactions.Interaction.mode ch (Env.allowedModes())
+                    let haveCitations = mode.IsM_Doc_Index || mode.IsM_Index
                     let hasThought = ch.Parameters.Backend.BackendType.IsChatCompletionsHarmony
                     let citResponseFromat = if  haveCitations then Some typeof<AnswerWithCitations> else None
                     let! de,resps = streamChat parms invCtx ch modelSelector citResponseFromat
@@ -237,7 +238,8 @@ module Completions =
         }
 
     let checkStreamCompleteChat (parms:ServiceSettings) (invCtx:InvocationContext) (ch:Interaction) dispatch modelSelector =
-        let haveCitations = ch.Mode.IsM_Doc_Index || ch.Mode.IsM_Index
+        let mode = Interactions.Interaction.mode ch (Env.allowedModes())
+        let haveCitations = mode.IsM_Doc_Index || mode.IsM_Index
         let thoughtOutput = ch.Parameters.Backend.BackendType.IsChatCompletionsHarmony
         if haveCitations || thoughtOutput then 
             streamCompleteChatStructured parms invCtx ch dispatch modelSelector

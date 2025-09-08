@@ -48,6 +48,13 @@ type ModelsConfig =
                     ChatModels   = [ModelRef.Default]
                 }
 
+type InteractionMode =
+    | M_Plain
+    | M_Index
+    | M_Doc
+    | M_Doc_Index
+    | M_CodeEval
+
 type InvocationContext =
     {
         ModelsConfig : ModelsConfig
@@ -61,13 +68,6 @@ type InvocationContext =
                 AppId = None
                 User = None
             }
-
-type InteractionMode =
-    | M_Plain
-    | M_Index
-    | M_Doc
-    | M_Doc_Index
-    | M_CodeEval
 
 type AppBarType =
     | AppB_Base of string
@@ -159,4 +159,6 @@ type AppConfig =
                 DiagTableName = None
                 SessionTableName = None
             }
+
+        member this.AllowedModes = lazy(this.EnabledChatModes |> List.map fst |> set)
 

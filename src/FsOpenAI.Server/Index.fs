@@ -8,6 +8,7 @@ open FsOpenAI
 open FsOpenAI.Shared
 
 let page = doctypeHtml {
+    let scriptVersion = "3"
     let uiVersion = typeof<Radzen.RadzenComponent>.Assembly.GetName().Version.ToString();
 
     let appConfig = FsOpenAI.GenAI.Env.appConfig.Value
@@ -29,10 +30,10 @@ let page = doctypeHtml {
         title { tabTitle }
         ``base`` { attr.href "/" }
         link {attr.rel "short icon"; attr.``type`` "image/png"; attr.href "app/imgs/favicon.png"}
-        link { attr.rel "stylesheet"; attr.href $"css/index.css?v={uiVersion}" }
-        link { attr.rel "stylesheet"; attr.href $"css/hover.css?v={uiVersion}" }
+        link { attr.rel "stylesheet"; attr.href $"css/index.css?v={scriptVersion}" }
+        link { attr.rel "stylesheet"; attr.href $"css/hover.css?v={scriptVersion}" }
         //utils
-        script {attr.src $"scripts/utils.js?v={uiVersion}"}        
+        script {attr.src $"scripts/utils.js?v={scriptVersion}"}        
         //authentication
         script {attr.src "_content/Microsoft.Authentication.WebAssembly.Msal/AuthenticationService.js" }
         link { attr.rel "stylesheet"; attr.href "css/theme-override.css?v=2" }

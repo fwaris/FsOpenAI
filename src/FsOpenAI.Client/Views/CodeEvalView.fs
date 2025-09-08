@@ -89,17 +89,10 @@ type CodeEvalView() =
     member val DialogService  = Unchecked.defaultof<DialogService> with get, set
 
     override this.View model dispatch =
-        let mode = Model.selectedChat model |> Option.map (fun x -> x.Mode) |> Option.defaultValue M_Plain
+        let mode = Model.selectedChat model |> Option.map (fun x -> Interaction.mode x model.appConfig.AllowedModes.Value) |> Option.defaultValue M_Plain
         comp<RadzenStack> {
             "Orientation" => Orientation.Horizontal
             "AlignItems" => AlignItems.Center
-            comp<RadzenCheckBox<bool>> {
-                attr.title "Experimental! Generate and evalualte F# code "
-                "Value" => (mode = M_CodeEval)
-                attr.callback "Change" (fun (v:bool) ->
-                    Model.selectedChat model |> Option.iter (fun chat ->
-                        dispatch (Ia_Mode_CodeEval chat.Id)))
-            }
             comp<RadzenLabel> {
                 "Text" => "Code Evaluator"
             }

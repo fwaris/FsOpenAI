@@ -190,7 +190,6 @@ type Interaction = {
     Feedback : Feedback option
     Question : string
     SystemMessage : string
-    Mode : InteractionMode
     Types : InteractionType list
     Messages : InteractionMessage list
     Parameters : InteractionParameters
@@ -198,6 +197,7 @@ type Interaction = {
     IsBuffering : bool
     Notifications : string list
 }
+
 type SamplePrompt =
     {
         SampleChatType                  : SampleChatType

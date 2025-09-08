@@ -23,16 +23,6 @@ module Interaction =
         | true,false  -> Utils.shorten 18 question
         | _,_         -> Utils.shorten 18 msg
 
-    let tag (ch:Interaction) =
-        let cType =
-            match ch.Mode with
-            | M_Plain           -> "Chat"
-            | M_Doc             -> "Doc."
-            | M_Index           -> "Q&A"
-            | M_Doc_Index       -> "Doc.+ "
-            | M_CodeEval        -> "CodeEval"
-        $"{cType} [{ch.Parameters.Backend}] ..."
-
     let systemMessage (c:Interaction) = c.SystemMessage
 
     let messages (c:Interaction) = c.Messages
@@ -91,16 +81,47 @@ module Interaction =
         | Some msg -> msg.Message
         | None     -> ""
 
-    let label (ch:Interaction) =
-        match ch.Name with
-        | Some n -> n
-        | None   -> genName (tag ch) (lastNonEmptyUserMessageText ch) ch.Question
-
     let getIndexes ch =
         ch.Types
         |> List.collect (function
             | IndexQnA bag      -> bag.Indexes
             | _                 -> [])
+
+    ///Determine a flag that best represents the 'mode' of a chat - 
+    ///given that a chat can contain multiple types of content (e.g. document and/or indexes, etc.).
+    let mode (ch:Interaction) (allowedModes:Set<InteractionMode>)= 
+        let rec loop acc (xs:InteractionType list) =
+            match xs with 
+            | [] -> acc
+            | CodeEval _::_ -> set [M_CodeEval]
+            | IndexQnA x::rest -> if (allowedModes.Contains M_Index || allowedModes.Contains M_Doc_Index) && not x.Indexes.IsEmpty then 
+                                    loop (Set.add M_Index acc) rest
+                                  else 
+                                    loop acc rest
+            | QnADoc x::rest -> if (allowedModes.Contains M_Doc || allowedModes.Contains M_Doc_Index) && x.DocumentText.IsSome then 
+                                    loop (Set.add M_Doc acc) rest
+                                else
+                                    loop acc rest
+            | Plain _ ::rest -> loop acc rest
+        let ms = loop Set.empty ch.Types
+        if ms.IsEmpty then M_Plain
+        elif ms.Contains M_Doc && ms.Contains M_Index && allowedModes.Contains M_Doc_Index then M_Doc_Index
+        else Set.minElement ms
+
+    let tag (ch:Interaction) =
+        let cType =
+            match mode ch Set.empty with
+            | M_Plain           -> "Chat"
+            | M_Doc             -> "Doc."
+            | M_Index           -> "Q&A"
+            | M_Doc_Index       -> "Doc.+ "
+            | M_CodeEval        -> "CodeEval"
+        $"{cType} [{ch.Parameters.Backend}] ..."
+
+    let label (ch:Interaction) =
+        match ch.Name with
+        | Some n -> n
+        | None   -> genName (tag ch) (lastNonEmptyUserMessageText ch) ch.Question
 
     let setPlainBag bag ch =
         match plainBag ch with
@@ -331,7 +352,6 @@ module Interaction =
                 Id = id
                 Name = None
                 Feedback = None
-                Mode = mode
                 Types = []// [iType]
                 SystemMessage = C.defaultSystemMessage
                 Question = msg
@@ -355,20 +375,20 @@ module Interaction =
 
     let setFeedback feedback c = {c with Feedback = feedback}
 
-    let setMode  desiredMode ch =
-        let currentMode = ch.Mode
-        match currentMode,desiredMode with
-        | x,y when x=y             -> ch
-        | M_Doc_Index, M_Doc       -> ch
-        | M_Doc_Index, M_Index     -> ch
-        | M_Doc, M_Doc_Index       -> {ch with Mode=M_Doc_Index}
-        | _,M_Index                -> {ch with Mode=M_Index}
-        | _,M_Plain                -> {ch with Mode=M_Plain}
-        | _,M_Doc                  -> {ch with Mode=M_Doc}
-        | _,M_Doc_Index            -> {ch with Mode=M_Doc_Index}
-        | _,M_CodeEval             -> {ch with Mode=M_CodeEval}
+    //let setMode  desiredMode ch =
+    //    let currentMode = ch.Mode
+    //    match currentMode,desiredMode with
+    //    | x,y when x=y             -> ch
+    //    | M_Doc_Index, M_Doc       -> ch
+    //    | M_Doc_Index, M_Index     -> ch
+    //    | M_Doc, M_Doc_Index       -> {ch with Mode=M_Doc_Index}
+    //    | _,M_Index                -> {ch with Mode=M_Index}
+    //    | _,M_Plain                -> {ch with Mode=M_Plain}
+    //    | _,M_Doc                  -> {ch with Mode=M_Doc}
+    //    | _,M_Doc_Index            -> {ch with Mode=M_Doc_Index}
+    //    | _,M_CodeEval             -> {ch with Mode=M_CodeEval}
 
-    let forceSetMode (mode:InteractionMode) (ch:Interaction) = {ch with Mode=mode}
+    //let forceSetMode (mode:InteractionMode) (ch:Interaction) = {ch with Mode=mode}
 
     let applyTemplate (tpType,template) (ch:Interaction) =
         printfn "TODO apply template"
@@ -496,10 +516,6 @@ module Interactions =
     let setMaxDocs id maxDocs cs = updateWith (Interaction.setMaxDocs maxDocs) id cs
 
     let setIndexes id idxs cs = updateWith (Interaction.setIndexes idxs) id cs
-
-    let setMode id mode cs = updateWith (Interaction.setMode mode) id cs
-
-    let forceSetMode id mode cs = updateWith (Interaction.forceSetMode mode) id cs
 
     let setFeedback id feedback cs = updateWith (Interaction.setFeedback feedback) id cs
 

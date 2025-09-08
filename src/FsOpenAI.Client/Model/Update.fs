@@ -60,13 +60,10 @@ module Update =
         | Ia_SetSearch(id,txt) -> Submission.updateSearchTerms (id,txt) model,Cmd.none
         | Ia_Remove id -> Submission.removeChat id model
         | Ia_Selected id -> {model with selectedChatId = Some id},Cmd.none
-        | Ia_UseWeb (id,useWeb) -> Submission.setModeUseWeb useWeb id model,Cmd.none
-        | Ia_SetIndex (id,idxs) -> Submission.setModeIndexes idxs id model,Cmd.none
+        | Ia_UseWeb (id,useWeb) -> Submission.setUseWeb useWeb id model,Cmd.none
+        | Ia_SetIndex (id,idxs) -> Submission.setIndexes idxs id model,Cmd.none
         | Ia_Remove_Document id -> Submission.removeDoc id model,Cmd.none
-        | Ia_Mode_Document id -> {model with interactions = Interactions.setMode id M_Doc model.interactions},Cmd.none
-        | Ia_Mode_CodeEval id -> {model with interactions = Interactions.setMode id M_CodeEval model.interactions},Cmd.none
-        | Ia_Mode_Doc_Index (id,useIndex) -> Submission.setModeDocIndex useIndex id model,Cmd.none
-        | Ia_File_BeingLoad (id,dc) -> Submission.setModeDoc dc id model, Cmd.ofMsg (Ia_File_Load id)
+        | Ia_File_BeingLoad (id,dc) -> Submission.setDocContent dc id model, Cmd.ofMsg (Ia_File_Load id)
         | Ia_File_Load id -> {model with interactions = Interactions.setDocumentStatus id Uploading model.interactions},Cmd.OfAsync.either IO.loadFile (id,model,uparms.serverCall) Ia_File_Loaded Error
         | Ia_File_Loaded (id,fileId) -> Submission.extractContents  uparms.serverDispatch id fileId model
         | Ia_File_SetContents (id,txt,isDone) -> {model with interactions = Interactions.setFileContents id (txt,isDone) model.interactions},Cmd.none

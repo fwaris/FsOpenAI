@@ -28,17 +28,12 @@ module AssistantMessage =
                             "Style" => "width: 1.5rem; height: 1.5rem;"
                         }
                     | None ->
+                        let title = match tht with Some t -> $"Thought process: {t}" | None -> "Assistant response"
                         comp<RadzenIcon> {
                             "Icon" =>   C.DFLT_ASST_ICON
                             "IconColor" => (model.appConfig.AssistantIconColor |> Option.defaultValue  C.DFLT_ASST_ICON_COLOR)
+                            attr.title title
                         }
-                    match tht with 
-                    | Some tht -> 
-                        comp<RadzenIcon> {
-                            attr.title tht
-                            "Icon" =>   "psychology"
-                        }
-                    | None -> ()
                 }
                 comp<RadzenColumn> {
                     "Size" => 11

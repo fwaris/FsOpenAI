@@ -124,6 +124,14 @@ module Env =
 
     let appConfig = lazy(loadConfig())
 
+    let allowedModes() = 
+        if not appConfig.IsValueCreated then 
+            Set.empty 
+        else 
+            appConfig.Value 
+            |> Option.map (fun x -> x.AllowedModes.Value) 
+            |> Option.defaultValue Set.empty
+
     let init (cfg:IConfiguration, lggr:ILogger<FsOpenAILog>, wrootPath) =
         logger <- lggr
         config <-

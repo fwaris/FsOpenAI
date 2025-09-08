@@ -14,47 +14,28 @@ module Submission =
 
     let docType id cs = (Interactions.docContent id cs) |> Option.bind(fun d->d.DocType) 
 
-    let setModeUseWeb useWeb id model =
+    let setUseWeb useWeb id model =
         {model with 
             interactions =
                 model.interactions
-                |> Interactions.setUseWeb id useWeb
-                |> Interactions.setMode id M_Plain}
+                |> Interactions.setUseWeb id useWeb}
                 
-    let setModeIndexes (idxs:IndexRef list) id model =
-        match Model.selectedChat model, idxs.Length = 0 with
-        | Some ch, true when ch.Mode <> M_Index -> model //no change if not in index mode and no indexes selected (handles Radzen idiosyncracy)
-        | _ ->
-            {model with 
-                interactions = 
-                            model.interactions
-                            |> Interactions.setMode id M_Index 
-                            |> Interactions.setIndexes id idxs}                        
+    let setIndexes (idxs:IndexRef list) id model =
+        {model with 
+            interactions = 
+                        model.interactions
+                        |> Interactions.setIndexes id idxs}                        
 
-    let setModeDoc (doc:DocumentContent) id model = 
+    let setDocContent (doc:DocumentContent) id model = 
         {model with interactions = 
                         model.interactions
-                        |> Interactions.setDocContent id doc
-                        |> Interactions.setMode id M_Doc}
+                        |> Interactions.setDocContent id doc}
 
-    let setModeDocIndex useIndex id model = 
-        if useIndex then
-            {model with interactions = 
-                            model.interactions
-                            |> Interactions.setMode id M_Doc_Index}            
-        else
-            {model with interactions = 
-                            model.interactions
-                            |> Interactions.forceSetMode id M_Doc}
 
     let removeDoc id model =
-        let defMode = 
-            model.interactions |> List.tryFind (fun c -> c.Id = id)
-            |> Option.map(fun c -> match c.Mode with M_Doc_Index -> M_Index | _ -> M_Plain)
         {model with interactions = 
                         model.interactions
-                        |> Interactions.removeDoc id
-                        |> Interactions.setMode id M_Plain}
+                        |> Interactions.removeDoc id}
             
     let isReady ch =
         match ch with 
@@ -86,7 +67,7 @@ module Submission =
             model,Cmd.batch [msg; Cmd.ofMsg Ia_Local_ClearAll]
 
     let private sendChat model serverDispatch (ch:Interaction) =
-        match ch.Mode with
+        match Interaction.mode ch model.appConfig.AllowedModes.Value with
         | M_Index   -> serverDispatch (Clnt_Run_IndexQnA(model.serviceParameters.Value,IO.invocationContext model,ch))
         | M_Plain -> serverDispatch (Clnt_Run_Plain(model.serviceParameters.Value,IO.invocationContext model,ch))
         | M_Doc -> serverDispatch (Clnt_Run_QnADoc(model.serviceParameters.Value,IO.invocationContext model,ch))
@@ -99,7 +80,7 @@ module Submission =
         | None,_,_ -> Some "No chat selected"
         | _,None,_ -> Some "Service configuration not yet received from server"
         | _,_,true -> Some "Question is empty"
-        | Some ch, _,_ when (ch.Mode = M_Index && (Interaction.getIndexes ch).Length = 0) -> Some "Please select a source"
+        | Some ch, _,_ when (Interaction.mode ch model.appConfig.AllowedModes.Value = M_Index && (Interaction.getIndexes ch).Length = 0) -> Some "Please select a source"
         | _ -> None
 
     let prepForSubmit prompt id model =

@@ -19,7 +19,8 @@ module Interaction =
         match codeBag ch with 
         | Some _ -> {ch with Types = ch.Types |> List.map (function CodeEval bag -> CodeEval {bag with CodeEvalParms = p} | x -> x)}
         | None -> {ch with Types = (CodeEval {CodeEvalBag.Default with CodeEvalParms=p})::ch.Types}
-    
+
+    let initCodeBag bag ch = {ch with Types = (CodeEval bag)::ch.Types}
 
 module Interactions =
     open FsOpenAI.Shared.Interactions.Core.Interactions

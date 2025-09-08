@@ -284,8 +284,9 @@ module DocQnA =
 
     let continueAnswerQuestion parms modelsConfig ch document memories dispatch combinedSearch =
         task {
+            let mode = Interaction.mode ch (Env.allowedModes())
             let prompt = 
-                match ch.Mode with 
+                match mode with 
                 | M_Index                                -> Prompts.DocQnA.plainDocQuery
                 | M_Doc                                  -> Prompts.DocQnA.plainDocQuery
                 | M_Doc_Index                            -> Prompts.DocQnA.docQueryWithSearchResults
@@ -383,7 +384,8 @@ module DocQnA =
     let runPlan (parms:ServiceSettings) modelsConfig (ch:Interaction) dispatch =
         async {  
             try
-                match ch.Mode with 
+                let mode = Interaction.mode ch (Env.allowedModes())
+                match mode with 
                 | M_Doc -> do! runDocOnlyPlan parms modelsConfig ch dispatch
                 | M_Doc_Index -> do! runIndexSrchPlan parms modelsConfig ch dispatch
                 | _ -> failwith "unexpected chat mode"

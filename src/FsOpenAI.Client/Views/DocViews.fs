@@ -174,9 +174,10 @@ type DocViewCompact() =
 
     override this.View model dispatch =
         let chat = Model.selectedChat model
+        let mode = chat |> Option.map (fun ch -> Interaction.mode ch model.appConfig.AllowedModes.Value) |> Option.defaultValue M_Plain
         let bag = chat |> Option.bind Interaction.docContent |> Option.defaultValue DocumentContent.Default
         let fileName = bag.DocTitle |> Option.defaultValue ""
-        let isChecked = chat |> Option.map (fun ch -> ch.Mode = M_Doc || ch.Mode = M_Doc_Index) |> Option.defaultValue false
+        let isChecked = chat |> Option.map (fun ch -> mode = M_Doc || mode = M_Doc_Index) |> Option.defaultValue false
         let upld_status =
             match bag.Status with
             | No_Document -> "No document selected"

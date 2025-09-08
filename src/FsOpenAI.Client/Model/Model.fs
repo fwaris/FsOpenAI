@@ -92,10 +92,7 @@ type Message =
     | Ia_File_SetContents of string*string*bool
     | Ia_SetSearch of string*string
     | Ia_UseWeb of string*bool
-    | Ia_Mode_Document of string
-    | Ia_Mode_CodeEval of string
     | Ia_Remove_Document of string
-    | Ia_Mode_Doc_Index of string*bool
     | Ia_Submit of string*string
     | Ia_SubmitOnKey of string*bool
     | Ia_ToggleSettings of string
