@@ -2,7 +2,6 @@ namespace FsOpenAI.Client.Views
 open Bolero.Html
 open FsOpenAI.Client
 open FsOpenAI.Shared
-open FSharp.Formatting.Markdown
 
 module AssistantMessage =
     open Radzen
@@ -39,14 +38,36 @@ module AssistantMessage =
                     "Size" => 11
                     div {
                         attr.style "white-space: pre-line;"
+                        style {"""
+/* Reduce paragraph spacing */
+/* Reduce paragraph spacing */
+p {
+  margin-top: 0;
+  margin-bottom: 0.1em; /* or even 0 if you want it tighter */
+  line-height: 1.2; /* adjust to your preference */
+}
+
+/* Tweak list spacing */
+ul, ol {
+  margin-top: -1.4em;
+  margin-bottom: -3.0em;
+  padding-left: 1.0em; /* optional: controls indent */
+}
+
+li {
+  margin-bottom: 0.1em; /* reduce space between list items */
+}
+
+/* Optional: remove spacing between headings and content */
+h1, h2, h3, h4, h5, h6 {
+  margin-top: 0.5em;
+  margin-bottom: 0.3em;
+}
+                        """}
                         if Utils.isEmpty msg.Message then
                             "..."
                         else
-                            let html = Markdown.ToHtml(Markdown.Parse(msg.Message))
-                            let html = html
-                                            .Replace("<p>", "")
-                                            .Replace("</p>", "<br>")
-
+                            let html = Markdig.Markdown.ToHtml(msg.Message)
                             Bolero.Html.rawHtml(html)
                     }
                     table {
@@ -87,16 +108,17 @@ module AssistantMessage =
                                         ecomp<CodeAndPlanView,_,_> model dispatch {attr.empty()}
                                     }
                                 }
-                            tr {
+                            if Model.feebackConfigured model then
+                                tr {
 
-                                td {
-                                    attr.colspan 2
-                                    match chat.Feedback with
-                                    | Some fb ->
-                                        ecomp<FeedbackView,_,_> (fb,chat,model) dispatch { attr.empty() }
-                                    | None -> ()
+                                    td {
+                                        attr.colspan 2
+                                        match chat.Feedback with
+                                        | Some fb ->
+                                            ecomp<FeedbackView,_,_> (fb,chat,model) dispatch { attr.empty() }
+                                        | None -> ()
+                                    }
                                 }
-                            }
                         }
                     }
             }

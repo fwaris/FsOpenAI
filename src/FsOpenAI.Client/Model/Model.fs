@@ -171,6 +171,8 @@ module Model =
     let isEnabled mode model = model.appConfig.EnabledChatModes |> List.exists (fun (x,_) -> x = mode)
     let isEnabledAny modes model = modes |> List.exists (fun m -> isEnabled m model)
 
+    let feebackConfigured (model:Model) = model.appConfig.DiagTableName.IsSome 
+
     type Blk = M of int*int | Topen of int | Tblock of (int*int) | E of int
 
     let rec blocks (msg:string) acc (startI:int) =

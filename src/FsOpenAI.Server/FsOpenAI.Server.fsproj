@@ -45,7 +45,4 @@
     <ProjectReference Include="..\FsOpenAI.GenAI\FsOpenAI.GenAI.fsproj" />
     <ProjectReference Include="..\FsOpenAI.Shared\FsOpenAI.Shared.fsproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Content Include="appsettings.json.template" />
-  </ItemGroup>
 </Project>
