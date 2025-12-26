@@ -1,6 +1,7 @@
 ﻿namespace FsOpenAI.GenAI
 open System
 open System.IO
+open System.Text.Json.Serialization
 open FSharp.Control
 open Azure.Identity;
 open Azure.Security.KeyVault.Secrets
@@ -78,11 +79,11 @@ module Env =
 
     let defaultSettings() =
         {
-            LOG_CONN_STR = None
+            LOG_CONN_STR = Skip
             CHAT_ENDPOINTS = []
             AZURE_SEARCH_ENDPOINTS = []
-            BING_ENDPOINT = None
-            OPENAI_KEY = None
+            BING_ENDPOINT = Skip
+            OPENAI_KEY = Skip
             //GOOGLE_KEY = None
         }
 
@@ -157,12 +158,12 @@ module Settings =
     //redact secrets before sending settigns to client (client still needs some configuration info for UI)
     let redactKeys (sttngs:ServiceSettings) =
         {
-            LOG_CONN_STR = None
-            OPENAI_KEY = None
+            LOG_CONN_STR = Skip
+            OPENAI_KEY = Skip
             //GOOGLE_KEY = None
             CHAT_ENDPOINTS = redactEndpoints sttngs.CHAT_ENDPOINTS
             AZURE_SEARCH_ENDPOINTS = redactSearchEndpoints sttngs.AZURE_SEARCH_ENDPOINTS
-            BING_ENDPOINT = sttngs.BING_ENDPOINT |> Option.map redactEndpoint
+            BING_ENDPOINT = sttngs.BING_ENDPOINT |> Skippable.map redactEndpoint
         }
 
     let refreshSettings dispatch =
@@ -183,6 +184,6 @@ module Settings =
 
     let updateKey sttngs =
         match sttngs.OPENAI_KEY with
-        | None -> _cachedSettings.Value
-        | Some x when Utils.isEmpty x -> _cachedSettings.Value
+        | Skip -> _cachedSettings.Value
+        | Include x when Utils.isEmpty x -> _cachedSettings.Value
         | _    -> {_cachedSettings.Value with OPENAI_KEY = sttngs.OPENAI_KEY} //use openai, google from client, if provided

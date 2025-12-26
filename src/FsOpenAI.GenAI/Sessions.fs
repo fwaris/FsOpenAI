@@ -50,7 +50,10 @@ module Sessions =
             |> Option.bind(fun x -> Env.logInfo $"{x.DatabaseName},{x.SessionTableName}"; x.SessionTableName |> Option.map(fun t -> x.DatabaseName,t))
             |> Option.bind(fun (database,container) ->
                 Settings.getSettings().Value.LOG_CONN_STR
-                |> Option.map(fun cstr -> Env.logInfo $"{Utils.shorten 30 cstr}";cstr,database,container))
+                |> Skippable.map(fun cstr -> Env.logInfo $"{Utils.shorten 30 cstr}";cstr,database,container)
+                |> Skippable.map Some
+                
+                |> Skippable.defaultValue None)
         with ex ->
             Env.logException (ex,"Monitoring.getConnectionFromConfig")
             None

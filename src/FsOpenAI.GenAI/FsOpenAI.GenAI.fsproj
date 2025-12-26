@@ -31,17 +31,16 @@
 		<PackageReference Include="FSharp.CosmosDb" Version="1.2.1" />
 		<PackageReference Include="FSharp.Data.Html.Core" Version="6.6.0" />
 		<PackageReference Include="MathNet.Numerics.FSharp" Version="5.0.0" />
-		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.8" />
-		<PackageReference Include="Microsoft.Identity.Web" Version="3.14.0" />
-		<PackageReference Include="Microsoft.ML.Tokenizers.Data.O200kBase" Version="1.0.2" />
-		<PackageReference Include="Microsoft.SemanticKernel" Version="1.64.0" />
-		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.11" />
+		<PackageReference Include="Microsoft.Identity.Web" Version="4.2.0" />
+		<PackageReference Include="Microsoft.ML.Tokenizers.Data.O200kBase" Version="2.0.0" />
+		<PackageReference Include="Microsoft.SemanticKernel" Version="1.67.1" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
 		<PackageReference Include="Azure.Search.Documents" Version="11.6.1" />
 		<PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
-		<PackageReference Include="ExcelDataReader" Version="3.7.0" />
-		<PackageReference Include="ExcelDataReader.DataSet" Version="3.7.0" />
-		<PackageReference Include="System.Text.Encoding.CodePages" Version="9.0.8" />
-		<PackageReference Include="Microsoft.SemanticKernel.Connectors.Google" Version="1.19.0-alpha" />
+		<PackageReference Include="ExcelDataReader" Version="3.8.0" />
+		<PackageReference Include="ExcelDataReader.DataSet" Version="3.8.0" />
+		<PackageReference Include="System.Text.Encoding.CodePages" Version="9.0.11" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\FsOpenAI.Shared\FsOpenAI.Shared.fsproj" />

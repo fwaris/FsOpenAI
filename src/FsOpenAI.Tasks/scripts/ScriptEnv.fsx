@@ -1,5 +1,6 @@
 ﻿#load "packages.fsx"
 open System
+open System.Text.Json.Serialization
 open System.IO
 open System.Threading
 open System.Threading.Tasks
@@ -32,10 +33,9 @@ let defaultSettings() =
     {
         CHAT_ENDPOINTS = []
         AZURE_SEARCH_ENDPOINTS = []
-        BING_ENDPOINT = None
-        OPENAI_KEY = None
-        //GOOGLE_KEY = None
-        LOG_CONN_STR = None
+        BING_ENDPOINT = Skip
+        OPENAI_KEY = Skip
+        LOG_CONN_STR = Skip
     }
 
 let expandEnv (s:string) = Environment.ExpandEnvironmentVariables(s)
@@ -69,7 +69,7 @@ let azureOpenAiEmbeddingClient model : ITextEmbeddingGenerationService =
     AzureOpenAITextEmbeddingGenerationService(model,ep.ENDPOINT,ep.API_KEY)
 
 let openAiEmbeddingClient model : ITextEmbeddingGenerationService =
-    let key = settings.Value.OPENAI_KEY |> Option.defaultWith (fun _ -> failwith "OpenAI key not found")
+    let key = settings.Value.OPENAI_KEY |> Skippable.defaultWith (fun _ -> failwith "OpenAI key not found")
     OpenAITextEmbeddingGenerationService(model,key)
 
 let inline await fn = fn |> Async.AwaitTask |> Async.RunSynchronously

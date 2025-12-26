@@ -25,7 +25,7 @@ type MainLayout() =
 
     override this.OnParametersSet() =
         if this.ThemeService.Theme = null then
-            this.ThemeService.SetTheme "Humanistic"
+            this.ThemeService.SetTheme "Standard"
 
     override this.View model dispatch =
 

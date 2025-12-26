@@ -3,12 +3,11 @@ open System.Text.Json.Serialization
 open System
 open System.Security.Claims
 
-[<JsonFSharpConverter(SkippableOptionFields=SkippableOptionFields.Always)>]
 type ApiEndpoint =
     {
         API_KEY : string
         ENDPOINT : string
-        BACKEND  : string
+        BACKEND  : Skippable<string>
     }
 
 type ModelDeployments = 
@@ -18,13 +17,11 @@ type ModelDeployments =
         EMBEDDING : string list
     }
 
-[<JsonFSharpConverter(SkippableOptionFields=SkippableOptionFields.Always)>]
 type ServiceSettings = 
     {
         AZURE_SEARCH_ENDPOINTS: ApiEndpoint list
         CHAT_ENDPOINTS: ApiEndpoint list
-        BING_ENDPOINT : ApiEndpoint option
-        //GOOGLE_KEY : string option
-        OPENAI_KEY : string option
-        LOG_CONN_STR : string option
+        BING_ENDPOINT : Skippable<ApiEndpoint>
+        OPENAI_KEY : Skippable<string>
+        LOG_CONN_STR : Skippable<string>
     }

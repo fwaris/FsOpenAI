@@ -1,26 +1,38 @@
 {
-  "HideChatSettings": true,
-  "UseORCByDefault": true,
+  "HideChatSettings": false,
+  "UseORCByDefault": false,
   "EnabledBackends": [
     {
-      "Name": "local",
+      "Name": "OpenAI",
       "BackendType": {
-        "Case": "ChatCompletionsHarmony"
+        "Case": "ChatCompletions"
       }
     }
   ],
   "EnabledChatModes": [
     [
       {
-        "Case": "M_Plain"
+        "Case": "M_Index"
       },
-      "You are a helpful AI assistant\u0022\n"
+      "You are a helpful AI assistant"
+    ],
+    [
+      {
+        "Case": "M_Doc_Index"
+      },
+      "You are a helpful AI assistant"
     ],
     [
       {
         "Case": "M_Doc"
       },
-      "You are a helpful AI assistant\u0022\n"
+      "You are a helpful AI assistant"
+    ],
+    [
+      {
+        "Case": "M_Plain"
+      },
+      "You are a helpful AI assistant"
     ]
   ],
   "DefaultMaxDocs": 10,
@@ -28,7 +40,7 @@
   "AppBarType": {
     "Case": "AppB_Base",
     "Fields": [
-      "Local Chat"
+      "FsOpenAI Chat"
     ]
   },
   "RequireLogin": false,
@@ -37,25 +49,59 @@
   "LogoUrl": "https:/github.com/fwaris/FsOpenAI",
   "AppName": "FsOpenAI Chat",
   "AppId": "default",
-  "PersonaText": null,
-  "PersonaSubText": null,
+  "PersonaText": "FsOpenAI Chat",
+  "PersonaSubText": "Loading ...",
   "Disclaimer": null,
-  "MetaIndex": null,
+  "MetaIndex": "fsopenai-meta",
   "IndexGroups": [
     "default"
   ],
   "ModelsConfig": {
-    "EmbeddingsModels": [],
+    "EmbeddingsModels": [
+      {
+        "Backend": {
+          "Name": "AzureOpenAI",
+          "BackendType": {
+            "Case": "ChatCompletions"
+          }
+        },
+        "Model": "text-embedding-ada-002",
+        "Label": "ada-002",
+        "TokenLimit": 8192
+      },
+      {
+        "Backend": {
+          "Name": "OpenAI",
+          "BackendType": {
+            "Case": "ChatCompletions"
+          }
+        },
+        "Model": "text-embedding-ada-002",
+        "Label": "ada-002",
+        "TokenLimit": 8192
+      }
+    ],
     "ChatModels": [
       {
         "Backend": {
-          "Name": "local",
+          "Name": "AzureOpenAI",
           "BackendType": {
-            "Case": "ChatCompletionsHarmony"
+            "Case": "ChatCompletions"
           }
         },
-        "Model": "gpt-oss",
-        "Label": "gpt-oss",
+        "Model": "gpt-4.1",
+        "Label": "gpt-4.1",
+        "TokenLimit": 127000
+      },
+      {
+        "Backend": {
+          "Name": "OpenAI",
+          "BackendType": {
+            "Case": "ChatCompletions"
+          }
+        },
+        "Model": "gpt-4.1",
+        "Label": "gpt-4.1",
         "TokenLimit": 127000
       }
     ]

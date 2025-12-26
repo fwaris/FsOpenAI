@@ -8,7 +8,7 @@ open FsOpenAI
 open FsOpenAI.Shared
 
 let page = doctypeHtml {
-    let scriptVersion = "3"
+    let scriptVersion = "4"
     let uiVersion = typeof<Radzen.RadzenComponent>.Assembly.GetName().Version.ToString();
 
     let appConfig = FsOpenAI.GenAI.Env.appConfig.Value
@@ -36,7 +36,7 @@ let page = doctypeHtml {
         script {attr.src $"scripts/utils.js?v={scriptVersion}"}        
         //authentication
         script {attr.src "_content/Microsoft.Authentication.WebAssembly.Msal/AuthenticationService.js" }
-        link { attr.rel "stylesheet"; attr.href "css/theme-override.css?v=2" }
+        link { attr.rel "stylesheet"; attr.href "css/theme-override.css?v={scriptVersion}" }
     }
     body {
         input {attr.id C.LOAD_CONFIG_ID; attr.``type`` "hidden"; attr.value cfgStr; }

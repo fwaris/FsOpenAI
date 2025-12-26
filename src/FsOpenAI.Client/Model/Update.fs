@@ -1,5 +1,6 @@
 ﻿namespace FsOpenAI.Client
 open System
+open System.Text.Json.Serialization
 open Elmish
 open FsOpenAI.Shared
 open FsOpenAI.Shared.Interactions
@@ -87,7 +88,7 @@ module Update =
         | OpenCloseSettings id -> TmpState.openClose id model, Cmd.none
         | RefreshIndexes initial -> Model.checkBusy model <| IO.refreshIndexes uparms.serverDispatch initial
         | GetOpenAIKey -> IO.getKeyFromLocal uparms.localStore model
-        | SetOpenAIKey key -> {model with serviceParameters = model.serviceParameters |> Option.map (fun p -> {p with OPENAI_KEY = Some key})},Cmd.none
+        | SetOpenAIKey key -> {model with serviceParameters = model.serviceParameters |> Option.map (fun p -> {p with OPENAI_KEY = Include key})},Cmd.none
         | UpdateOpenKey key -> model,Cmd.batch [Cmd.ofMsg (SetOpenAIKey key); Cmd.ofMsg (SaveToLocal(C.LS_OPENAI_KEY,key))]
         | SaveToLocal (k,v) -> uparms.localStore.SetItemAsync(k,v) |> ignore; model,Cmd.none
         | SaveUIState -> model, Cmd.batch [Cmd.ofMsg (SaveToLocal(C.DARK_THEME,model.darkTheme));]

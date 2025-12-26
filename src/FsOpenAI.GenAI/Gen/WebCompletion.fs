@@ -1,6 +1,7 @@
 ﻿namespace FsOpenAI.GenAI
 open System
 open System.Net.Http
+open System.Text.Json.Serialization
 open FSharp.Control
 open FsOpenAI.Shared
 open FsOpenAI.Shared.Interactions
@@ -62,8 +63,7 @@ module WebCompletion =
     let processWebChat (parms:ServiceSettings) (invCtx:InvocationContext) (ch:Interaction) dispatch =         
        async {
             try     
-                if parms.BING_ENDPOINT.IsNone then failwith "Bing endpoint not set"
-                let bingKey = parms.BING_ENDPOINT.Value.API_KEY
+                let bingKey = match parms.BING_ENDPOINT with Include e -> e.API_KEY | _ -> failwith "Bing endpoint not set"
                 let! answer,question = askModel parms invCtx ch dispatch
                 if searchIndicated answer then 
                     let webQ = 

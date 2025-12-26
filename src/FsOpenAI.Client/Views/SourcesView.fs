@@ -1,5 +1,6 @@
 ﻿namespace FsOpenAI.Client.Views
 open System
+open System.Text.Json.Serialization
 open Bolero
 open Bolero.Html
 open Radzen
@@ -35,7 +36,7 @@ type ModelQueryView() =
                     "Text" => "AI Model"
                 }
             }
-            if mdl.serviceParameters |> Option.bind _.BING_ENDPOINT |> Option.isSome then
+            if mdl.serviceParameters |> Option.map _.BING_ENDPOINT |> Option.map Skippable.isInclude |> Option.defaultValue false then
                 comp<RadzenStack> {
                     "Orientation" => Orientation.Horizontal
                     "AlignItems" => AlignItems.Center

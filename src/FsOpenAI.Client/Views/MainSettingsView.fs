@@ -1,4 +1,5 @@
 ﻿namespace FsOpenAI.Client.Views
+open System.Text.Json.Serialization
 open Microsoft.AspNetCore.Components
 open Microsoft.AspNetCore.Components.Web
 open Bolero
@@ -21,7 +22,7 @@ type OpenAIKey() =
                 comp<RadzenTextBox> {
                     attr.style "display: flex; flex-grow:1;"
                     "Placeholder" => "OpenAI Key"
-                    "Value" => (model.serviceParameters |> Option.bind(fun p -> p.OPENAI_KEY) |> Option.defaultValue null)
+                    "Value" => (model.serviceParameters |> Option.map(fun p -> p.OPENAI_KEY |> Skippable.defaultValue null) |> Option.defaultValue null)
                     attr.callback "ValueChanged" (fun e -> dispatch (UpdateOpenKey e))
                 }
             }
