@@ -25,11 +25,8 @@ type MainLayout() =
         this.JSRuntime.InvokeVoidAsync ("navigator.clipboard.writeText", text) |> ignore
 
     override this.OnParametersSet() =
-        (*
         if this.ThemeService.Theme = null then
-            this.ThemeService.SetTheme "Standard"
-        *)
-        ()
+            this.ThemeService.SetTheme "humanistic"
 
     override this.View model dispatch =
 
@@ -42,7 +39,7 @@ type MainLayout() =
             concat {
                 comp<RadzenComponents>{attr.empty()}
                 comp<PageTitle> { text (model.appConfig.AppName |> Option.defaultValue "") }
-                comp<RadzenTheme> { "Theme" => "standard" }
+                comp<RadzenTheme> { "Theme" => this.ThemeService.Theme }
                 comp<RadzenDialog>{attr.empty()}
                 comp<RadzenLayout> {
                     comp<RadzenNotification> { attr.empty() }
