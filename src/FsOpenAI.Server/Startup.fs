@@ -26,11 +26,12 @@ module Startup =
             // .AddInMemoryTokenCaches()
             |> ignore
         
+        services.AddRadzenComponents() |> ignore
         services.AddMvc() |> ignore
         services.AddServerSideBlazor() |> ignore
-        services.AddRadzenComponents() |> ignore
         services.AddBlazoredLocalStorage() |> ignore
         services.AddControllersWithViews() |> ignore
+        services.AddRazorComponents() |> ignore
         services.AddRazorPages() |> ignore
         services.AddMsalAuthentication(fun o -> ()) |> ignore
         services.AddHostedService<BackgroundTasks>() |> ignore
@@ -69,15 +70,17 @@ module Startup =
             .UseHttpsRedirection()
             .UseMiddleware<TokenHandler>()
             .UseAuthentication()
+            .UseBlazorFrameworkFiles()
             .UseStaticFiles()
             .UseRouting()
             .UseAuthorization()
-            .UseBlazorFrameworkFiles()
             .UseEndpoints(fun endpoints ->
 #if DEBUG
                 endpoints.UseHotReload()
 #endif
                 endpoints.MapBlazorHub() |> ignore
+                endpoints.MapRazorComponents() |> ignore
+                endpoints.MapRazorPages() |> ignore
                 endpoints.MapBoleroRemoting() |> ignore
                 endpoints.MapHub<ServerHub>(FsOpenAI.Shared.C.ClientHub.urlPath) |> ignore
                 endpoints.MapFallbackToBolero(Index.page) |> ignore)

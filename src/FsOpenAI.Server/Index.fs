@@ -30,13 +30,13 @@ let page = doctypeHtml {
         title { tabTitle }
         ``base`` { attr.href "/" }
         link {attr.rel "short icon"; attr.``type`` "image/png"; attr.href "app/imgs/favicon.png"}
-        link { attr.rel "stylesheet"; attr.href $"css/index.css?v={scriptVersion}" }
-        link { attr.rel "stylesheet"; attr.href $"css/hover.css?v={scriptVersion}" }
+        link { attr.rel "stylesheet"; attr.href $"styles/index.css?v={scriptVersion}" }
+        link { attr.rel "stylesheet"; attr.href $"styles/hover.css?v={scriptVersion}" }
         //utils
         script {attr.src $"scripts/utils.js?v={scriptVersion}"}        
         //authentication
         script {attr.src "_content/Microsoft.Authentication.WebAssembly.Msal/AuthenticationService.js" }
-        link { attr.rel "stylesheet"; attr.href "css/theme-override.css?v={scriptVersion}" }
+        link { attr.rel "stylesheet"; attr.href "styles/theme-override.css?v={scriptVersion}" }
     }
     body {
         input {attr.id C.LOAD_CONFIG_ID; attr.``type`` "hidden"; attr.value cfgStr; }
@@ -65,9 +65,7 @@ let page = doctypeHtml {
             comp<Client.App.MyApp> 
         }
         boleroScript
+        script {attr.src $"_content/Radzen.Blazor/Radzen.Blazor.js?v={uiVersion}"} //version change forces js refresh on client
     }
 
-    //radzen - note this needs to be after the body otherwise javascript does not find DOM elements
-    //update version to force reload over older scripts that may be cached
-    script {attr.src $"_content/Radzen.Blazor/Radzen.Blazor.js?v={uiVersion}"} //version change forces js refresh on client
 }

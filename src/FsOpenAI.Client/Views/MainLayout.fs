@@ -1,6 +1,5 @@
 ﻿namespace FsOpenAI.Client.Views
 open System
-open Bolero.Html
 open FsOpenAI.Client
 open FsOpenAI.Shared
 open FsOpenAI.Shared.Interactions
@@ -10,6 +9,8 @@ open Microsoft.AspNetCore.Components
 open Microsoft.JSInterop
 open Radzen
 open Radzen.Blazor
+open Microsoft.AspNetCore.Components.Web
+open Bolero.Html
 
 type MainLayout() =
     inherit ElmishComponent<Model,Message>()
@@ -24,8 +25,11 @@ type MainLayout() =
         this.JSRuntime.InvokeVoidAsync ("navigator.clipboard.writeText", text) |> ignore
 
     override this.OnParametersSet() =
+        (*
         if this.ThemeService.Theme = null then
             this.ThemeService.SetTheme "Standard"
+        *)
+        ()
 
     override this.View model dispatch =
 
@@ -38,7 +42,7 @@ type MainLayout() =
             concat {
                 comp<RadzenComponents>{attr.empty()}
                 comp<PageTitle> { text (model.appConfig.AppName |> Option.defaultValue "") }
-                comp<RadzenTheme> { "Theme" => this.ThemeService.Theme }
+                comp<RadzenTheme> { "Theme" => "standard" }
                 comp<RadzenDialog>{attr.empty()}
                 comp<RadzenLayout> {
                     comp<RadzenNotification> { attr.empty() }

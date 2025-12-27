@@ -9,7 +9,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Samples.fs" />
-    <Compile Include="Templates.fs" />
+    
     <Compile Include="ServerHub.fs" />
     <Compile Include="Index.fs" />
     <Compile Include="BackgroundTasks.fs" />
