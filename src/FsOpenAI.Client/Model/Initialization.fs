@@ -1,5 +1,6 @@
 ﻿namespace FsOpenAI.Client
 open System
+open System.Text.Json.Serialization
 open System.Net.Http
 open System.Threading.Tasks
 open Elmish
@@ -123,8 +124,10 @@ module Init =
 
         let webSearchConfigured =
             model.serviceParameters
-            |> Option.bind(fun x->x.BING_ENDPOINT)
-            |> Option.map (fun x  -> Utils.isEmpty x.API_KEY |> not)
+            |> Option.map _.BING_ENDPOINT
+            |> Option.map (Skippable.map _.API_KEY)
+            |> Option.map (Skippable.defaultValue "")
+            |> Option.map (fun x  -> Utils.isEmpty x |> not)
             |> Option.defaultValue false
 
         let aiSearchConfigured =

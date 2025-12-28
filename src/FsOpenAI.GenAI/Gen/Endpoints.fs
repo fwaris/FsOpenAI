@@ -1,5 +1,6 @@
 module FsOpenAI.GenAI.Endpoints
 open System
+open System.Text.Json.Serialization
 open Microsoft.SemanticKernel
 open FsOpenAI.Shared
 open Microsoft.SemanticKernel.Connectors.OpenAI
@@ -14,10 +15,10 @@ module Endpoints =
     let raiseNoOpenAIKey() = raise (ConfigurationError "No OpenAI key configured. Please set the key in application settings")
 
     let endpoint (parms:ServiceSettings) (backend:Backend) : ApiEndpoint =
-        let ps = parms.CHAT_ENDPOINTS |> List.filter(fun e -> e.BACKEND = backend.Name)
+        let ps = parms.CHAT_ENDPOINTS |> List.filter(fun e -> e.BACKEND = Include backend.Name)
         if ps.IsEmpty then 
             match backend.Name, parms.OPENAI_KEY with 
-            | KnownBackends.OpenAI,Some key -> {API_KEY=key; ENDPOINT="https://api.openai.com/v1/chat/completions"; BACKEND=backend.Name}
+            | KnownBackends.OpenAI,Include key -> {API_KEY=key; ENDPOINT="https://api.openai.com/v1/chat/completions"; BACKEND=Include backend.Name}
             | _ -> raiseNoOpenAIKey()
         else
             randSelect ps

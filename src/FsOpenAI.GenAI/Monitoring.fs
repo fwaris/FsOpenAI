@@ -1,5 +1,6 @@
 ﻿namespace FsOpenAI.GenAI
 open System
+open System.Text.Json.Serialization
 open FSharp.Control
 open System.Threading.Channels
 open FsOpenAI.Shared
@@ -72,13 +73,17 @@ module Monitoring =
         | Some x -> _cnctnInfo <- lazy(Some x)
         | None -> ()
 
+
     let getConnectionFromConfig() =
         try
             Env.appConfig.Value
-            |> Option.bind(fun x -> Env.logInfo $"{x.DatabaseName},{x.DiagTableName}"; x.DiagTableName |> Option.map(fun t -> x.DatabaseName,t))
+            |> Option.bind(fun x -> Env.logInfo $"{x.DatabaseName},{x.SessionTableName}"; x.SessionTableName |> Option.map(fun t -> x.DatabaseName,t))
             |> Option.bind(fun (database,container) ->
                 Settings.getSettings().Value.LOG_CONN_STR
-                |> Option.map(fun cstr -> Env.logInfo $"{Utils.shorten 30 cstr}";cstr,database,container))
+                |> Skippable.map(fun cstr -> Env.logInfo $"{Utils.shorten 30 cstr}";cstr,database,container)
+                |> Skippable.map Some
+                
+                |> Skippable.defaultValue None)
         with ex ->
             Env.logException (ex,"Monitoring.getConnectionFromConfig")
             None

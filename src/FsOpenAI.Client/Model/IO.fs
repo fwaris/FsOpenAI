@@ -1,4 +1,5 @@
 namespace FsOpenAI.Client
+open System.Text.Json.Serialization
 open System.IO
 open System.Threading.Tasks
 open FsOpenAI.Shared
@@ -99,11 +100,16 @@ module IO =
         | None -> model,Cmd.none
 
     let getKeyFromLocal (localStore:ILocalStorageService) model =
-        match model.serviceParameters with
-        | Some p when p.OPENAI_KEY.IsNone || Utils.isEmpty p.OPENAI_KEY.Value ->
+        let key =
+            model.serviceParameters
+            |> Option.map _.OPENAI_KEY
+            |> Option.map (Skippable.defaultValue "")
+            |> Option.defaultValue ""
+        if Utils.isEmpty key then 
             let t() = task{return! localStore.GetItemAsync<string> C.LS_OPENAI_KEY}
-            model,Cmd.OfTask.either t () SetOpenAIKey IgnoreError
-        | _ -> model,Cmd.none
+            model,Cmd.OfTask.either t () SetOpenAIKey IgnoreError 
+        else 
+            model,Cmd.none
 
     let saveChats (model,(localStore:ILocalStorageService)) =
         let cs = model.interactions |> List.map Interaction.preSerialize
