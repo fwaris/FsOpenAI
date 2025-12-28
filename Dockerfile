@@ -55,6 +55,7 @@ WORKDIR /app
 
 # Copy published app
 COPY --from=build /app . 
+COPY --from=ext appsettings.json .
 #COPY --from=build /src/FsOpenAI.Server/runtimes ./runtimes
 RUN echo "Listing usr/local/lib contents:" && ls -la /usr/local/lib
 #COPY --from=build /usr/local/lib/libleptonica.so ./x64/libleptonica-1.82.0.so

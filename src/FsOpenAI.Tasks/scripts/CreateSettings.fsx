@@ -6,6 +6,7 @@ open System.Text.Json
 open FsOpenAI.Shared.Utils
 open System.Text.Json.Serialization
 
+
 let strA = """
 {
   "AZURE_SEARCH_ENDPOINTS": [],
@@ -46,3 +47,13 @@ let s2 = JsonSerializer.Deserialize<ServiceSettings>(File.ReadAllText defPath,Ut
 let dir = Path.GetDirectoryName defPath
 if not (Directory.Exists dir) then Directory.CreateDirectory dir |> ignore
 File.WriteAllText(defPath, str)
+
+let tempPath = Utils.homePath.Value @@ ".fsopenai" @@ "local" @@ "ServiceSettings.json"
+let tempStr = File.ReadAllText tempPath
+let tempEnvStr = tempStr |> System.Text.Encoding.UTF8.GetBytes |> System.Convert.ToBase64String
+printfn "%s" tempEnvStr
+
+
+
+
+

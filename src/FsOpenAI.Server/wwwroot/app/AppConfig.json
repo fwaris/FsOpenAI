@@ -5,7 +5,7 @@
     {
       "Name": "local",
       "BackendType": {
-        "Case": "ChatCompletionsHarmony"
+        "Case": "ChatCompletions"
       }
     }
   ],
@@ -14,13 +14,13 @@
       {
         "Case": "M_Plain"
       },
-      "You are a helpful AI assistant\u0022\n"
+      "You are a helpful AI assistant that can answer questions over legal demands in an attached document\u0022\n"
     ],
     [
       {
         "Case": "M_Doc"
       },
-      "You are a helpful AI assistant\u0022\n"
+      "You are a helpful AI assistant that can answer questions over legal demands in an attached document\u0022\n"
     ]
   ],
   "DefaultMaxDocs": 10,
@@ -28,7 +28,7 @@
   "AppBarType": {
     "Case": "AppB_Base",
     "Fields": [
-      "Local Chat"
+      "LER Test UI"
     ]
   },
   "RequireLogin": false,
@@ -51,11 +51,11 @@
         "Backend": {
           "Name": "local",
           "BackendType": {
-            "Case": "ChatCompletionsHarmony"
+            "Case": "ChatCompletions"
           }
         },
-        "Model": "gpt-oss",
-        "Label": "gpt-oss",
+        "Model": "phi-4",
+        "Label": "phi-4",
         "TokenLimit": 127000
       }
     ]

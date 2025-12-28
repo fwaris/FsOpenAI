@@ -6,22 +6,8 @@
         false
       ]
     },
-    "SampleSysMsg": "You are a helpful AI assistant\u0022\n",
-    "SampleQuestion": "What is RAG?",
-    "SampleMode": {
-      "Case": "Factual"
-    },
-    "MaxDocs": 5
-  },
-  {
-    "SampleChatType": {
-      "Case": "SM_Plain",
-      "Fields": [
-        false
-      ]
-    },
-    "SampleSysMsg": "You are a helpful AI assistant\u0022\n",
-    "SampleQuestion": "What are the major languages and dialects spoken in France? Only list the language names",
+    "SampleSysMsg": "You are a helpful AI assistant that can answer questions over legal demands in an attached document\u0022\n",
+    "SampleQuestion": "What are legal demands expressed in the attached document. Make sure to include subcriber name and phone number?",
     "SampleMode": {
       "Case": "Factual"
     },

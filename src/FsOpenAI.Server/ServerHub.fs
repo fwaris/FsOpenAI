@@ -162,8 +162,8 @@ type ServerHub(config:IConfiguration) =
                     DocQnA.runPlan settings invCtx chat dispatch |> Async.Start
 
                 | Clnt_Run_EvalCode (settings,invCtx,chat,evalParms) ->
-#if UNAUTHENTICATED
-                    //experimental LLM code gen & evaluator - not for production deployment                
+#if UNAUTHENTICATED && EXPERIMENTAL
+                    //experimental LLM code gen & evaluator - not for production deployment 
                     let invCtx = updateCtx invCtx this.Context
                     FsOpenAI.CodeEvaluator.CodeEval.run settings invCtx chat evalParms dispatch |> Async.Start                
 #else
