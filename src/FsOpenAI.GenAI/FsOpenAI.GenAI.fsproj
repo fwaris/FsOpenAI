@@ -12,6 +12,7 @@
 		<Compile Include="Sessions.fs" />
 		<Compile Include="Monitoring.fs" />
 		<Compile Include="Gen\SemanticVectorSearch.fs" />
+		<Compile Include="Gen\VectorSearch.fs" />
 		<Compile Include="Gen\StreamParser.fs" />
 		<Compile Include="Gen\TemplateParser.fs" />
 		<Compile Include="Gen\Models.fs" />
@@ -28,13 +29,16 @@
 		<Compile Include="Gen\DocQnA.fs" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="FSharp.CosmosDb" Version="1.2.1" />
-		<PackageReference Include="FSharp.Data.Html.Core" Version="6.6.0" />
-		<PackageReference Include="MathNet.Numerics.FSharp" Version="5.0.0" />
+		<PackageReference Include="Microsoft.Extensions.AI" Version="10.1.1" />
+		<PackageReference Include="Microsoft.Extensions.AI.OpenAI" Version="10.1.1-preview.1.25612.2" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.11" />
+		<PackageReference Include="Microsoft.Extensions.VectorData.Abstractions" Version="9.7.0" />
 		<PackageReference Include="Microsoft.Identity.Web" Version="4.2.0" />
 		<PackageReference Include="Microsoft.ML.Tokenizers.Data.O200kBase" Version="2.0.0" />
 		<PackageReference Include="Microsoft.SemanticKernel" Version="1.67.1" />
+		<PackageReference Include="FSharp.CosmosDb" Version="1.2.1" />
+		<PackageReference Include="FSharp.Data.Html.Core" Version="6.6.0" />
+		<PackageReference Include="MathNet.Numerics.FSharp" Version="5.0.0" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
 		<PackageReference Include="Azure.Search.Documents" Version="11.6.1" />
 		<PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
