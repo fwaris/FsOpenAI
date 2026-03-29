@@ -7,5 +7,6 @@
     "FSharp.fsac.parallelReferenceResolution": true,
     "editor.inlayHints.enabled": "off",
     "FSharp.inlineValues.enabled": false,
-    "FSharp.fsac.gc.conserveMemory": 0
+    "FSharp.fsac.gc.conserveMemory": 0,
+    "workbench.colorTheme": "Kimbie Dark"
 }

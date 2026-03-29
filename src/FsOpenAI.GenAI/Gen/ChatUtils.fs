@@ -1,6 +1,6 @@
 module FsOpenAI.GenAI.ChatUtils
 open FsOpenAI.Shared
-open Microsoft.SemanticKernel.ChatCompletion
+open Microsoft.Extensions.AI
 
 [<RequireQualifiedAccess>]
 module ChatUtils = 
@@ -22,11 +22,12 @@ module ChatUtils =
             MaxTokens = ch.Parameters.MaxTokens
         }
 
-    let toChatHistory (ch:Interaction) =
-        let h = ChatHistory()
-        if Utils.notEmpty ch.SystemMessage then //o1 does not support system messages
-            h.AddSystemMessage(ch.SystemMessage)
+    let toChatMessages (ch:Interaction) : ChatMessage list =
+        let msgs = ResizeArray<ChatMessage>()
+        if Utils.notEmpty ch.SystemMessage then
+            msgs.Add(ChatMessage(ChatRole.System, ch.SystemMessage))
         for m in ch.Messages do
-            let role = if m.IsUser then AuthorRole.User else AuthorRole.Assistant
-            h.AddMessage(role,m.Message)
-        h
+            if Utils.notEmpty m.Message then
+                let role = if m.IsUser then ChatRole.User else ChatRole.Assistant
+                msgs.Add(ChatMessage(role, m.Message))
+        List.ofSeq msgs

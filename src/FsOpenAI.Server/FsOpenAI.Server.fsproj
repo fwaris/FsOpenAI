@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <AccelerateBuildsInVisualStudio>false</AccelerateBuildsInVisualStudio>
     <Configurations>Debug;Release;UNAUTHENTICATED</Configurations>
     <Platforms>AnyCPU</Platforms>
@@ -16,25 +16,25 @@
     <Compile Include="Startup.fs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="AutoMapper" Version="16.0.0" />
-    <PackageReference Include="Azure.Identity" Version="1.17.1" />
-    <PackageReference Include="Azure.Security.KeyVault.Secrets" Version="4.8.0" />
-    <PackageReference Include="Bolero.Server" Version="0.*" />
-    <PackageReference Include="Bolero.HotReload.Server" Version="0.*" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.11" />
-    <PackageReference Include="Microsoft.Extensions.Logging.AzureAppServices" Version="9.0.11" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="9.0.11" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.11" NoWarn="NU1605" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="9.0.11" NoWarn="NU1605" />
-    <PackageReference Include="Microsoft.Identity.Web.UI" Version="4.2.0" />
-    <PackageReference Include="Microsoft.SemanticKernel" Version="1.68.0" />
-    <PackageReference Include="PdfPig" Version="0.1.13" />
-    <PackageReference Include="DocumentFormat.OpenXml" Version="3.3.0" />
-    <PackageReference Include="Radzen.Blazor" Version="8.4.2" />
-    <PackageReference Include="TesseractOCR" Version="5.5.1" /> 
+    <PackageReference Include="AutoMapper" Version="16.1.1" />
+    <PackageReference Include="Azure.Identity" Version="1.19.0" />
+    <PackageReference Include="Azure.Security.KeyVault.Secrets" Version="4.9.0" />
+    <PackageReference Include="Bolero.Server" Version="0.24.39" />
+    <PackageReference Include="Bolero.HotReload.Server" Version="0.24.5" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.5" />
+    <PackageReference Include="Microsoft.Extensions.Logging.AzureAppServices" Version="10.0.5" />
+    <PackageReference Include="Microsoft.Bcl.Memory" Version="10.0.5" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.5" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.5" NoWarn="NU1605" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="10.0.5" NoWarn="NU1605" />
+    <PackageReference Include="Microsoft.Identity.Web.UI" Version="4.6.0" />
+    <PackageReference Include="PdfPig" Version="0.1.14" />
+    <PackageReference Include="DocumentFormat.OpenXml" Version="3.5.1" />
+    <PackageReference Include="Radzen.Blazor" Version="10.0.6" />
+    <PackageReference Include="TesseractOCR" Version="5.5.2" /> 
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Update="FSharp.Core" Version="9.0.303" />
+    <PackageReference Update="FSharp.Core" Version="10.1.201" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="wwwroot\app\Templates\" />

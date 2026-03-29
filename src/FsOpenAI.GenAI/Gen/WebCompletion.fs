@@ -5,7 +5,6 @@ open System.Text.Json.Serialization
 open FSharp.Control
 open FsOpenAI.Shared
 open FsOpenAI.Shared.Interactions
-open Microsoft.SemanticKernel
 open FsOpenAI.GenAI.SKernel
 
 module bingApi =
@@ -57,7 +56,7 @@ module WebCompletion =
             let! prompt = SKernel.renderPrompt Prompts.WebSearch.answerQuestionOrDoSearch args |> Async.AwaitTask
             let ch = Interaction.setUserMessage prompt ch
             let! rslt = Completions.completeChat parms invCtx ch dispatch None None
-            return (rslt.Content,question)
+            return (Completions.responseText rslt,question)
         }
 
     let processWebChat (parms:ServiceSettings) (invCtx:InvocationContext) (ch:Interaction) dispatch =         

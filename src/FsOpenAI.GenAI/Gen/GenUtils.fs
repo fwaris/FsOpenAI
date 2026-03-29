@@ -8,29 +8,12 @@ open FsOpenAI.GenAI.Models
 open FsOpenAI.GenAI.Tokens
 open FsOpenAI.GenAI.ChatUtils
 open FsOpenAI.GenAI.Endpoints
+open FsOpenAI.GenAI.VectorSearch
 
 module GenUtils =
-    open Microsoft.SemanticKernel.Memory
    
-    let searchResults maxDocs query (cogMems:ISemanticTextMemory seq) =
-        cogMems
-        |> AsyncSeq.ofSeq
-        |> AsyncSeq.collect(fun cogMem ->
-            cogMem.SearchAsync("",query,maxDocs) |> AsyncSeq.ofAsyncEnum)
-        |> AsyncSeq.toBlockingSeq
-        |> Seq.toList
-        |> List.sortByDescending (fun x->x.Relevance)
-        |> List.mapi(fun i d ->
-            {
-                Text=d.Metadata.Text
-                Embedding= if d.Embedding.HasValue then d.Embedding.Value.ToArray() else [||]
-                Ref=d.Metadata.ExternalSourceName
-                Title = d.Metadata.Description
-                Id = $"{i+1}"
-                Relevance = d.Relevance
-                SortOrder = None
-            })
-        |> List.truncate maxDocs
+    let searchResults embeddingClient mode maxDocs query indexes =
+        VectorSearch.search embeddingClient mode maxDocs query indexes
 
     let toMIdxRefs ch =
             Interaction.getIndexes ch
@@ -58,6 +41,11 @@ module GenUtils =
             Timestamp = DateTime.UtcNow
         }
 
+    let private selectEmbeddingModel (invCtx:InvocationContext) backend =
+        invCtx.ModelsConfig.EmbeddingsModels
+        |> List.tryFind (fun m -> m.Backend = backend)
+        |> Option.defaultValue (invCtx.ModelsConfig.EmbeddingsModels.Head)
+
     ///create diagnostics record for chat completion
     let diaEntryChat (ch:Interaction) (invCtx:InvocationContext) model resource  =
         let prompt = ChatUtils.serializeChat ch
@@ -81,16 +69,17 @@ module GenUtils =
         }
 
     //invoke embeddings api to obtain the embedding vector for the given query
+    let getEmbeddingGenerator (parms:ServiceSettings) (invCtx:InvocationContext) (ch:Interaction) =
+        let embModel = selectEmbeddingModel invCtx ch.Parameters.Backend
+        Endpoints.getEmbeddingsClient parms ch embModel.Model
+
     let getEmbeddings (parms:ServiceSettings) (invCtx:InvocationContext) (ch:Interaction) query =
-        let embModel =
-            invCtx.ModelsConfig.EmbeddingsModels
-            |> List.tryFind (fun m -> m.Backend = ch.Parameters.Backend)
-            |> Option.defaultValue (invCtx.ModelsConfig.EmbeddingsModels.Head)
+        let embModel = selectEmbeddingModel invCtx ch.Parameters.Backend
         let embClient = Endpoints.getEmbeddingsClient parms ch embModel.Model
         let de = diaEntryEmbeddings ch invCtx embModel.Model (string ch.Parameters.Backend) query
         task {
             try
-                let! resp = embClient.GenerateEmbeddingsAsync(ResizeArray[query])
+                let! resp = embClient.GenerateAsync([query])
                 Monitoring.write (Diag de)
                 return resp
             with ex ->

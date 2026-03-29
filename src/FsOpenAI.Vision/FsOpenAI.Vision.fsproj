@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Configurations>Debug;Release;UNAUTHENTICATED</Configurations>
     <Platforms>AnyCPU</Platforms>
@@ -15,15 +15,17 @@
   <ItemGroup>
     <!--<PackageReference Include="OpenCvSharp4.Extensions" Version="4.10.0.20241108" />
 	<PackageReference Include="OpenCvSharp4.Windows" Version="4.10.0.20241108" />-->
-    <PackageReference Include="FSharp.Control.AsyncSeq" Version="3.2.1" />
-    <PackageReference Include="PdfPig" Version="0.1.13" />
+    <PackageReference Include="FSharp.Control.AsyncSeq" Version="4.11.0" />
+    <PackageReference Include="PdfPig" Version="0.1.14" />
     <PackageReference Include="Docnet.Core" Version="2.6.0" />
     <PackageReference Include="FSharp.SystemTextJson" Version="1.4.36" />
-    <PackageReference Include="DocumentFormat.OpenXml" Version="3.3.0" />
-    <PackageReference Include="System.Text.Json" Version="9.0.11" />
+    <PackageReference Include="DocumentFormat.OpenXml" Version="3.5.1" />
+    <PackageReference Include="System.Text.Json" Version="10.0.5" />
     <PackageReference Include="PDFtoImage" Version="5.2.0" />
-    <PackageReference Include="TesseractOCR" Version="5.5.1" /> 
-    <PackageReference Include="System.Drawing.Common" Version="9.0.11" />
+    <PackageReference Include="TesseractOCR" Version="5.5.2" /> 
+    <PackageReference Include="System.Drawing.Common" Version="10.0.5" />
   </ItemGroup>
-
+  <ItemGroup>
+    <PackageReference Update="FSharp.Core" Version="10.1.201" />
+  </ItemGroup>
 </Project>

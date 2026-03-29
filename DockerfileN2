@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:9.0.304-bookworm-slim AS base
+FROM mcr.microsoft.com/dotnet/sdk:10.0-bookworm-slim AS base
 EXPOSE 52037
 #EXPOSE 52035
 

@@ -1,8 +1,10 @@
 namespace FsOpenAI.GenAI
 open System
-open Microsoft.SemanticKernel.Connectors.OpenAI
+open System.Threading
+open Microsoft.Extensions.AI
 open FSharp.Control
 open FsOpenAI.Shared
+open FsOpenAI.Shared.Interactions
 open FsOpenAI.GenAI.Models
 open FsOpenAI.GenAI.Tokens
 open FsOpenAI.GenAI.Endpoints
@@ -10,20 +12,49 @@ open FsOpenAI.GenAI.ChatUtils
 
 module Completions =
     let noTempModels = set ["gpt-5"]
-    open Microsoft.SemanticKernel
+    let responseText (resp:ChatResponse) =
+        if obj.ReferenceEquals(resp,null) then ""
+        elif not (String.IsNullOrWhiteSpace resp.Text) then resp.Text
+        else
+            resp.Messages
+            |> Seq.rev
+            |> Seq.tryPick(fun m -> if String.IsNullOrWhiteSpace m.Text then None else Some m.Text)
+            |> Option.defaultValue ""
+
+    let private updateText (update:ChatResponseUpdate) =
+        update.Contents
+        |> Seq.choose (function
+            | :? TextContent as tc when Utils.notEmpty tc.Text -> Some tc.Text
+            | _ -> None)
+        |> String.concat ""
+
+    let private updateReasoning (update:ChatResponseUpdate) =
+        update.Contents
+        |> Seq.choose (function
+            | :? TextReasoningContent as tc when Utils.notEmpty tc.Text -> Some tc.Text
+            | _ -> None)
+        |> String.concat ""
+
+    let private streamingUpdates (updates: AsyncSeq<ChatResponseUpdate>) =
+        updates
+        |> AsyncSeq.bufferByCountAndTime 1 C.CHAT_RESPONSE_TIMEOUT
+        |> AsyncSeq.collect(fun xs -> if xs.Length > 0 then AsyncSeq.ofSeq xs else failwith C.TIMEOUT_MSG)
+
     ///Construct a call to LLM service (but not invoke it yet, as the results may be streamed later)
     let buildCall parms (invCtx:InvocationContext) ch modelSelector (responseFormat:Type option) =
         let modelSelector = defaultArg modelSelector (Models.getModels ch.Parameters)
         let modelRefs = modelSelector invCtx ch.Parameters.Backend
         let modelRef = Models.pick modelRefs
-        let messages = ChatUtils.toChatHistory ch
+        let messages = ChatUtils.toChatMessages ch
         let caller =  Endpoints.getClient parms ch modelRef.Model
-        let opts = OpenAIPromptExecutionSettings()
-        opts.MaxTokens <- ch.Parameters.MaxTokens
+        let opts = ChatOptions()
+        opts.ModelId <- modelRef.Model
+        opts.MaxOutputTokens <- Nullable ch.Parameters.MaxTokens
         if not(noTempModels.Contains modelRef.Model) then
-            opts.Temperature <- float <| ChatUtils.temperature ch.Parameters.Mode
-        opts.User <- GenUtils.userAgent invCtx
-        responseFormat |> Option.iter(fun rf -> opts.ResponseFormat <- rf)
+            opts.Temperature <- Nullable (ChatUtils.temperature ch.Parameters.Mode)
+        if not (isNull opts.AdditionalProperties) then
+            opts.AdditionalProperties["user"] <- GenUtils.userAgent invCtx
+        responseFormat |> Option.iter(fun rf -> opts.ResponseFormat <- ChatResponseFormat.ForJsonSchema(rf))
         let de = GenUtils.diaEntryChat ch invCtx modelRef.Model (string ch.Parameters.Backend)
         caller,messages,opts,de
 
@@ -31,34 +62,8 @@ module Completions =
     let streamChat parms (invCtx:InvocationContext) ch modelSelector responseFormat =
         async {
             let caller,msgs,opts,de = buildCall parms invCtx ch modelSelector responseFormat
-            let resp = caller.GetStreamingChatMessageContentsAsync(msgs,executionSettings=opts)
-            let xs =
-                resp
-                |> AsyncSeq.ofAsyncEnum
-                |> AsyncSeq.map(fun cs -> cs.Content)
-                |> AsyncSeq.filter(fun x -> x <> null)
-            return (de,xs)
-        }
-
-    ///Stream complete Semantic Kernel function invocation
-    let streamCompleteFunction
-        (ch:Interaction)
-        (resultSeq : Collections.Generic.IAsyncEnumerable<StreamingKernelContent>)
-        dispatch
-        =
-        async {
-            let comp =
-                resultSeq
-                |> AsyncSeq.ofAsyncEnum
-                |> AsyncSeq.map(fun x -> x :?> OpenAIStreamingChatMessageContent)
-                |> AsyncSeq.map(fun cs -> cs.Content)
-                |> AsyncSeq.filter(fun x -> x <> null)
-                |> AsyncSeq.bufferByCountAndTime 1 C.CHAT_RESPONSE_TIMEOUT
-                |> AsyncSeq.collect(fun xs -> if xs.Length > 0 then AsyncSeq.ofSeq xs else failwith C.TIMEOUT_MSG)
-                |> AsyncSeq.iter(fun x -> dispatch(Srv_Ia_Delta(ch.Id, x)))
-            match! Async.Catch comp with
-            | Choice1Of2 _ -> dispatch (Srv_Ia_Done(ch.Id,None))
-            | Choice2Of2 ex -> dispatch (Srv_Ia_Done(ch.Id,Some ex.Message))
+            let resp = caller.GetStreamingResponseAsync(msgs,opts,CancellationToken.None)
+            return (de, resp |> AsyncSeq.ofAsyncEnum)
         }
 
 
@@ -72,8 +77,9 @@ module Completions =
                     let mutable rs : string list = []
                     let comp =
                         resps
-                        |> AsyncSeq.bufferByCountAndTime 1 C.CHAT_RESPONSE_TIMEOUT
-                        |> AsyncSeq.collect(fun xs -> if xs.Length > 0 then AsyncSeq.ofSeq xs else failwith C.TIMEOUT_MSG)
+                        |> streamingUpdates
+                        |> AsyncSeq.map updateText
+                        |> AsyncSeq.filter Utils.notEmpty
                         |> AsyncSeq.bufferByCountAndTime 10 1000
                         |> AsyncSeq.filter(fun xs -> xs.Length > 0)
                         |> AsyncSeq.map(String.concat "")
@@ -115,8 +121,9 @@ module Completions =
                     let cits = ref []
                     let comp =
                         resps
-                        |> AsyncSeq.bufferByCountAndTime 1 C.CHAT_RESPONSE_TIMEOUT
-                        |> AsyncSeq.collect(fun xs -> if xs.Length > 0 then AsyncSeq.ofSeq xs else failwith C.TIMEOUT_MSG)
+                        |> streamingUpdates
+                        |> AsyncSeq.map updateText
+                        |> AsyncSeq.filter Utils.notEmpty
                         |> AsyncSeq.bufferByCountAndTime 10 1000
                         |> AsyncSeq.filter(fun xs -> xs.Length > 0)
                         |> AsyncSeq.map(String.concat "")
@@ -167,20 +174,17 @@ module Completions =
                     let thought = ref ""
                     let comp =
                         resps
-                        |> AsyncSeq.bufferByCountAndTime 1 C.CHAT_RESPONSE_TIMEOUT
-                        |> AsyncSeq.collect(fun xs -> if xs.Length > 0 then AsyncSeq.ofSeq xs else failwith C.TIMEOUT_MSG)
+                        |> streamingUpdates
+                        |> AsyncSeq.map(fun update ->
+                            if hasThought then
+                                let reasoning = updateReasoning update
+                                if Utils.notEmpty reasoning then
+                                    thought.Value <- thought.Value + reasoning
+                            updateText update)
+                        |> AsyncSeq.filter Utils.notEmpty
                         |> AsyncSeq.bufferByCountAndTime 10 1000
                         |> AsyncSeq.filter(fun xs -> xs.Length > 0)
                         |> AsyncSeq.map(String.concat "")
-                        |> fun xs -> 
-                            if hasThought then  
-                                //----- stream parse think tokens  -----
-                                xs
-                                |> AsyncSeq.scan StreamParser.updateState (StreamParser.harmonyExp thought,(StreamParser.State.Empty,[]))
-                                |> AsyncSeq.collect (fun (_,(_,os)) -> os |> List.rev |> AsyncSeq.ofSeq)
-                                //-----------------------------
-                            else
-                                xs 
                         |> fun xs -> 
                             if haveCitations then  
                                 //----- stream parse citations -----
@@ -224,19 +228,34 @@ module Completions =
             let caller,msgs,opts,de = buildCall parms invCtx ch modelSelector responseFormat
             try
                 Srv_Ia_Notification(ch.Id,$"using model: {de.Model}") |> dispatch
-                let! resp = caller.GetChatMessageContentsAsync(msgs,opts) |> Async.AwaitTask
-                let respMsg = resp.[0]
+                let! resp = caller.GetResponseAsync(msgs,opts,CancellationToken.None) |> Async.AwaitTask
+                let respBody = responseText resp
                 let de =
                     {de with
-                        Response = respMsg.Content
-                        OutputTokens = Tokens.tokenSize respMsg.Content |> int
+                        Response = respBody
+                        OutputTokens = Tokens.tokenSize respBody |> int
                     }
                 Monitoring.write (Diag de)
                 Srv_Ia_SetSubmissionId(ch.Id,de.id) |> dispatch
-                return respMsg
+                return resp
             with ex ->
                 Monitoring.write (Diag {de with Error = ex.Message})
                 return raise ex
+        }
+
+    let completePrompt parms invCtx ch dispatch modelSelector prompt maxTokens responseFormat =
+        async {
+            let promptChat =
+                ch
+                |> Interaction.setUserMessage prompt
+                |> fun x -> { x with Parameters = { x.Parameters with MaxTokens = defaultArg maxTokens x.Parameters.MaxTokens } }
+            return! completeChat parms invCtx promptChat dispatch modelSelector responseFormat
+        }
+
+    let completePromptText parms invCtx ch dispatch modelSelector prompt maxTokens responseFormat =
+        async {
+            let! resp = completePrompt parms invCtx ch dispatch modelSelector prompt maxTokens responseFormat
+            return responseText resp
         }
 
     let checkStreamCompleteChat (parms:ServiceSettings) (invCtx:InvocationContext) (ch:Interaction) dispatch modelSelector =

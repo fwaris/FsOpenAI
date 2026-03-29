@@ -1,5 +1,5 @@
 # Base .NET SDK image
-FROM mcr.microsoft.com/dotnet/sdk:9.0.304-bookworm-slim AS base
+FROM mcr.microsoft.com/dotnet/sdk:10.0-bookworm-slim AS base
 
 COPY --from=ext *.crt /usr/local/share/ca-certificates/
 
@@ -65,4 +65,3 @@ RUN ln -s /usr/local/lib/libleptonica.so ./x64/libleptonica-1.85.0.dll.so
 RUN ln -s /usr/lib/x86_64-linux-gnu/libtesseract.so ./x64/libtesseract55.dll.so
 
 ENTRYPOINT ["dotnet", "FsOpenAI.Server.dll"]
-

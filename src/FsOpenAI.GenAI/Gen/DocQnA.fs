@@ -2,8 +2,6 @@ namespace FsOpenAI.GenAI
 open System
 open System.IO
 open FSharp.Control
-open Microsoft.SemanticKernel
-open Microsoft.SemanticKernel.Text
 open AsyncExts
 open FSharp.Data
 open FsOpenAI.Shared
@@ -12,6 +10,7 @@ open FsOpenAI.Vision
 open FsOpenAI.GenAI.Models
 open FsOpenAI.GenAI.Tokens
 open FsOpenAI.GenAI.SKernel
+open FsOpenAI.GenAI.VectorSearch
 
 module DocQnA =
     open System.Data
@@ -207,15 +206,57 @@ module DocQnA =
                 dispatch (Srv_Ia_File_Error(id,ex.Message))
         }
 
-    let extractDocSearchTerms parms modelRefs ch query =
+    let private renderPrompt prompt args =
+        SKernel.kernelArgsDefault args
+        |> SKernel.renderPrompt prompt
+
+    let private completePromptWithModel parms invCtx ch modelRef prompt args maxTokens responseFormat =
+        async {
+            let! renderedPrompt = renderPrompt prompt args |> Async.AwaitTask
+            let modelSelector (_:InvocationContext) (_:Backend) = [modelRef]
+            return! Completions.completePrompt parms invCtx ch (fun _ -> ()) (Some modelSelector) renderedPrompt maxTokens responseFormat
+        }
+
+    let private chunkTextByParagraphs maxChars overlap (text:string) =
+        let paragraphs =
+            text.Split([|"\r\n\r\n"; "\n\n"|], StringSplitOptions.None)
+            |> Array.map _.Trim()
+            |> Array.filter Utils.notEmpty
+
+        let appendChunk current paragraph =
+            if Utils.isEmpty current then
+                paragraph
+            else
+                current + Environment.NewLine + Environment.NewLine + paragraph
+
+        let overlapText (current:string) =
+            if overlap <= 0 || current.Length <= overlap then
+                current
+            else
+                current.Substring(current.Length - overlap)
+
+        let rec loop acc current idx =
+            if idx >= paragraphs.Length then
+                let acc = if Utils.notEmpty current then current::acc else acc
+                List.rev acc
+            else
+                let paragraph = paragraphs[idx]
+                let candidate = appendChunk current paragraph
+                if candidate.Length <= maxChars || Utils.isEmpty current then
+                    loop acc candidate (idx + 1)
+                else
+                    let nextCurrent = appendChunk (overlapText current) paragraph
+                    loop (current::acc) nextCurrent (idx + 1)
+
+        loop [] "" 0
+
+    let extractDocSearchTerms parms invCtx modelRefs ch query =
         task {
             let query = Utils.shorten 7000 query
             let modelRef = Models.pick modelRefs
-            let k = (SKernel.baseKernel parms [modelRef] ch).Build()
-            let args = SKernel.kernelArgs ["document",query] (fun x -> x.MaxTokens <- 1000)
-            let docQuery = Prompts.DocQnA.extractSearchTerms
-            let! rslt = k.InvokePromptAsync(docQuery,args) |> Async.AwaitTask
-            return rslt.GetValue<string>()
+            let! rslt =
+                completePromptWithModel parms invCtx ch modelRef Prompts.DocQnA.extractSearchTerms ["document",query] (Some 1000) None
+            return Completions.responseText rslt
         }
 
     let docSearchTerms parms modelsConfig ch dispatch =
@@ -227,7 +268,7 @@ module DocQnA =
                     |> Option.bind (fun d-> d.DocumentText) 
                     |> Option.defaultWith (fun  _-> failwith "no document found")  
                 dispatch (Srv_Ia_Notification(ch.Id,"Extracting search terms from document..."))
-                let! query = extractDocSearchTerms parms modelRefs ch document
+                let! query = extractDocSearchTerms parms modelsConfig modelRefs ch document
                 dispatch (Srv_Ia_SetSearch(ch.Id,query))
                 return query 
             with ex ->
@@ -236,19 +277,17 @@ module DocQnA =
 
     let summarizeWholeDocument parms modelsConfig ch document dispatch =
         async {
-            let! renderedPrompt = SKernel.renderPrompt Prompts.DocQnA.summarizeDocument (SKernel.kernelArgsDefault ["input",document]) |> Async.AwaitTask
             let modelRefs = Models.lowcostModels modelsConfig ch.Parameters.Backend 
-            let k = (SKernel.baseKernel parms modelRefs ch).Build()
-            let args = SKernel.kernelArgs ["input",document] (fun x -> x.MaxTokens <- 1000)
-            let fn = k.CreateFunctionFromPrompt(Prompts.DocQnA.summarizeDocument)
-            let! resp = fn.InvokeAsync(k,args) |> Async.AwaitTask
-            return resp.GetValue<string>()
+            let modelRef = Models.pick modelRefs
+            let! resp =
+                completePromptWithModel parms modelsConfig ch modelRef Prompts.DocQnA.summarizeDocument ["input",document] (Some 1000) None
+            return Completions.responseText resp
         }
 
     let summarizeDocumentInChunks parms modelsConfig ch (document:string) dispatch =
         async {
             dispatch (Srv_Ia_Notification(ch.Id,$"Document is large. Summarizing document in chunks.... It may take a while."))
-            let chunks =  TextChunker.SplitPlainTextParagraphs(ResizeArray [document],5000,100)
+            let chunks = chunkTextByParagraphs 5000 100 document
             let summaries = 
                 chunks
                 |> Seq.map(fun c -> summarizeWholeDocument parms modelsConfig ch c dispatch)
@@ -262,7 +301,7 @@ module DocQnA =
 
     let summarizeDocument parms modelsConfig ch (document:string) dispatch =
         async {
-            let! renderedPrompt = SKernel.renderPrompt Prompts.DocQnA.summarizeDocument (SKernel.kernelArgsDefault ["input",document]) |> Async.AwaitTask
+            let! renderedPrompt = renderPrompt Prompts.DocQnA.summarizeDocument ["input",document] |> Async.AwaitTask
             let docTokenSize = Tokens.tokenSize renderedPrompt
             let tknBudget = Tokens.tokenBudget modelsConfig ch
             if docTokenSize > tknBudget then 
@@ -352,8 +391,9 @@ module DocQnA =
                 match cachedTerms with 
                 | None -> docSearchTerms parms modelsConfig ch dispatch |> Async.AwaitTask
                 | Some x -> async{return x}
-            let docSearchMode = SemanticVectorSearch.SearchMode.Hybrid  //default to hybrid mode for document based search
-            let cogMems = IndexQnA.chatPdfMemories parms modelsConfig ch docSearchMode
+            let docSearchMode = VectorSearch.SearchMode.Hybrid  //default to hybrid mode for document based search
+            let searchIndexes = IndexQnA.chatPdfSearchIndexes parms ch
+            let embeddingClient = GenUtils.getEmbeddingGenerator parms modelsConfig ch
             let maxDocs = Interaction.maxDocs 1 ch
             let qMsg = query.Substring(0,min 100 (query.Length-1))  
             dispatch (Srv_Ia_Notification (ch.Id,$"Document + index search mode ..."))
@@ -374,7 +414,7 @@ module DocQnA =
 
             let query = query + " " + rephrasedQuestion
 
-            let docs = GenUtils.searchResults maxDocs query cogMems
+            let! docs = GenUtils.searchResults embeddingClient docSearchMode maxDocs query searchIndexes
             dispatch (Srv_Ia_Notification(ch.Id,$"{docs.Length} query results found. Generating answer..."))
             dispatch (Srv_Ia_SetDocs (ch.Id,docs))
             do! Async.Sleep 100

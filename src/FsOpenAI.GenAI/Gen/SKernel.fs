@@ -1,79 +1,60 @@
 module FsOpenAI.GenAI.SKernel
-open Microsoft.SemanticKernel
-open Microsoft.Extensions.Logging
-open Microsoft.SemanticKernel.Connectors.OpenAI
-open Microsoft.Extensions.DependencyInjection
-open FSharp.Control
+open System
+open System.Collections.Generic
+open System.Text.RegularExpressions
 open FsOpenAI.Shared
-open FsOpenAI.GenAI.Endpoints
-open FsOpenAI.GenAI.ChatUtils
+
+type PromptExecutionSettings =
+    {
+        mutable MaxTokens : int
+        mutable ResponseFormat : Type option
+    }
+
+type KernelArguments =
+    {
+        Values : IReadOnlyDictionary<string, string>
+        Settings : PromptExecutionSettings
+    }
 
 [<RequireQualifiedAccess>]
 module SKernel =
-    let logger =
-        {new ILogger with
-             member this.BeginScope(state) = raise (System.NotImplementedException())
-             member this.IsEnabled(logLevel) = true
-             member this.Log(logLevel, eventId, state, ``exception``, formatter) =
-                let msg = formatter.Invoke(state,``exception``)
-                printfn "Kernel: %s" msg
+    let private buildValues (args:(string * string) seq) =
+        let values = Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        for (key, value) in args do
+            values[key] <- if isNull value then String.Empty else value
+        values :> IReadOnlyDictionary<string, string>
+
+    let kernelArgsFrom (_:ServiceSettings) (ch:Interaction) (args:(string*string) seq) =
+        {
+            Values = buildValues args
+            Settings = { MaxTokens = ch.Parameters.MaxTokens; ResponseFormat = None }
         }
-
-    let loggerFactory =
-        {new ILoggerFactory with
-             member this.AddProvider(provider) = ()
-             member this.CreateLogger(categoryName) = logger
-             member this.Dispose() = ()
-        }
-
-    let promptSettings (parms:ServiceSettings) (ch:Interaction) =
-        new OpenAIPromptExecutionSettings(
-            MaxTokens = ch.Parameters.MaxTokens,
-            Temperature = (ChatUtils.temperature ch.Parameters.Mode |> float),
-            TopP = 1)
-
-    let baseKernel (parms:ServiceSettings) (modelRefs:ModelRef list) (ch:Interaction) =
-        let chatModel = modelRefs.Head.Model
-        let builder = Kernel.CreateBuilder()
-        builder.Services.AddLogging(fun c -> c.AddConsole().SetMinimumLevel(LogLevel.Information) |>ignore) |> ignore
-        let ep = Endpoints.endpoint parms ch.Parameters.Backend
-        match ch.Parameters.Backend.Name with
-        | KnownBackends.AzureOpenAI ->
-            builder.AddAzureOpenAIChatCompletion(deploymentName = chatModel,endpoint = ep.ENDPOINT, apiKey = ep.API_KEY)
-        | KnownBackends.OpenAI ->
-            builder.AddOpenAIChatCompletion(chatModel,apiKey = ep.API_KEY)
-        | x -> 
-            builder.AddOpenAIChatCompletion(chatModel,endpoint=System.Uri ep.ENDPOINT,apiKey = ep.API_KEY)
-
-    let kernelArgsFrom parms ch (args:(string*string) seq) =
-        let sttngs = promptSettings parms ch
-        let kargs = KernelArguments(sttngs)
-        for (k,v) in args do
-            kargs.Add(k,v)
-        kargs
 
     let kernelArgsDefault (args:(string*string) seq) =
-        let sttngs = new OpenAIPromptExecutionSettings(MaxTokens = 150, TopP = 1)
-        let kargs = KernelArguments(sttngs)
-        for (k,v) in args do
-            kargs.Add(k,v)
-        kargs
+        {
+            Values = buildValues args
+            Settings = { MaxTokens = 150; ResponseFormat = None }
+        }
 
-    let kernelArgs (args:(string*string) seq) (overrides:OpenAIPromptExecutionSettings->unit) =
+    let kernelArgs (args:(string*string) seq) (overrides:PromptExecutionSettings->unit) =
         let args = kernelArgsDefault args
-        args.ExecutionSettings
-        |> Seq.iter(fun kv ->
-            let sttngs = (kv.Value :?> OpenAIPromptExecutionSettings)
-            overrides sttngs)
+        overrides args.Settings
         args
+
+    let private restoreLiteralBraces (prompt:string) =
+        prompt
+            .Replace("{{ '{{' }}", "{{")
+            .Replace("{{ '}}' }}", "}}")
 
     let renderPrompt (prompt:string) (args:KernelArguments) =
         task {
-            let k = Kernel.CreateBuilder().Build()
-            let fac = KernelPromptTemplateFactory()
-            let cfg = PromptTemplateConfig(template = prompt)
-            let pt = fac.Create(cfg)
-            let! rslt = pt.RenderAsync(k,args) |> Async.AwaitTask
-            return rslt
+            let rendered =
+                Regex.Replace(
+                    restoreLiteralBraces prompt,
+                    @"\{\{\s*\$([A-Za-z0-9_]+)\s*\}\}",
+                    MatchEvaluator(fun m ->
+                        match args.Values.TryGetValue(m.Groups.[1].Value) with
+                        | true, value -> value
+                        | _ -> String.Empty))
+            return rendered
         }
-

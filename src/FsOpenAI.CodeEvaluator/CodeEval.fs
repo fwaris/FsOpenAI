@@ -115,7 +115,7 @@ module CodeEval =
         let genCode parms invCtx ch dispatch =
             async {
                 let! resp = Completions.completeChat parms invCtx ch dispatch None None
-                let code = GenUtils.extractCode resp.Content
+                let code = Completions.responseText resp |> GenUtils.extractCode
                 Env.logInfo $"Generated id={ch.Id}\n{code}"
                 return code
             }
@@ -131,7 +131,7 @@ module CodeEval =
                         |> Option.map(fun p -> ch |> Interaction.setSystemMessage p) 
                         |> Option.defaultValue ch
                 let! resp = Completions.completeChat parms invCtx ch dispatch None None
-                let reCode = GenUtils.extractCode resp.Content
+                let reCode = Completions.responseText resp |> GenUtils.extractCode
                 Env.logInfo $"Re-generated id={ch.Id}\n{reCode}"
                 return reCode
             }
